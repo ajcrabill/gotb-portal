@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOTB Index: Certified Assessment — Effective School Boards</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --esb-dark: #2c3e50;
+    --esb-blue: #3a6ea8;
+    --esb-blue-light: #4d82c0;
+    --esb-blue-dark: #2a5285;
+    --esb-amber: #e8a000;
+    --esb-amber-light: #f5b833;
+    --esb-amber-dark: #c07800;
+    --esb-bg: #f5f6f8;
+    --esb-surface: #ffffff;
+    --esb-border: #dde2ea;
+    --esb-border-strong: #c5ccd8;
+    --esb-text: #1a2533;
+    --esb-text-secondary: #4a5568;
+    --esb-text-muted: #718096;
+    --esb-success: #276749;
+    --esb-success-bg: #e8f5ee;
+    --esb-error: #9b2c2c;
+    --esb-error-bg: #fff5f5;
+    --esb-warning: #7b4a00;
+    --esb-warning-bg: #fffaf0;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08);
+    --transition: 150ms ease;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--esb-text);
+    background: var(--esb-bg);
+  }
+
+  /* ─── Layout ─── */
+  #app { min-height: 100vh; display: flex; flex-direction: column; }
+
+  .topbar {
+    background: var(--esb-dark);
+    color: #fff;
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    border-bottom: 3px solid var(--esb-amber);
+  }
+  .topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar-logo svg { flex-shrink: 0; }
+  .topbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.2;
+  }
+  .topbar-subtitle {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .user-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 4px 12px 4px 8px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.9);
+  }
+  .user-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--esb-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .main-content { flex: 1; padding: 2.5rem 2rem; }
+
+  /* ─── Buttons ─── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all var(--transition);
+    text-decoration: none;
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--esb-blue);
+    color: #fff;
+    border-color: var(--esb-blue-dark);
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--esb-blue-dark); }
+  .btn-secondary {
+    background: var(--esb-surface);
+    color: var(--esb-text);
+    border-color: var(--esb-border-strong);
+  }
+  .btn-secondary:hover:not(:disabled) { background: var(--esb-bg); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--esb-text-secondary);
+    border-color: transparent;
+  }
+  .btn-ghost:hover:not(:disabled) { background: var(--esb-bg); color: var(--esb-text); }
+  .btn-danger {
+    background: #fff;
+    color: var(--esb-error);
+    border-color: #fecaca;
+  }
+  .btn-danger:hover:not(:disabled) { background: var(--esb-error-bg); }
+  .btn-amber {
+    background: var(--esb-amber);
+    color: #fff;
+    border-color: var(--esb-amber-dark);
+  }
+  .btn-amber:hover:not(:disabled) { background: var(--esb-amber-dark); }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+  .btn-lg { padding: 12px 24px; font-size: 15px; }
+  .btn-block { width: 100%; }
+
+  /* ─── Forms ─── */
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 13px; font-weight: 500; color: var(--esb-text-secondary); }
+  .form-input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--esb-border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--esb-text);
+    background: var(--esb-surface);
+    transition: border-color var(--transition);
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--esb-blue); box-shadow: 0 0 0 3px rgba(58,110,168,0.12); }
+  .form-input::placeholder { color: var(--esb-text-muted); }
+  textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+  /* ─── Alerts ─── */
+  .alert {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .alert-error { background: var(--esb-error-bg); color: var(--esb-error); border-color: #fecaca; }
+  .alert-success { background: var(--esb-success-bg); color: var(--esb-success); border-color: #9ae6b4; }
+  .alert-info { background: #ebf4ff; color: #1e40af; border-color: #bfdbfe; }
+  .alert-warning { background: var(--esb-warning-bg); color: var(--esb-warning); border-color: #fed7aa; }
+  .alert svg { flex-shrink: 0; margin-top: 1px; }
+
+  /* ─── Cards ─── */
+  .card {
+    background: var(--esb-surface);
+    border: 1px solid var(--esb-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--esb-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--esb-text); }
+  .card-subtitle { font-size: 13px; color: var(--esb-text-muted); margin-top: 2px; }
+  .card-body { padding: 20px; }
+
+  /* ─── Badges ─── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-gray { background: #f3f4f6; color: #374151; }
+  .badge-purple { background: #ede9fe; color: #5b21b6; }
+
+  /* ─── Loading ─── */
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2.5px solid var(--esb-border);
+    border-top-color: var(--esb-blue);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-state {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--esb-text-muted);
+    font-size: 14px;
+    padding: 32px;
+    justify-content: center;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--esb-text-muted);
+  }
+  .empty-state-icon {
+    width: 48px; height: 48px;
+    background: var(--esb-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
+  .empty-state h3 { font-size: 15px; font-weight: 600; color: var(--esb-text-secondary); margin-bottom: 4px; }
+  .empty-state p { font-size: 13px; }
+
+  /* ─── Tables ─── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .data-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--esb-bg);
+    color: var(--esb-text-muted);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--esb-border);
+    white-space: nowrap;
+    user-select: none;
+  }
+  .data-table th.sortable { cursor: pointer; }
+  .data-table th.sortable:hover { color: var(--esb-blue); }
+  .data-table th .sort-icon { margin-left: 4px; opacity: 0.4; }
+  .data-table th.sort-asc .sort-icon, .data-table th.sort-desc .sort-icon { opacity: 1; color: var(--esb-blue); }
+  .data-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--esb-border);
+    color: var(--esb-text);
+    vertical-align: middle;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #f8fafd; }
+  .data-table tr.clickable { cursor: pointer; }
+
+  /* ─── Tabs ─── */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 2px solid var(--esb-border);
+    margin-bottom: 24px;
+  }
+  .tab-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--esb-text-muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--esb-blue); }
+  .tab-btn.active { color: var(--esb-blue); border-bottom-color: var(--esb-blue); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ─── Score visuals ─── */
+  .score-circle {
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 6px solid var(--esb-blue);
+    background: #ebf4ff;
+  }
+  .score-number { font-size: 28px; font-weight: 700; color: var(--esb-blue); line-height: 1; }
+  .score-max { font-size: 12px; color: var(--esb-text-muted); margin-top: 2px; }
+
+  .area-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .area-bar-label { font-size: 13px; color: var(--esb-text-secondary); width: 160px; flex-shrink: 0; }
+  .area-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--esb-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .area-bar-fill {
+    height: 100%;
+    background: var(--esb-blue);
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+  .area-bar-score { font-size: 13px; font-weight: 600; color: var(--esb-text); width: 60px; text-align: right; flex-shrink: 0; }
+
+  /* ─── Landing page ─── */
+  .landing-hero {
+    text-align: center;
+    padding: 48px 24px 36px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .landing-hero h1 {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--esb-dark);
+    margin-bottom: 10px;
+    line-height: 1.25;
+  }
+  .landing-hero p {
+    font-size: 16px;
+    color: var(--esb-text-secondary);
+    line-height: 1.6;
+  }
+  .entry-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto 48px;
+    padding: 0 24px;
+  }
+  .entry-card {
+    background: var(--esb-surface);
+    border: 1.5px solid var(--esb-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    transition: box-shadow var(--transition), border-color var(--transition);
+  }
+  .entry-card:hover { box-shadow: var(--shadow-md); border-color: var(--esb-blue); }
+  .entry-card-icon {
+    width: 48px; height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+  }
+  .entry-card h2 { font-size: 17px; font-weight: 700; color: var(--esb-text); margin-bottom: 8px; }
+  .entry-card p { font-size: 13.5px; color: var(--esb-text-secondary); line-height: 1.6; flex: 1; margin-bottom: 20px; }
+  .entry-card-features {
+    list-style: none;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .entry-card-features li {
+    font-size: 12.5px;
+    color: var(--esb-text-muted);
+    padding-left: 18px;
+    position: relative;
+  }
+  .entry-card-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--esb-blue);
+    font-weight: 700;
+    font-size: 11px;
+  }
+
+  /* OTP inline form in entry card */
+  .otp-flow { margin-top: 0; }
+  .otp-step { display: none; flex-direction: column; gap: 10px; }
+  .otp-step.active { display: flex; }
+  .otp-back {
+    background: none;
+    border: none;
+    color: var(--esb-text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 2px;
+  }
+  .otp-back:hover { color: var(--esb-blue); }
+  .otp-hint { font-size: 12px; color: var(--esb-text-muted); }
+
+  /* ─── Dashboard layouts ─── */
+  .dashboard { max-width: 1200px; margin: 0 auto; }
+  .dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .dashboard-header h1 { font-size: 22px; font-weight: 700; color: var(--esb-dark); }
+  .dashboard-header-meta { font-size: 13px; color: var(--esb-text-muted); margin-top: 2px; }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--esb-surface);
+    border: 1px solid var(--esb-border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+  }
+  .stat-label { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--esb-text-muted); margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--esb-dark); line-height: 1; }
+  .stat-sub { font-size: 12px; color: var(--esb-text-muted); margin-top: 4px; }
+
+  /* ─── Question editor ─── */
+  .area-section { margin-bottom: 32px; }
+  .area-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--esb-border);
+  }
+  .area-name { font-size: 16px; font-weight: 700; color: var(--esb-dark); }
+  .area-weight { font-size: 12px; color: var(--esb-text-muted); }
+  .question-editor {
+    background: var(--esb-surface);
+    border: 1px solid var(--esb-border);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .question-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--esb-bg);
+    border-bottom: 1px solid var(--esb-border);
+    gap: 12px;
+  }
+  .question-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--esb-blue);
+    background: #dbeafe;
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .question-body { padding: 14px 16px; }
+  .choices-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .choice-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .choice-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--esb-text-muted);
+    width: 22px;
+    flex-shrink: 0;
+  }
+
+  /* ─── Submission detail panel ─── */
+  .panel-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 100;
+    display: none;
+    align-items: flex-start;
+    justify-content: flex-end;
+  }
+  .panel-overlay.open { display: flex; }
+  .slide-panel {
+    width: 520px;
+    max-width: 90vw;
+    height: 100vh;
+    background: var(--esb-surface);
+    box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .slide-panel-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--esb-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--esb-surface);
+    z-index: 1;
+  }
+  .slide-panel-body { padding: 20px; flex: 1; }
+
+  .close-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--esb-border);
+    background: var(--esb-surface);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--esb-text-muted);
+    transition: all var(--transition);
+  }
+  .close-btn:hover { background: var(--esb-bg); color: var(--esb-text); }
+
+  /* ─── Practitioner ─── */
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .search-input-wrap { position: relative; flex: 1; min-width: 180px; }
+  .search-input-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--esb-text-muted); }
+  .search-input-wrap input { padding-left: 32px; }
+
+  /* ─── Client result ─── */
+  .result-hero {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    background: var(--esb-bg);
+    border-radius: var(--radius-md);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .result-meta h2 { font-size: 18px; font-weight: 700; color: var(--esb-dark); margin-bottom: 4px; }
+  .result-meta p { font-size: 14px; color: var(--esb-text-muted); }
+
+  /* ─── Rating labels ─── */
+  .rating-excellent { color: #065f46; font-weight: 600; }
+  .rating-good { color: #1e40af; font-weight: 600; }
+  .rating-developing { color: #92400e; font-weight: 600; }
+  .rating-beginning { color: #991b1b; font-weight: 600; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 800px) {
+    .entry-cards { grid-template-columns: 1fr; max-width: 420px; }
+    .topbar { padding: 0 1rem; }
+    .main-content { padding: 1.5rem 1rem; }
+    .choices-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .data-table th, .data-table td { padding: 8px 10px; }
+  }
+
+  /* ─── Util ─── */
+  .hidden { display: none !important; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .mb-1 { margin-bottom: 4px; }
+  .mb-2 { margin-bottom: 8px; }
+  .mb-3 { margin-bottom: 12px; }
+  .mb-4 { margin-bottom: 16px; }
+  .mb-6 { margin-bottom: 24px; }
+  .text-sm { font-size: 13px; }
+  .text-muted { color: var(--esb-text-muted); }
+  .text-right { text-align: right; }
+  .font-bold { font-weight: 700; }
+  .divider { border: none; border-top: 1px solid var(--esb-border); margin: 20px 0; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="7" fill="#3a6ea8"/>
+        <rect x="7" y="7" width="18" height="3" rx="1.5" fill="#e8a000"/>
+        <rect x="7" y="12.5" width="12" height="3" rx="1.5" fill="white" opacity="0.7"/>
+        <rect x="7" y="18" width="15" height="3" rx="1.5" fill="white" opacity="0.7"/>
+        <rect x="7" y="23.5" width="9" height="1.5" rx="0.75" fill="white" opacity="0.4"/>
+      </svg>
+      <div>
+        <div class="topbar-title">GOTB Index: Certified Assessment</div>
+        <div class="topbar-subtitle">Effective School Boards</div>
+      </div>
+    </div>
+    <div class="topbar-right" id="topbar-right">
+      <!-- populated by JS -->
+    </div>
+  </header>
+
+  <!-- Main content area -->
+  <main class="main-content" id="main-content">
+    <!-- sections injected by JS -->
+  </main>
+</div>
+
+<!-- ─── SLIDE PANEL (submission detail) ─── -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanelOverlay(event)">
+  <div class="slide-panel" id="slide-panel">
+    <div class="slide-panel-header">
+      <div>
+        <div class="card-title" id="panel-title">Submission Detail</div>
+        <div class="card-subtitle" id="panel-subtitle"></div>
+      </div>
+      <button class="close-btn" onclick="closePanel()" aria-label="Close panel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="slide-panel-body" id="panel-body"></div>
+  </div>
+</div>
+
+<script>
+const API = 'https://esbcloud.taild49f53.ts.net:8443';
+
+// ─── Practice areas config ───
+const AREAS = [
+  { id: 0, name: 'Focus Mindset',       maxWeight: 10 },
+  { id: 1, name: 'Clarify Priorities',  maxWeight: 35 },
+  { id: 2, name: 'Monitor Progress',    maxWeight: 30 },
+  { id: 3, name: 'Align Resources',     maxWeight: 20 },
+  { id: 4, name: 'Communicate Results', maxWeight: 5  },
+];
+
+// ─── State ───
+let currentUser = null;
+let currentSection = null;
+let submissionsData = [];
+let sortCol = 'date';
+let sortDir = 'desc';
+let filterText = '';
+let questionsData = { free: [], paid: [] };
+let questionsModified = false;
+const emailContent = { free: null, paid: null, free_loaded: false, paid_loaded: false };
+
+const AREA_META = [
+  { id: 'focus',       label: 'Focus Mindset' },
+  { id: 'priorities',  label: 'Clarify Priorities' },
+  { id: 'monitor',     label: 'Monitor Progress' },
+  { id: 'align',       label: 'Align Resources' },
+  { id: 'communicate', label: 'Communicate Results' },
+];
+const LEVELS = [
+  { id: 'ineffective',      label: 'Ineffective',      color: '#e57373' },
+  { id: 'emerging',         label: 'Emerging',          color: '#e07b00' },
+  { id: 'effective',        label: 'Effective',         color: '#43a047' },
+  { id: 'highly_effective', label: 'Highly Effective',  color: '#3a6ea8' },
+];
+let clientSubmissions = [];
+
+// ─── Token helpers ───
+function getToken() { return localStorage.getItem('gotb_token'); }
+function setToken(t) { localStorage.setItem('gotb_token', t); }
+function getUser() {
+  const u = localStorage.getItem('gotb_user');
+  return u ? JSON.parse(u) : null;
+}
+function setUser(u) { localStorage.setItem('gotb_user', JSON.stringify(u)); }
+function clearAuth() {
+  localStorage.removeItem('gotb_token');
+  localStorage.removeItem('gotb_user');
+  currentUser = null;
+}
+
+// ─── API helpers ───
+async function api(method, path, body = null, auth = true) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (auth) {
+    const tok = getToken();
+    if (tok) opts.headers['Authorization'] = `Bearer ${tok}`;
+  }
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${API}${path}`, opts);
+  if (res.status === 401) {
+    clearAuth();
+    renderApp();
+    throw new Error('Session expired');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+// ─── Routing ───
+function getSection() {
+  const h = location.hash.replace('#', '');
+  return ['admin', 'practitioner', 'client'].includes(h) ? h : null;
+}
+function setSection(s) {
+  if (s) location.hash = s;
+  else history.replaceState(null, '', location.pathname);
+}
+
+window.addEventListener('hashchange', () => renderApp());
+
+// ─── Init ───
+async function init() {
+  currentUser = getUser();
+  if (currentUser && getToken()) {
+    try {
+      const me = await api('GET', '/auth/me');
+      currentUser = me;
+      setUser(me);
+    } catch(e) {
+      currentUser = null;
+    }
+  }
+  renderApp();
+}
+
+function renderApp() {
+  currentUser = getUser();
+  const section = getSection();
+
+  renderTopbar();
+
+  if (!currentUser) {
+    renderLanding();
+    return;
+  }
+
+  // Determine where to send authenticated user
+  if (currentUser.is_admin) {
+    if (!section || section === 'admin') {
+      setSection('admin');
+      renderAdminDashboard();
+    } else {
+      renderLanding();
+    }
+  } else if (hasFeature('gotb-practitioner')) {
+    if (!section || section === 'practitioner') {
+      setSection('practitioner');
+      renderPractitionerDashboard();
+    } else {
+      renderLanding();
+    }
+  } else {
+    setSection('client');
+    renderClientDashboard();
+  }
+}
+
+function hasFeature(slug) {
+  if (!currentUser || !currentUser.features) return false;
+  return currentUser.features.some(f => (typeof f === 'string' ? f : f.slug) === slug);
+}
+
+function userInitials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+}
+
+function renderTopbar() {
+  const el = document.getElementById('topbar-right');
+  if (!currentUser) {
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = `
+    <div class="user-pill">
+      <div class="user-avatar">${userInitials(currentUser.name || currentUser.email)}</div>
+      <span>${escHtml(currentUser.name || currentUser.email)}</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,0.7)" onclick="logout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
+    </button>
+  `;
+}
+
+function logout() {
+  clearAuth();
+  setSection(null);
+  renderApp();
+}
+
+// ─── SVG icons ───
+const ICONS = {
+  alertCircle: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+  checkCircle: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+  info: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`,
+  mail: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
+  save: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`,
+  arrow: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>`,
+};
+
+function escHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Rating ───
+function ratingForScore(score, max) {
+  const pct = (score / max) * 100;
+  if (pct >= 80) return { label: 'Excellent', cls: 'rating-excellent', badge: 'badge-green' };
+  if (pct >= 60) return { label: 'Good', cls: 'rating-good', badge: 'badge-blue' };
+  if (pct >= 40) return { label: 'Developing', cls: 'rating-developing', badge: 'badge-amber' };
+  return { label: 'Beginning', cls: 'rating-beginning', badge: 'badge-red' };
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// ═══════════════════════════════════════
+// LANDING PAGE
+// ═══════════════════════════════════════
+function renderLanding() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="landing-hero">
+      <h1>GOTB Index<br>Certified Assessment</h1>
+      <p>The Governance Outcomes for Teaching and Boards assessment measures board effectiveness across five practice areas. Sign in below to access your portal.</p>
+    </div>
+    <div class="entry-cards">
+      ${entryCard('admin', 'System Administrator', '#2c3e50', adminIcon(), [
+        'Edit free and paid assessment questions',
+        'Manage all practice areas and scoring',
+        'View all submitted assessments',
+        'Full system configuration access',
+      ])}
+      ${entryCard('practitioner', 'Certified Practitioner', '#3a6ea8', practitionerIcon(), [
+        'View all client self-assessment submissions',
+        'Review detailed results for any submission',
+        'Sort and filter by score, district, date',
+        'Track progress across all clients',
+      ])}
+      ${entryCard('client', 'Board / District Client', '#e8a000', clientIcon(), [
+        'View your board\'s assessment results',
+        'See scores by practice area',
+        'Review strengths and growth opportunities',
+        'Access your complete assessment history',
+      ])}
+    </div>
+    <div style="text-align:center; color: var(--esb-text-muted); font-size:13px; padding-bottom: 32px;">
+      &copy; ${new Date().getFullYear()} Effective School Boards · GOTB Index Certified Assessment
+    </div>
+  `;
+
+  // Attach OTP logic for each card
+  ['admin', 'practitioner', 'client'].forEach(type => attachOtpFlow(type));
+}
+
+function adminIcon() {
+  return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+}
+function practitionerIcon() {
+  return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>`;
+}
+function clientIcon() {
+  return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>`;
+}
+
+function entryCard(type, title, color, iconSvg, features) {
+  const descriptions = {
+    admin: 'Full administrative access to the GOTB assessment platform. Manage questions, view submissions, and configure the system.',
+    practitioner: 'Review and analyze client assessment submissions. Access to all boards and districts you work with.',
+    client: 'View your board\'s GOTB Index results, track progress, and understand your assessment scores.',
+  };
+  return `
+    <div class="entry-card" id="card-${type}">
+      <div class="entry-card-icon" style="background: ${color};">
+        ${iconSvg}
+      </div>
+      <h2>${escHtml(title)}</h2>
+      <p>${escHtml(descriptions[type])}</p>
+      <ul class="entry-card-features">
+        ${features.map(f => `<li>${escHtml(f)}</li>`).join('')}
+      </ul>
+      <div class="otp-flow" id="otp-flow-${type}">
+        <!-- Step 1: Enter email -->
+        <div class="otp-step active" id="otp-email-${type}">
+          <div id="otp-err-${type}"></div>
+          <div class="form-group">
+            <label class="form-label" for="otp-input-email-${type}">Email address</label>
+            <input class="form-input" type="email" id="otp-input-email-${type}" placeholder="you@district.org" autocomplete="email"/>
+          </div>
+          <button class="btn btn-primary btn-block" onclick="requestOtp('${type}')">
+            Send Access Code
+          </button>
+        </div>
+        <!-- Step 2: Enter code -->
+        <div class="otp-step" id="otp-code-${type}">
+          <button class="otp-back" onclick="resetOtp('${type}')">
+            ${ICONS.arrow} Back
+          </button>
+          <div id="otp-code-err-${type}"></div>
+          <div class="alert alert-info" style="margin-bottom:4px">
+            ${ICONS.mail}
+            <span id="otp-sent-msg-${type}">A 6-digit code has been sent to your email.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="otp-input-code-${type}">Access code</label>
+            <input class="form-input" type="text" id="otp-input-code-${type}" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="letter-spacing:0.2em; font-size:18px; text-align:center;"/>
+          </div>
+          <button class="btn btn-primary btn-block" onclick="verifyOtp('${type}')">
+            Verify &amp; Sign In
+          </button>
+        </div>
+        <!-- Step 3: Loading -->
+        <div class="otp-step" id="otp-loading-${type}">
+          <div class="loading-state"><div class="spinner"></div> Signing in…</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function attachOtpFlow(type) {
+  const emailInput = document.getElementById(`otp-input-email-${type}`);
+  const codeInput = document.getElementById(`otp-input-code-${type}`);
+  if (emailInput) {
+    emailInput.addEventListener('keydown', e => { if (e.key === 'Enter') requestOtp(type); });
+  }
+  if (codeInput) {
+    codeInput.addEventListener('keydown', e => { if (e.key === 'Enter') verifyOtp(type); });
+    codeInput.addEventListener('input', e => {
+      e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
+    });
+  }
+}
+
+function otpStep(type, step) {
+  ['email','code','loading'].forEach(s => {
+    const el = document.getElementById(`otp-${s}-${type}`);
+    if (el) el.classList.toggle('active', s === step);
+  });
+}
+
+function showOtpError(type, step, msg) {
+  const id = step === 'email' ? `otp-err-${type}` : `otp-code-err-${type}`;
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = `<div class="alert alert-error mb-2">${ICONS.alertCircle} ${escHtml(msg)}</div>`;
+}
+
+function resetOtp(type) {
+  otpStep(type, 'email');
+  const errEls = [`otp-err-${type}`, `otp-code-err-${type}`];
+  errEls.forEach(id => { const e = document.getElementById(id); if(e) e.innerHTML=''; });
+  const code = document.getElementById(`otp-input-code-${type}`);
+  if (code) code.value = '';
+}
+
+async function requestOtp(type) {
+  const emailEl = document.getElementById(`otp-input-email-${type}`);
+  const email = emailEl ? emailEl.value.trim() : '';
+  const errEl = document.getElementById(`otp-err-${type}`);
+  if (errEl) errEl.innerHTML = '';
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showOtpError(type, 'email', 'Please enter a valid email address.');
+    return;
+  }
+
+  // disable button
+  const btn = emailEl.closest('.otp-step').querySelector('.btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+  try {
+    await api('POST', '/auth/request', { email }, false);
+    const sentMsg = document.getElementById(`otp-sent-msg-${type}`);
+    if (sentMsg) sentMsg.textContent = `A 6-digit code has been sent to ${email}.`;
+    otpStep(type, 'code');
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Access Code'; }
+    showOtpError(type, 'email', e.message || 'Failed to send code. Please try again.');
+  }
+}
+
+async function verifyOtp(type) {
+  const emailEl = document.getElementById(`otp-input-email-${type}`);
+  const codeEl = document.getElementById(`otp-input-code-${type}`);
+  const email = emailEl ? emailEl.value.trim() : '';
+  const code = codeEl ? codeEl.value.trim() : '';
+
+  if (!code || code.length < 6) {
+    showOtpError(type, 'code', 'Please enter the 6-digit code from your email.');
+    return;
+  }
+
+  const btn = codeEl.closest('.otp-step').querySelector('.btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
+
+  try {
+    const res = await api('POST', '/auth/verify', { email, code }, false);
+    if (!res.ok || !res.token) throw new Error('Verification failed');
+    setToken(res.token);
+    setUser(res.user);
+    currentUser = res.user;
+    otpStep(type, 'loading');
+    await new Promise(r => setTimeout(r, 400));
+    renderApp();
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Verify & Sign In'; }
+    showOtpError(type, 'code', e.message || 'Invalid or expired code. Please try again.');
+  }
+}
+
+// ═══════════════════════════════════════
+// ADMIN DASHBOARD
+// ═══════════════════════════════════════
+function renderAdminDashboard() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="dashboard">
+      <div class="dashboard-header">
+        <div>
+          <h1>Admin Dashboard</h1>
+          <div class="dashboard-header-meta">Signed in as ${escHtml(currentUser.email)} · Administrator</div>
+        </div>
+        <span class="badge badge-purple">Administrator</span>
+      </div>
+
+      <div class="tabs" id="admin-tabs">
+        <button class="tab-btn active" onclick="adminTab('free-questions')" data-tab="free-questions">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Free Questions
+        </button>
+        <button class="tab-btn" onclick="adminTab('paid-questions')" data-tab="paid-questions">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          Paid Questions
+        </button>
+        <button class="tab-btn" onclick="adminTab('submissions')" data-tab="submissions">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Submissions
+        </button>
+        <button class="tab-btn" onclick="adminTab('free-content')" data-tab="free-content">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Free Email Content
+        </button>
+        <button class="tab-btn" onclick="adminTab('paid-content')" data-tab="paid-content">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Paid Email Content
+        </button>
+      </div>
+
+      <div id="tab-free-questions" class="tab-content active">
+        <div class="loading-state"><div class="spinner"></div> Loading questions…</div>
+      </div>
+      <div id="tab-paid-questions" class="tab-content">
+        <div class="loading-state"><div class="spinner"></div> Loading questions…</div>
+      </div>
+      <div id="tab-submissions" class="tab-content">
+        <div class="loading-state"><div class="spinner"></div> Loading submissions…</div>
+      </div>
+      <div id="tab-free-content" class="tab-content">
+        <div class="loading-state"><div class="spinner"></div> Loading content…</div>
+      </div>
+      <div id="tab-paid-content" class="tab-content">
+        <div class="loading-state"><div class="spinner"></div> Loading content…</div>
+      </div>
+    </div>
+  `;
+
+  loadAdminData();
+}
+
+function adminTab(name) {
+  document.querySelectorAll('#admin-tabs .tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => {
+    c.classList.toggle('active', c.id === `tab-${name}`);
+  });
+  if (name === 'submissions' && submissionsData.length === 0) {
+    loadAdminSubmissions();
+  }
+  if (name === 'free-content' && !emailContent.free_loaded) loadContent('free');
+  if (name === 'paid-content' && !emailContent.paid_loaded) loadContent('paid');
+}
+
+async function loadAdminData() {
+  try {
+    const data = await api('GET', '/gotb/questions');
+    questionsData = data;
+    renderQuestionEditor('free', data.free || buildDefaultQuestions('free'));
+    renderQuestionEditor('paid', data.paid || buildDefaultQuestions('paid'));
+  } catch(e) {
+    document.getElementById('tab-free-questions').innerHTML = renderApiError(e, 'Could not load questions');
+    document.getElementById('tab-paid-questions').innerHTML = renderApiError(e, 'Could not load questions');
+  }
+  loadAdminSubmissions();
+}
+
+function buildDefaultQuestions(tier) {
+  const questions = [];
+  AREAS.forEach((area, ai) => {
+    for (let i = 0; i < 4; i++) {
+      questions.push({
+        id: `${tier}-${ai}-${i}`,
+        area: ai,
+        text: `[${area.name}] Question ${i + 1}`,
+        choices: ['', '', '', ''],
+        weight: Math.ceil(area.maxWeight / 4),
+      });
+    }
+  });
+  return questions;
+}
+
+function renderQuestionEditor(tier, questions) {
+  const container = document.getElementById(`tab-${tier}-questions`);
+  const questionsByArea = {};
+  AREAS.forEach((a, idx) => { questionsByArea[idx] = []; });
+  questions.forEach(q => {
+    if (questionsByArea[q.area] !== undefined) questionsByArea[q.area].push(q);
+  });
+
+  let html = `
+    <div class="flex items-center gap-3 mb-6" style="justify-content:space-between; flex-wrap:wrap;">
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--esb-dark);">${tier === 'free' ? 'Free Assessment' : 'Paid Assessment'} — Question Editor</div>
+        <div class="text-sm text-muted">5 practice areas · 4 questions each · ${questions.length} total</div>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-secondary btn-sm" onclick="reloadQuestions('${tier}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Discard Changes
+        </button>
+        <button class="btn btn-primary btn-sm" id="save-${tier}-btn" onclick="saveQuestions('${tier}')">
+          ${ICONS.save} Save All Questions
+        </button>
+      </div>
+    </div>
+    <div id="save-${tier}-msg"></div>
+  `;
+
+  AREAS.forEach((area, ai) => {
+    const areaQs = questionsByArea[ai] || [];
+    html += `
+      <div class="area-section">
+        <div class="area-header">
+          <div class="area-name">${escHtml(area.name)}</div>
+          <div class="area-weight">Max weight: ${area.maxWeight} pts</div>
+        </div>
+    `;
+    areaQs.forEach((q, qi) => {
+      const qIndex = questions.indexOf(q);
+      const globalIdx = qIndex >= 0 ? qIndex : (ai * 4 + qi);
+      html += `
+        <div class="question-editor" id="qe-${tier}-${globalIdx}">
+          <div class="question-header">
+            <span class="question-num">Q${globalIdx + 1}</span>
+            <input class="form-input" type="text" placeholder="Question text…" value="${escHtml(q.text)}"
+              oninput="updateQuestion('${tier}', ${globalIdx}, 'text', this.value)"
+              style="flex:1; font-size:14px;"/>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-muted">Weight:</span>
+              <input class="form-input" type="number" min="0" max="100" value="${q.weight || ''}" placeholder="pts"
+                oninput="updateQuestion('${tier}', ${globalIdx}, 'weight', parseInt(this.value)||0)"
+                style="width:64px; text-align:center;"/>
+            </div>
+          </div>
+          <div class="question-body">
+            <div class="text-sm text-muted mb-2">Answer choices:</div>
+            <div class="choices-grid">
+              ${['A','B','C','D'].map((ltr, ci) => `
+                <div class="choice-row">
+                  <span class="choice-label">${ltr}.</span>
+                  <input class="form-input form-input-sm" type="text"
+                    placeholder="Choice ${ltr}…"
+                    value="${escHtml((q.choices || [])[ci] || '')}"
+                    oninput="updateChoice('${tier}', ${globalIdx}, ${ci}, this.value)"
+                    style="font-size:13px; padding: 7px 10px;"/>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function updateQuestion(tier, idx, field, val) {
+  if (!questionsData[tier]) return;
+  questionsData[tier][idx][field] = val;
+}
+
+function updateChoice(tier, idx, ci, val) {
+  if (!questionsData[tier]) return;
+  if (!questionsData[tier][idx].choices) questionsData[tier][idx].choices = ['','','',''];
+  questionsData[tier][idx].choices[ci] = val;
+}
+
+async function saveQuestions(tier) {
+  const btn = document.getElementById(`save-${tier}-btn`);
+  const msg = document.getElementById(`save-${tier}-msg`);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;"></div> Saving…'; }
+  if (msg) msg.innerHTML = '';
+
+  try {
+    await api('PUT', '/gotb/admin/questions', questionsData);
+    if (msg) msg.innerHTML = `<div class="alert alert-success mb-4">${ICONS.checkCircle} Questions saved successfully.</div>`;
+  } catch(e) {
+    if (msg) msg.innerHTML = `<div class="alert alert-error mb-4">${ICONS.alertCircle} ${escHtml(e.message || 'Save failed.')}</div>`;
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = `${ICONS.save} Save All Questions`; }
+  }
+}
+
+async function reloadQuestions(tier) {
+  const container = document.getElementById(`tab-${tier}-questions`);
+  container.innerHTML = `<div class="loading-state"><div class="spinner"></div> Reloading…</div>`;
+  try {
+    const data = await api('GET', '/gotb/questions');
+    questionsData = data;
+    renderQuestionEditor(tier, data[tier] || buildDefaultQuestions(tier));
+  } catch(e) {
+    container.innerHTML = renderApiError(e, 'Could not reload questions');
+  }
+}
+
+async function loadAdminSubmissions() {
+  const container = document.getElementById('tab-submissions');
+  try {
+    const data = await api('GET', '/gotb/submissions');
+    submissionsData = data || [];
+    renderSubmissionsTable(container, submissionsData, true);
+  } catch(e) {
+    container.innerHTML = renderApiError(e, 'Could not load submissions');
+  }
+}
+
+// ═══════════════════════════════════════
+// EMAIL CONTENT EDITOR
+// ═══════════════════════════════════════
+
+async function loadContent(tier) {
+  const container = document.getElementById(`tab-${tier}-content`);
+  if (!container) return;
+  container.innerHTML = `<div class="loading-state"><div class="spinner"></div> Loading content…</div>`;
+  try {
+    const data = await api('GET', '/gotb/content');
+    emailContent[tier] = JSON.parse(JSON.stringify(data[tier] || {}));
+    emailContent[`${tier}_loaded`] = true;
+    renderContentEditor(tier);
+  } catch(e) {
+    container.innerHTML = renderApiError(e, `Could not load ${tier} email content`);
+  }
+}
+
+function renderContentEditor(tier) {
+  const container = document.getElementById(`tab-${tier}-content`);
+  if (!container) return;
+  const tierLabel = tier === 'free' ? 'Free Self Assessment' : 'Paid Certified Assessment';
+  const content = emailContent[tier] || {};
+
+  let areasHtml = '';
+  AREA_META.forEach(area => {
+    let levelsHtml = '';
+    LEVELS.forEach(lvl => {
+      const lvlData = (content[area.id] && content[area.id][lvl.id]) || { diagnosis: '', recommendations: [] };
+      const recs = lvlData.recommendations || [];
+      const recsHtml = recs.map((r, i) => `
+        <div style="display:flex;gap:8px;margin-bottom:6px;">
+          <input type="text" class="form-input" value="${escHtml(r)}" style="flex:1;font-size:13px;"
+            oninput="setRec('${tier}','${area.id}','${lvl.id}',${i},this.value)">
+          <button class="btn btn-ghost btn-sm" onclick="removeRec('${tier}','${area.id}','${lvl.id}',${i})" style="color:#e57373;padding:4px 8px;flex-shrink:0;">✕</button>
+        </div>`).join('');
+
+      levelsHtml += `
+        <div style="border:1px solid #e5e5e5;border-radius:8px;margin-bottom:12px;overflow:hidden;">
+          <div style="background:#f5f5f5;padding:9px 16px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:8px;">
+            <span style="width:10px;height:10px;border-radius:50%;background:${lvl.color};display:inline-block;flex-shrink:0;"></span>
+            <span style="font-size:13px;font-weight:700;color:#2c3e50;">${lvl.label}</span>
+          </div>
+          <div style="padding:14px 16px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;display:block;margin-bottom:5px;">Diagnosis</label>
+            <textarea class="form-input" rows="5" style="width:100%;font-size:13px;line-height:1.6;resize:vertical;margin-bottom:12px;"
+              oninput="setDiagnosis('${tier}','${area.id}','${lvl.id}',this.value)">${escHtml(lvlData.diagnosis)}</textarea>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;display:block;margin-bottom:5px;">Recommended Next Steps</label>
+            <div id="recs-${tier}-${area.id}-${lvl.id}">${recsHtml}</div>
+            <button class="btn btn-ghost btn-sm" onclick="addRec('${tier}','${area.id}','${lvl.id}')" style="font-size:12px;color:#3a6ea8;margin-top:4px;">+ Add step</button>
+          </div>
+        </div>`;
+    });
+
+    areasHtml += `
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title">${area.label}</div></div>
+        <div style="padding:0 20px 16px;">${levelsHtml}</div>
+      </div>`;
+  });
+
+  container.innerHTML = `
+    <div id="content-msg-${tier}" style="margin-bottom:8px;"></div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:16px;">
+      <div>
+        <h3 style="margin:0 0 4px;font-size:15px;color:#1e3758;">${tierLabel} Email Content</h3>
+        <p style="margin:0;font-size:13px;color:#666;">Diagnosis paragraphs and recommended next steps sent to each respondent based on their score per practice area.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="btn btn-secondary btn-sm" onclick="reloadContent('${tier}')">Discard</button>
+        <button class="btn btn-primary btn-sm" id="save-content-btn-${tier}" onclick="saveContent('${tier}')">Save Content</button>
+      </div>
+    </div>
+    ${areasHtml}`;
+}
+
+function ensureContentNode(tier, areaId, level) {
+  if (!emailContent[tier]) emailContent[tier] = {};
+  if (!emailContent[tier][areaId]) emailContent[tier][areaId] = {};
+  if (!emailContent[tier][areaId][level]) emailContent[tier][areaId][level] = { diagnosis: '', recommendations: [] };
+}
+
+function setDiagnosis(tier, areaId, level, val) {
+  ensureContentNode(tier, areaId, level);
+  emailContent[tier][areaId][level].diagnosis = val;
+}
+
+function setRec(tier, areaId, level, idx, val) {
+  ensureContentNode(tier, areaId, level);
+  emailContent[tier][areaId][level].recommendations[idx] = val;
+}
+
+function addRec(tier, areaId, level) {
+  ensureContentNode(tier, areaId, level);
+  emailContent[tier][areaId][level].recommendations.push('');
+  renderContentEditor(tier);
+  // Re-focus the last added input
+  const container = document.getElementById(`recs-${tier}-${areaId}-${level}`);
+  if (container) { const inputs = container.querySelectorAll('input'); if (inputs.length) inputs[inputs.length-1].focus(); }
+}
+
+function removeRec(tier, areaId, level, idx) {
+  ensureContentNode(tier, areaId, level);
+  emailContent[tier][areaId][level].recommendations.splice(idx, 1);
+  renderContentEditor(tier);
+}
+
+async function saveContent(tier) {
+  const btn = document.getElementById(`save-content-btn-${tier}`);
+  const msg = document.getElementById(`content-msg-${tier}`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  if (msg) msg.innerHTML = '';
+  try {
+    await api('PUT', '/gotb/admin/content', {
+      free: emailContent.free || {},
+      paid: emailContent.paid || {},
+    });
+    if (msg) msg.innerHTML = `<div class="alert alert-success mb-4">Content saved successfully.</div>`;
+  } catch(e) {
+    if (msg) msg.innerHTML = `<div class="alert alert-error mb-4">${escHtml(e.message || 'Save failed.')}</div>`;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Content'; }
+  }
+}
+
+async function reloadContent(tier) {
+  emailContent[`${tier}_loaded`] = false;
+  loadContent(tier);
+}
+
+// ═══════════════════════════════════════
+// PRACTITIONER DASHBOARD
+// ═══════════════════════════════════════
+function renderPractitionerDashboard() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="dashboard">
+      <div class="dashboard-header">
+        <div>
+          <h1>Practitioner Dashboard</h1>
+          <div class="dashboard-header-meta">Signed in as ${escHtml(currentUser.email)}</div>
+        </div>
+        <span class="badge badge-blue">Certified Practitioner</span>
+      </div>
+
+      <div id="pract-stats" class="stat-row" style="display:none">
+        <div class="stat-card">
+          <div class="stat-label">Total Submissions</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-sub">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Average Score</div>
+          <div class="stat-value" id="stat-avg">—</div>
+          <div class="stat-sub">Out of 100</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Excellent Boards</div>
+          <div class="stat-value" id="stat-exc">—</div>
+          <div class="stat-sub">Score ≥ 80</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">This Month</div>
+          <div class="stat-value" id="stat-month">—</div>
+          <div class="stat-sub">New submissions</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">All Submissions</div>
+            <div class="card-subtitle">Click any row to view detailed results</div>
+          </div>
+          <div class="filter-row" style="margin:0;">
+            <div class="search-input-wrap" style="min-width:200px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input class="form-input" type="text" placeholder="Search name or district…" oninput="filterSubmissions(this.value)" style="padding-left:32px; height:36px; font-size:13px;"/>
+            </div>
+          </div>
+        </div>
+        <div id="submissions-table-wrap">
+          <div class="loading-state"><div class="spinner"></div> Loading submissions…</div>
+        </div>
+      </div>
+    </div>
+  `;
+  loadPractitionerSubmissions();
+}
+
+async function loadPractitionerSubmissions() {
+  try {
+    const data = await api('GET', '/gotb/submissions');
+    submissionsData = data || [];
+    updatePractitionerStats(submissionsData);
+    renderSubmissionsTable(document.getElementById('submissions-table-wrap'), submissionsData, false);
+  } catch(e) {
+    document.getElementById('submissions-table-wrap').innerHTML = renderApiError(e, 'Could not load submissions');
+  }
+}
+
+function updatePractitionerStats(data) {
+  const statsEl = document.getElementById('pract-stats');
+  if (!statsEl) return;
+  statsEl.style.display = '';
+
+  const total = data.length;
+  const avg = total > 0 ? Math.round(data.reduce((s, d) => s + (d.score || 0), 0) / total) : 0;
+  const exc = data.filter(d => (d.score || 0) >= 80).length;
+  const now = new Date();
+  const thisMonth = data.filter(d => {
+    const dt = new Date(d.submitted_at || d.date || 0);
+    return dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear();
+  }).length;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-avg').textContent = avg;
+  document.getElementById('stat-exc').textContent = exc;
+  document.getElementById('stat-month').textContent = thisMonth;
+}
+
+function filterSubmissions(text) {
+  filterText = text.toLowerCase();
+  const container = document.getElementById('submissions-table-wrap') || document.getElementById('tab-submissions');
+  if (container) renderSubmissionsTable(container, submissionsData, false);
+}
+
+function renderSubmissionsTable(container, data, isAdmin) {
+  const filtered = filterText
+    ? data.filter(d =>
+        (d.name||'').toLowerCase().includes(filterText) ||
+        (d.district||'').toLowerCase().includes(filterText) ||
+        (d.email||'').toLowerCase().includes(filterText)
+      )
+    : data;
+
+  const sorted = [...filtered].sort((a, b) => {
+    let av = a[sortCol], bv = b[sortCol];
+    if (sortCol === 'date' || sortCol === 'submitted_at') {
+      av = new Date(a.submitted_at || a.date || 0).getTime();
+      bv = new Date(b.submitted_at || b.date || 0).getTime();
+    }
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (av < bv) return sortDir === 'asc' ? -1 : 1;
+    if (av > bv) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  function sortHeader(col, label) {
+    const isActive = sortCol === col;
+    const dir = isActive ? (sortDir === 'asc' ? '↑' : '↓') : '↕';
+    const cls = isActive ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '';
+    return `<th class="sortable ${cls}" onclick="setSortCol('${col}')">${label} <span class="sort-icon">${dir}</span></th>`;
+  }
+
+  if (sorted.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--esb-text-muted)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <h3>${filterText ? 'No matching submissions' : 'No submissions yet'}</h3>
+        <p>${filterText ? 'Try adjusting your search terms.' : 'Submissions will appear here once clients complete assessments.'}</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            ${sortHeader('name', 'Name')}
+            ${sortHeader('district', 'District')}
+            ${sortHeader('score', 'Score')}
+            <th>Rating</th>
+            ${isAdmin ? sortHeader('email', 'Email') : ''}
+            ${sortHeader('submitted_at', 'Date')}
+            <th style="width:60px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map(sub => {
+            const r = ratingForScore(sub.score || 0, 100);
+            const date = fmtDate(sub.submitted_at || sub.date);
+            return `
+              <tr class="clickable" onclick="openSubmissionPanel(${JSON.stringify(sub).replace(/"/g,'&quot;')})">
+                <td><span style="font-weight:500;">${escHtml(sub.name || '—')}</span></td>
+                <td>${escHtml(sub.district || '—')}</td>
+                <td><strong>${sub.score != null ? sub.score : '—'}</strong><span class="text-muted">/100</span></td>
+                <td><span class="badge ${r.badge}">${r.label}</span></td>
+                ${isAdmin ? `<td class="text-sm text-muted">${escHtml(sub.email || '—')}</td>` : ''}
+                <td class="text-muted text-sm">${date}</td>
+                <td style="text-align:right;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--esb-text-muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="padding:12px 16px; border-top:1px solid var(--esb-border); font-size:12px; color:var(--esb-text-muted);">
+      Showing ${sorted.length} of ${data.length} submission${data.length !== 1 ? 's' : ''}
+    </div>
+  `;
+}
+
+function setSortCol(col) {
+  if (sortCol === col) {
+    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortCol = col;
+    sortDir = col === 'submitted_at' || col === 'date' ? 'desc' : 'asc';
+  }
+  const container = document.getElementById('submissions-table-wrap') || document.getElementById('tab-submissions');
+  if (container) renderSubmissionsTable(container, submissionsData, currentUser && currentUser.is_admin);
+}
+
+// ═══════════════════════════════════════
+// CLIENT DASHBOARD
+// ═══════════════════════════════════════
+function renderClientDashboard() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="dashboard" style="max-width:800px;">
+      <div class="dashboard-header">
+        <div>
+          <h1>Your Assessment Results</h1>
+          <div class="dashboard-header-meta">${escHtml(currentUser.email)}</div>
+        </div>
+        <span class="badge badge-gray">Client</span>
+      </div>
+      <div id="client-content">
+        <div class="loading-state"><div class="spinner"></div> Loading your results…</div>
+      </div>
+    </div>
+  `;
+  loadClientSubmissions();
+}
+
+async function loadClientSubmissions() {
+  try {
+    const data = await api('GET', '/gotb/client/submissions');
+    clientSubmissions = data || [];
+    renderClientContent(clientSubmissions);
+  } catch(e) {
+    document.getElementById('client-content').innerHTML = renderApiError(e, 'Could not load your results');
+  }
+}
+
+function renderClientContent(submissions) {
+  const container = document.getElementById('client-content');
+  if (!submissions || submissions.length === 0) {
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-body">
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--esb-text-muted)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+            </div>
+            <h3>No results yet</h3>
+            <p>Your GOTB Index assessment results will appear here once your practitioner submits your assessment.</p>
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Show most recent first, list previous ones
+  const [latest, ...previous] = [...submissions].sort((a, b) =>
+    new Date(b.submitted_at || b.date || 0) - new Date(a.submitted_at || a.date || 0)
+  );
+
+  container.innerHTML = `
+    ${renderResultCard(latest, true)}
+    ${previous.length > 0 ? `
+      <div style="margin-top:24px;">
+        <div style="font-size:14px;font-weight:600;color:var(--esb-text-secondary);margin-bottom:12px;">Previous Submissions</div>
+        <div class="card">
+          <table class="data-table">
+            <thead><tr>
+              <th>Date</th>
+              <th>Score</th>
+              <th>Rating</th>
+              <th></th>
+            </tr></thead>
+            <tbody>
+              ${previous.map(sub => {
+                const r = ratingForScore(sub.score || 0, 100);
+                return `
+                  <tr class="clickable" onclick="openSubmissionPanel(${JSON.stringify(sub).replace(/"/g,'&quot;')})">
+                    <td>${fmtDate(sub.submitted_at || sub.date)}</td>
+                    <td><strong>${sub.score != null ? sub.score : '—'}</strong>/100</td>
+                    <td><span class="badge ${r.badge}">${r.label}</span></td>
+                    <td style="text-align:right;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--esb-text-muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderResultCard(sub, isLatest) {
+  const r = ratingForScore(sub.score || 0, 100);
+  const areas = sub.area_scores || {};
+
+  return `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">${isLatest ? 'Latest Assessment' : 'Assessment'} — ${fmtDate(sub.submitted_at || sub.date)}</div>
+          ${sub.district ? `<div class="card-subtitle">${escHtml(sub.district)}</div>` : ''}
+        </div>
+        <span class="badge ${r.badge}">${r.label}</span>
+      </div>
+      <div class="card-body">
+        <div class="result-hero">
+          <div class="score-circle" style="border-color: ${r.badge === 'badge-green' ? '#059669' : r.badge === 'badge-blue' ? 'var(--esb-blue)' : r.badge === 'badge-amber' ? '#d97706' : '#dc2626'}; background: ${r.badge === 'badge-green' ? '#d1fae5' : r.badge === 'badge-blue' ? '#dbeafe' : r.badge === 'badge-amber' ? '#fef3c7' : '#fee2e2'};">
+            <div class="score-number" style="color: ${r.badge === 'badge-green' ? '#065f46' : r.badge === 'badge-blue' ? 'var(--esb-blue)' : r.badge === 'badge-amber' ? '#92400e' : '#991b1b'};">${sub.score != null ? sub.score : '—'}</div>
+            <div class="score-max">out of 100</div>
+          </div>
+          <div class="result-meta">
+            <h2>${escHtml(sub.name || currentUser.name || 'Your Board')}</h2>
+            ${sub.district ? `<p>District: ${escHtml(sub.district)}</p>` : ''}
+            <p style="margin-top:6px;">Overall rating: <span class="${r.cls}">${r.label}</span></p>
+            ${sub.submitted_at ? `<p class="text-sm text-muted" style="margin-top:4px;">Submitted ${fmtDate(sub.submitted_at)}</p>` : ''}
+          </div>
+        </div>
+
+        <div style="font-size:14px;font-weight:600;color:var(--esb-text-secondary);margin-bottom:12px;">Score by Practice Area</div>
+        ${AREAS.map(area => {
+          const areaScore = areas[area.id] || areas[area.name] || null;
+          const pct = areaScore != null ? Math.round((areaScore / area.maxWeight) * 100) : null;
+          return `
+            <div class="area-bar-row">
+              <div class="area-bar-label">${escHtml(area.name)}</div>
+              <div class="area-bar-track">
+                <div class="area-bar-fill" style="width:${pct != null ? pct : 0}%;"></div>
+              </div>
+              <div class="area-bar-score">
+                ${areaScore != null ? `${areaScore}/${area.maxWeight}` : '<span class="text-muted">—</span>'}
+              </div>
+            </div>
+          `;
+        }).join('')}
+
+        ${sub.notes ? `
+          <hr class="divider">
+          <div style="font-size:14px;font-weight:600;color:var(--esb-text-secondary);margin-bottom:8px;">Practitioner Notes</div>
+          <div style="font-size:14px;color:var(--esb-text-secondary);line-height:1.7;background:var(--esb-bg);padding:14px;border-radius:var(--radius-sm);">
+            ${escHtml(sub.notes)}
+          </div>
+        ` : ''}
+
+        <div class="alert alert-info" style="margin-top:20px;">
+          ${ICONS.mail}
+          <span>A copy of your full assessment report has been sent to <strong>${escHtml(sub.email || currentUser.email)}</strong>.</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════
+// SUBMISSION DETAIL PANEL
+// ═══════════════════════════════════════
+function openSubmissionPanel(sub) {
+  if (typeof sub === 'string') {
+    try { sub = JSON.parse(sub); } catch(e) { return; }
+  }
+  const r = ratingForScore(sub.score || 0, 100);
+  const areas = sub.area_scores || {};
+
+  document.getElementById('panel-title').textContent = sub.name || 'Submission Detail';
+  document.getElementById('panel-subtitle').textContent = sub.district || (sub.email || '');
+
+  document.getElementById('panel-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+      <div class="score-circle" style="width:90px;height:90px;border-color:${r.badge === 'badge-green' ? '#059669' : r.badge === 'badge-blue' ? 'var(--esb-blue)' : r.badge === 'badge-amber' ? '#d97706' : '#dc2626'};background:${r.badge === 'badge-green' ? '#d1fae5' : r.badge === 'badge-blue' ? '#dbeafe' : r.badge === 'badge-amber' ? '#fef3c7' : '#fee2e2'};">
+        <div class="score-number" style="font-size:22px;color:${r.badge === 'badge-green' ? '#065f46' : r.badge === 'badge-blue' ? 'var(--esb-blue)' : r.badge === 'badge-amber' ? '#92400e' : '#991b1b'};">${sub.score != null ? sub.score : '—'}</div>
+        <div class="score-max">/ 100</div>
+      </div>
+      <div>
+        <div style="font-size:16px;font-weight:700;">${escHtml(sub.name || '—')}</div>
+        ${sub.district ? `<div class="text-sm text-muted">${escHtml(sub.district)}</div>` : ''}
+        ${sub.email ? `<div class="text-sm text-muted">${escHtml(sub.email)}</div>` : ''}
+        <div style="margin-top:6px;"><span class="badge ${r.badge}">${r.label}</span></div>
+      </div>
+    </div>
+
+    <div class="card mb-4" style="padding:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+        <div>
+          <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:2px;">Submitted</div>
+          <div>${fmtDate(sub.submitted_at || sub.date)}</div>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:2px;">Assessment Type</div>
+          <div>${escHtml(sub.type || 'Self-Assessment')}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:13px;font-weight:600;color:var(--esb-text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em;">Score by Practice Area</div>
+    ${AREAS.map(area => {
+      const areaScore = areas[area.id] || areas[area.name] || null;
+      const pct = areaScore != null ? Math.round((areaScore / area.maxWeight) * 100) : null;
+      return `
+        <div class="area-bar-row">
+          <div class="area-bar-label" style="width:140px;font-size:12.5px;">${escHtml(area.name)}</div>
+          <div class="area-bar-track">
+            <div class="area-bar-fill" style="width:${pct != null ? pct : 0}%;"></div>
+          </div>
+          <div class="area-bar-score" style="font-size:12px;">${areaScore != null ? `${areaScore}/${area.maxWeight}` : '—'}</div>
+        </div>
+      `;
+    }).join('')}
+
+    ${sub.responses && sub.responses.length > 0 ? `
+      <hr class="divider">
+      <div style="font-size:13px;font-weight:600;color:var(--esb-text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em;">Individual Responses</div>
+      ${sub.responses.map((resp, i) => `
+        <div style="margin-bottom:10px;padding:10px 12px;background:var(--esb-bg);border-radius:var(--radius-sm);">
+          <div style="font-size:12px;color:var(--esb-text-muted);margin-bottom:4px;">Q${i+1}</div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:4px;">${escHtml(resp.question || '')}</div>
+          <div style="font-size:13px;color:var(--esb-blue);">Selected: ${escHtml(resp.selected || '—')}</div>
+        </div>
+      `).join('')}
+    ` : ''}
+
+    ${sub.notes ? `
+      <hr class="divider">
+      <div style="font-size:13px;font-weight:600;color:var(--esb-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">Practitioner Notes</div>
+      <div style="font-size:13.5px;color:var(--esb-text-secondary);line-height:1.7;background:var(--esb-bg);padding:12px;border-radius:var(--radius-sm);">${escHtml(sub.notes)}</div>
+    ` : ''}
+  `;
+
+  document.getElementById('panel-overlay').classList.add('open');
+}
+
+function closePanelOverlay(e) {
+  if (e.target === e.currentTarget) closePanel();
+}
+
+function closePanel() {
+  document.getElementById('panel-overlay').classList.remove('open');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePanel();
+});
+
+// ─── Error helper ───
+function renderApiError(e, msg) {
+  const isNetErr = e instanceof TypeError && e.message.includes('fetch');
+  return `
+    <div style="padding:24px;">
+      <div class="alert alert-error">
+        ${ICONS.alertCircle}
+        <div>
+          <div style="font-weight:600;">${escHtml(msg)}</div>
+          <div style="margin-top:3px;font-size:12px;">${isNetErr ? 'Cannot reach the server. Check your connection or try again.' : escHtml(e.message || 'Unknown error')}</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;text-align:center;">
+        <button class="btn btn-secondary btn-sm" onclick="renderApp()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Retry
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// ─── Start ───
+init();
+</script>
+</body>
+</html>
