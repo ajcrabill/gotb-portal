@@ -1611,6 +1611,18 @@ function renderPractitionerDashboard() {
         </div>
       </div>
 
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">My Clients</div>
+            <div class="card-subtitle">Clients assigned to you and their latest assessment</div>
+          </div>
+        </div>
+        <div id="pract-clients-wrap">
+          <div class="loading-state"><div class="spinner"></div> Loading clients…</div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
           <div>
@@ -1631,6 +1643,49 @@ function renderPractitionerDashboard() {
     </div>
   `;
   loadPractitionerSubmissions();
+  loadPractitionerClients();
+}
+
+async function loadPractitionerClients() {
+  const wrap = document.getElementById('pract-clients-wrap');
+  if (!wrap) return;
+  try {
+    const clients = await api('GET', '/gotb/practitioner/clients');
+    if (!clients.length) {
+      wrap.innerHTML = `<div style="padding:20px;text-align:center;color:#888;font-size:13px;">No clients assigned yet. An administrator can assign clients to you.</div>`;
+      return;
+    }
+    const scoreLabel = (s) => {
+      if (s == null) return '<span style="color:#aaa">—</span>';
+      const band = s >= 80 ? {c:'badge-green',l:'Highly Effective'} : s >= 70 ? {c:'badge-blue',l:'Effective'} : s >= 40 ? {c:'badge-amber',l:'Emerging'} : {c:'badge-red',l:'Ineffective'};
+      return `<span class="badge ${band.c}">${s}</span>`;
+    };
+    wrap.innerHTML = `
+      <table class="data-table">
+        <thead><tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>District</th>
+          <th>Latest Score</th>
+          <th>Submissions</th>
+          <th>Last Assessment</th>
+        </tr></thead>
+        <tbody>${clients.map(c => {
+          const sub = c.latest_submission;
+          const date = sub ? new Date(sub.submitted_at||sub.date||0).toLocaleDateString() : '—';
+          return `<tr>
+            <td>${escHtml(c.name || '—')}</td>
+            <td>${escHtml(c.email)}</td>
+            <td>${c.district_name ? escHtml(c.district_name) : '<span style="color:#aaa">—</span>'}</td>
+            <td>${scoreLabel(sub ? sub.total_score : null)}</td>
+            <td style="text-align:center;">${c.submission_count}</td>
+            <td style="color:#666;font-size:12px;">${date}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+  } catch(e) {
+    wrap.innerHTML = renderApiError(e, 'Could not load client list');
+  }
 }
 
 async function loadPractitionerSubmissions() {
@@ -1781,9 +1836,11 @@ function renderClientDashboard() {
       <div id="client-content">
         <div class="loading-state"><div class="spinner"></div> Loading your results…</div>
       </div>
+      <div id="district-summary-wrap" style="display:none;margin-top:24px;"></div>
     </div>
   `;
   loadClientSubmissions();
+  loadDistrictSummary();
 }
 
 async function loadClientSubmissions() {
@@ -1794,6 +1851,66 @@ async function loadClientSubmissions() {
   } catch(e) {
     document.getElementById('client-content').innerHTML = renderApiError(e, 'Could not load your results');
   }
+}
+
+async function loadDistrictSummary() {
+  try {
+    const summary = await api('GET', '/gotb/district/summary');
+    renderDistrictSummary(summary);
+  } catch(e) {
+    // 400 = no district assigned — silently hide
+  }
+}
+
+function renderDistrictSummary(s) {
+  const wrap = document.getElementById('district-summary-wrap');
+  if (!wrap) return;
+  wrap.style.display = 'block';
+
+  const scoreBar = (label, val) => {
+    if (val == null) return '';
+    const pct = Math.round(val);
+    const color = pct >= 80 ? '#059669' : pct >= 70 ? '#3a6ea8' : pct >= 40 ? '#d97706' : '#dc2626';
+    return `
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span style="color:#555;">${label}</span>
+          <span style="font-weight:600;color:${color};">${pct}</span>
+        </div>
+        <div style="height:6px;background:#eee;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .4s;"></div>
+        </div>
+      </div>`;
+  };
+
+  wrap.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">District Aggregate — ${escHtml(s.district.name)}, ${escHtml(s.district.state)}</div>
+          <div class="card-subtitle">${s.member_count} member${s.member_count!==1?'s':''} · ${s.submission_count} submission${s.submission_count!==1?'s':''}</div>
+        </div>
+      </div>
+      ${s.submission_count === 0 ? `
+        <div style="padding:20px;text-align:center;color:#888;font-size:13px;">No submissions from district members yet.</div>
+      ` : `
+        <div style="padding:16px 20px;">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+            <div style="text-align:center;min-width:72px;">
+              <div style="font-size:28px;font-weight:700;color:${s.avg_score >= 80 ? '#059669' : s.avg_score >= 70 ? '#3a6ea8' : s.avg_score >= 40 ? '#d97706' : '#dc2626'};">${s.avg_score ?? '—'}</div>
+              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;">Avg Score</div>
+            </div>
+            <div style="flex:1;">
+              ${scoreBar('Focus',       s.avg_focus)}
+              ${scoreBar('Priorities',  s.avg_priorities)}
+              ${scoreBar('Monitor',     s.avg_monitor)}
+              ${scoreBar('Align',       s.avg_align)}
+              ${scoreBar('Communicate', s.avg_communicate)}
+            </div>
+          </div>
+        </div>
+      `}
+    </div>`;
 }
 
 function renderClientContent(submissions) {
@@ -2006,12 +2123,21 @@ document.addEventListener('keydown', e => {
 // USER MANAGEMENT
 // ═══════════════════════════════════════
 
+let practitionersList = [];   // [{id, name, email}]
+let _ufDistrictId = null;     // selected district id in the form
+let _ufDistrictName = '';     // display name for selected district
+let _ufPractId = null;        // selected practitioner id in the form
+let _districtDebounce = null;
+
 async function loadAdminUsers() {
   const container = document.getElementById('tab-users');
   if (!container) return;
   container.innerHTML = `<div class="loading-state"><div class="spinner"></div> Loading users…</div>`;
   try {
-    usersData = await api('GET', '/gotb/admin/users');
+    [usersData, practitionersList] = await Promise.all([
+      api('GET', '/gotb/admin/users'),
+      api('GET', '/gotb/admin/practitioners'),
+    ]);
     usersLoaded = true;
     renderUsersTab();
   } catch(e) {
@@ -2031,11 +2157,17 @@ function renderUsersTab() {
       <td>${escHtml(u.name || '—')}</td>
       <td>${escHtml(u.email)}</td>
       <td><span class="badge ${u.role === 'practitioner' ? 'badge-blue' : 'badge-green'}">${u.role}</span></td>
+      <td>${u.practitioner_name ? escHtml(u.practitioner_name) : '<span style="color:#aaa">—</span>'}</td>
+      <td>${u.district_name ? escHtml(u.district_name) : '<span style="color:#aaa">—</span>'}</td>
       <td style="text-align:right;white-space:nowrap;">
         <button class="btn btn-ghost btn-sm" onclick="openEditUser('${u.id}')" style="margin-right:4px;">Edit</button>
         <button class="btn btn-ghost btn-sm" onclick="deleteUser('${u.id}','${escHtml(u.email)}')" style="color:#e57373;">Delete</button>
       </td>
     </tr>`;
+
+  const practOpts = practitionersList.map(p =>
+    `<option value="${p.id}">${escHtml(p.name || p.email)}</option>`
+  ).join('');
 
   container.innerHTML = `
     <div id="users-msg" style="margin-bottom:8px;"></div>
@@ -2065,13 +2197,29 @@ function renderUsersTab() {
         </div>
         <div>
           <label class="form-label">Role</label>
-          <select id="uf-role" class="form-input">
+          <select id="uf-role" class="form-input" onchange="onRoleChange()">
             <option value="client">Client</option>
             <option value="practitioner">Practitioner</option>
           </select>
         </div>
-        <div style="display:flex;align-items:flex-end;gap:8px;">
-          <button class="btn btn-primary btn-sm" onclick="submitUserForm()" style="flex:1;" id="uf-submit">Save</button>
+        <div id="uf-pract-wrap">
+          <label class="form-label">Assigned Practitioner</label>
+          <select id="uf-practitioner" class="form-input">
+            <option value="">— None —</option>
+            ${practOpts}
+          </select>
+        </div>
+        <div style="grid-column:1/-1;">
+          <label class="form-label">School District</label>
+          <div style="position:relative;">
+            <input id="uf-district-search" type="text" class="form-input" placeholder="Type to search districts…"
+              oninput="onDistrictSearch(this.value)" autocomplete="off">
+            <div id="uf-district-results" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:50;background:#fff;border:1px solid #d5e3f0;border-top:none;border-radius:0 0 8px 8px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:200px;overflow-y:auto;"></div>
+          </div>
+          <div id="uf-district-selected" style="margin-top:6px;font-size:12px;color:#3a6ea8;display:none;"></div>
+        </div>
+        <div style="grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+          <button class="btn btn-primary btn-sm" onclick="submitUserForm()" id="uf-submit">Save</button>
           <button class="btn btn-secondary btn-sm" onclick="closeUserForm()">Cancel</button>
         </div>
       </div>
@@ -2087,6 +2235,8 @@ function renderUsersTab() {
             <th>Name</th>
             <th>Email</th>
             <th>Role</th>
+            <th>Practitioner</th>
+            <th>District</th>
             <th style="text-align:right;">Actions</th>
           </tr></thead>
           <tbody>${usersData.map(userRow).join('')}</tbody>
@@ -2094,6 +2244,49 @@ function renderUsersTab() {
       </div>
     `}
   `;
+}
+
+function onRoleChange() {
+  const role = document.getElementById('uf-role').value;
+  const wrap = document.getElementById('uf-pract-wrap');
+  if (wrap) wrap.style.display = role === 'client' ? '' : 'none';
+}
+
+function onDistrictSearch(val) {
+  clearTimeout(_districtDebounce);
+  if (val.length < 2) {
+    document.getElementById('uf-district-results').style.display = 'none';
+    return;
+  }
+  _districtDebounce = setTimeout(async () => {
+    const results = await api('GET', `/gotb/admin/districts?q=${encodeURIComponent(val)}`);
+    const box = document.getElementById('uf-district-results');
+    if (!results.length) { box.style.display = 'none'; return; }
+    box.innerHTML = results.map(d => `
+      <div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;"
+        onmousedown="selectDistrict('${d.id}','${escHtml(d.name)}, ${escHtml(d.state)}')">
+        ${escHtml(d.name)}, ${escHtml(d.state)}${d.city ? ' · ' + escHtml(d.city) : ''}
+      </div>`).join('');
+    box.style.display = 'block';
+  }, 250);
+}
+
+function selectDistrict(id, label) {
+  _ufDistrictId = id;
+  _ufDistrictName = label;
+  document.getElementById('uf-district-search').value = label;
+  document.getElementById('uf-district-results').style.display = 'none';
+  const sel = document.getElementById('uf-district-selected');
+  sel.textContent = '✓ ' + label;
+  sel.style.display = 'block';
+}
+
+function clearDistrict() {
+  _ufDistrictId = null;
+  _ufDistrictName = '';
+  document.getElementById('uf-district-search').value = '';
+  document.getElementById('uf-district-selected').style.display = 'none';
+  document.getElementById('uf-district-results').style.display = 'none';
 }
 
 let _editingUserId = null;
@@ -2105,6 +2298,9 @@ function openAddUser() {
   document.getElementById('uf-name').value = '';
   document.getElementById('uf-email').value = '';
   document.getElementById('uf-role').value = 'client';
+  document.getElementById('uf-practitioner').value = '';
+  document.getElementById('uf-pract-wrap').style.display = '';
+  clearDistrict();
   document.getElementById('uf-err').style.display = 'none';
   document.getElementById('user-form-card').style.display = 'block';
   document.getElementById('uf-name').focus();
@@ -2119,6 +2315,21 @@ function openEditUser(id) {
   document.getElementById('uf-name').value = u.name || '';
   document.getElementById('uf-email').value = u.email;
   document.getElementById('uf-role').value = u.role;
+
+  const practWrap = document.getElementById('uf-pract-wrap');
+  practWrap.style.display = u.role === 'client' ? '' : 'none';
+  document.getElementById('uf-practitioner').value = u.practitioner_id || '';
+
+  clearDistrict();
+  if (u.district_id && u.district_name) {
+    _ufDistrictId = u.district_id;
+    _ufDistrictName = u.district_name;
+    document.getElementById('uf-district-search').value = u.district_name;
+    const sel = document.getElementById('uf-district-selected');
+    sel.textContent = '✓ ' + u.district_name;
+    sel.style.display = 'block';
+  }
+
   document.getElementById('uf-err').style.display = 'none';
   document.getElementById('user-form-card').style.display = 'block';
   document.getElementById('uf-name').focus();
@@ -2127,12 +2338,15 @@ function openEditUser(id) {
 function closeUserForm() {
   document.getElementById('user-form-card').style.display = 'none';
   _editingUserId = null;
+  clearDistrict();
 }
 
 async function submitUserForm() {
   const name = document.getElementById('uf-name').value.trim();
   const email = document.getElementById('uf-email').value.trim();
   const role = document.getElementById('uf-role').value;
+  const practitioner_id = document.getElementById('uf-practitioner').value || null;
+  const district_id = _ufDistrictId || null;
   const errEl = document.getElementById('uf-err');
   errEl.style.display = 'none';
 
@@ -2142,13 +2356,19 @@ async function submitUserForm() {
   btn.disabled = true;
   btn.textContent = 'Saving…';
   try {
+    const body = { name, email, role, practitioner_id, district_id };
+    let saved;
     if (_editingUserId) {
-      const updated = await api('PUT', `/gotb/admin/users/${_editingUserId}`, { name, email, role });
+      saved = await api('PUT', `/gotb/admin/users/${_editingUserId}`, body);
       const idx = usersData.findIndex(u => u.id === _editingUserId);
-      if (idx !== -1) usersData[idx] = updated;
+      if (idx !== -1) usersData[idx] = saved;
     } else {
-      const created = await api('POST', '/gotb/admin/users', { name, email, role });
-      usersData.unshift(created);
+      saved = await api('POST', '/gotb/admin/users', body);
+      usersData.unshift(saved);
+    }
+    // If role changed to/from practitioner, refresh the practitioners list
+    if (role === 'practitioner' || (usersData.find(u => u.id === (saved?.id)) || {}).role !== role) {
+      try { practitionersList = await api('GET', '/gotb/admin/practitioners'); } catch(_) {}
     }
     closeUserForm();
     renderUsersTab();
