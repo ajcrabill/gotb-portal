@@ -1,11 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GOTB Index: Certified Assessment — Effective School Boards</title>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+<!-- Vendor CSS Files -->
+<link href="https://www.effectiveschoolboards.com/assets/vendor/aos/aos.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/css/style.css" rel="stylesheet">
+
+<!-- Google tag -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2E982VD31M"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-2E982VD31M');
+</script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KRRMB7R2');</script>
+
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '3870945449879839');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=3870945449879839&ev=PageView&noscript=1"
+/></noscript>
+
+<!-- Favicons -->
+<link href="https://www.effectiveschoolboards.com/assets/img/favicon.png" rel="icon">
+<link href="https://www.effectiveschoolboards.com/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* ─── Portal component styles ─── */
+  *, *::before, *::after { box-sizing: border-box; }
 
   :root {
     --esb-dark: #2c3e50;
@@ -37,80 +90,44 @@
     --transition: 150ms ease;
   }
 
-  html, body {
-    height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
-    font-size: 15px;
-    line-height: 1.6;
-    color: var(--esb-text);
-    background: var(--esb-bg);
-  }
-
-  /* ─── Layout ─── */
-  #app { min-height: 100vh; display: flex; flex-direction: column; }
-
-  .topbar {
-    background: var(--esb-dark);
-    color: #fff;
-    padding: 0 2rem;
-    height: 56px;
+  /* ─── User strip in breadcrumbs ─── */
+  .breadcrumb-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-shrink: 0;
-    border-bottom: 3px solid var(--esb-amber);
-  }
-  .topbar-logo {
-    display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     gap: 12px;
   }
-  .topbar-logo svg { flex-shrink: 0; }
-  .topbar-title {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.85);
-    line-height: 1.2;
-  }
-  .topbar-subtitle {
-    font-size: 11px;
-    color: rgba(255,255,255,0.5);
-    font-weight: 400;
-    letter-spacing: 0.02em;
-  }
-  .topbar-right {
+  .user-strip {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
   }
   .user-pill {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.15);
+    gap: 7px;
+    background: rgba(58,110,168,0.08);
+    border: 1px solid rgba(58,110,168,0.2);
     border-radius: 20px;
-    padding: 4px 12px 4px 8px;
+    padding: 4px 12px 4px 7px;
     font-size: 13px;
-    color: rgba(255,255,255,0.9);
+    color: var(--esb-dark);
+    font-weight: 500;
   }
   .user-avatar {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: var(--esb-blue);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: #fff;
     flex-shrink: 0;
   }
-
-  .main-content { flex: 1; padding: 2.5rem 2rem; }
 
   /* ─── Buttons ─── */
   .btn {
@@ -135,7 +152,7 @@
     color: #fff;
     border-color: var(--esb-blue-dark);
   }
-  .btn-primary:hover:not(:disabled) { background: var(--esb-blue-dark); }
+  .btn-primary:hover:not(:disabled) { background: var(--esb-blue-dark); color: #fff; }
   .btn-secondary {
     background: var(--esb-surface);
     color: var(--esb-text);
@@ -154,15 +171,17 @@
     border-color: #fecaca;
   }
   .btn-danger:hover:not(:disabled) { background: var(--esb-error-bg); }
-  .btn-amber {
-    background: var(--esb-amber);
-    color: #fff;
-    border-color: var(--esb-amber-dark);
-  }
-  .btn-amber:hover:not(:disabled) { background: var(--esb-amber-dark); }
   .btn-sm { padding: 6px 12px; font-size: 13px; }
   .btn-lg { padding: 12px 24px; font-size: 15px; }
   .btn-block { width: 100%; }
+  .btn-signout {
+    background: transparent;
+    color: var(--esb-text-secondary);
+    border: 1px solid var(--esb-border-strong);
+    font-size: 13px;
+    padding: 5px 12px;
+  }
+  .btn-signout:hover { background: var(--esb-bg); color: var(--esb-text); }
 
   /* ─── Forms ─── */
   .form-group { display: flex; flex-direction: column; gap: 6px; }
@@ -308,6 +327,7 @@
     gap: 2px;
     border-bottom: 2px solid var(--esb-border);
     margin-bottom: 24px;
+    flex-wrap: wrap;
   }
   .tab-btn {
     padding: 10px 16px;
@@ -362,20 +382,13 @@
   .area-bar-score { font-size: 13px; font-weight: 600; color: var(--esb-text); width: 60px; text-align: right; flex-shrink: 0; }
 
   /* ─── Landing page ─── */
-  .landing-hero {
+  .landing-intro {
     text-align: center;
-    padding: 48px 24px 36px;
+    padding: 24px 0 20px;
     max-width: 640px;
     margin: 0 auto;
   }
-  .landing-hero h1 {
-    font-size: 30px;
-    font-weight: 700;
-    color: var(--esb-dark);
-    margin-bottom: 10px;
-    line-height: 1.25;
-  }
-  .landing-hero p {
+  .landing-intro p {
     font-size: 16px;
     color: var(--esb-text-secondary);
     line-height: 1.6;
@@ -385,8 +398,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     max-width: 960px;
-    margin: 0 auto 48px;
-    padding: 0 24px;
+    margin: 0 auto 32px;
   }
   .entry-card {
     background: var(--esb-surface);
@@ -413,6 +425,7 @@
   .entry-card p { font-size: 13.5px; color: var(--esb-text-secondary); line-height: 1.6; flex: 1; margin-bottom: 20px; }
   .entry-card-features {
     list-style: none;
+    padding: 0;
     margin-bottom: 20px;
     display: flex;
     flex-direction: column;
@@ -453,7 +466,7 @@
   .otp-hint { font-size: 12px; color: var(--esb-text-muted); }
 
   /* ─── Dashboard layouts ─── */
-  .dashboard { max-width: 1200px; margin: 0 auto; }
+  .dashboard { max-width: 1100px; margin: 0 auto; }
   .dashboard-header {
     display: flex;
     align-items: center;
@@ -543,7 +556,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.35);
-    z-index: 100;
+    z-index: 9999;
     display: none;
     align-items: flex-start;
     justify-content: flex-end;
@@ -619,10 +632,8 @@
   .rating-beginning { color: #991b1b; font-weight: 600; }
 
   /* ─── Responsive ─── */
-  @media (max-width: 800px) {
+  @media (max-width: 900px) {
     .entry-cards { grid-template-columns: 1fr; max-width: 420px; }
-    .topbar { padding: 0 1rem; }
-    .main-content { padding: 1.5rem 1rem; }
     .choices-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 600px) {
@@ -649,32 +660,158 @@
 </style>
 </head>
 <body>
-<div id="app">
-  <!-- Top bar -->
-  <header class="topbar">
-    <div class="topbar-logo">
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="7" fill="#3a6ea8"/>
-        <rect x="7" y="7" width="18" height="3" rx="1.5" fill="#e8a000"/>
-        <rect x="7" y="12.5" width="12" height="3" rx="1.5" fill="white" opacity="0.7"/>
-        <rect x="7" y="18" width="15" height="3" rx="1.5" fill="white" opacity="0.7"/>
-        <rect x="7" y="23.5" width="9" height="1.5" rx="0.75" fill="white" opacity="0.4"/>
-      </svg>
-      <div>
-        <div class="topbar-title">GOTB Index: Certified Assessment</div>
-        <div class="topbar-subtitle">Effective School Boards</div>
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KRRMB7R2"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+<!-- ======= Header ======= -->
+<header id="header" class="fixed-top d-flex align-items-center">
+  <div class="container d-flex align-items-center">
+    <a href="/" class="logo me-auto"><img src="https://www.effectiveschoolboards.com/assets/img/logo.png" alt="Effective School Boards logo"></a>
+
+    <nav id="navbar" class="navbar order-last order-lg-0">
+      <ul>
+        <li><a class="nav-link scrollto" href="https://www.effectiveschoolboards.com/">Home</a></li>
+        <li class="dropdown"><a href="https://www.effectiveschoolboards.com/framework"><span>Framework</span><i class="bi bi-chevron-down"></i></a>
+          <ul>
+            <li><a href="https://www.effectiveschoolboards.com/framework/"><strong>The ESB Framework</strong></a></li>
+            <li><a href="https://www.effectiveschoolboards.com/framework/about">About The ESB Framework</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/framework/other">Related Frameworks</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/toolkit">State ESB Toolkit</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/publications/">Great On Their Behalf</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/newsletter/">ESB Newsletter</a></li>
+          </ul>
+        </li>
+        <li class="dropdown"><a href="https://www.effectiveschoolboards.com/coaches"><span>Coaches</span><i class="bi bi-chevron-down"></i></a>
+          <ul>
+            <li><a href="https://www.effectiveschoolboards.com/coaches">Find An ESB Coach</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/coaches/become">Become An ESB Coach</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/coaches/senior">Become A Senior ESB Coach</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/coach-newsletter">Subscribe to Coaches Newsletter</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/store">Visit the ESB Store</a></li>
+          </ul>
+        </li>
+        <li class="dropdown"><a href="https://www.effectiveschoolboards.com/resources"><span>Resources</span><i class="bi bi-chevron-down"></i></a>
+          <ul>
+            <li><a href="https://www.effectiveschoolboards.com/resources/time-use">Time Use Evaluation</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/board-self-eval">Board Self Evaluation</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/supt-eval">Superintendent Evaluation</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/priority-examples">Goal &amp; Guardrail Examples</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/onboarding">Board Member Onboarding</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/toolkit">State ESB Toolkit</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/glossary">Glossary</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/quizzes">Quizzes</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/">Recommended Reading</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/publications">ESB Publications</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/community">Community Discussion</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/store">ESB Store</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/newsletter/">ESB Newsletter</a></li>
+          </ul>
+        </li>
+        <li><a class="nav-link scrollto" href="https://www.effectiveschoolboards.com/contact">Contact</a></li>
+      </ul>
+      <i class="bi bi-list mobile-nav-toggle"></i>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="page-content" aria-label="Content">
+  <div class="wrapper">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <section class="breadcrumbs">
+      <div class="container">
+        <ol>
+          <li><a href="https://www.effectiveschoolboards.com/">Home</a></li>
+          <li>GOTB Index</li>
+        </ol>
+        <div class="breadcrumb-row">
+          <h1>GOTB Index: Certified Assessment</h1>
+          <div class="user-strip" id="user-strip">
+            <!-- populated by JS when signed in -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= Portal Content ======= -->
+    <section class="inner-page">
+      <div class="container">
+        <div id="main-content">
+          <!-- Portal SPA renders here -->
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ======= Footer ======= -->
+<footer id="footer">
+  <div class="footer-top">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-3 col-md-6 footer-contact">
+          <h5>Effective School Boards<span>.</span></h5>
+          <p>
+            <strong>About Coaching</strong><a href="mailto:coach@effectiveschoolboards.com?subject=Re:+ESB+Coaching"> coach at effectiveschoolboards.com</a><br>
+            <strong>General Inquiries</strong><a href="mailto:info@effectiveschoolboards.com?subject=Re:+Effective+School+Boards"> info at effectiveschoolboards.com</a><br>
+          </p>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-links">
+          <h4>For School Systems</h4>
+          <ul>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/coaches">Find A Coach</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/framework">Board Self Evaluations</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/resources">Resources</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/publications">ESB Publications</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/newsletter/">ESB Newsletter</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/contact">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-links">
+          <h4>For States</h4>
+          <ul>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/coaches">Find A Coach</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/resources/toolkit">State ESB Toolkit</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/framework/other">State Specific Frameworks</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/contact">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-links">
+          <h4>For Coaches</h4>
+          <ul>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/coaches/become">Become An ESB Coach</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/framework">ESB Framework</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/resources">Recommended Reading</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/store">ESB Store</a></li>
+          </ul>
+        </div>
       </div>
     </div>
-    <div class="topbar-right" id="topbar-right">
-      <!-- populated by JS -->
+  </div>
+  <div class="container d-md-flex py-4">
+    <div class="me-md-auto text-center text-md-start">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Effective School Boards</span></strong>. All Rights Reserved. Student outcomes don't change until adult behaviors change.&trade;
+      </div>
     </div>
-  </header>
+  </div>
+</footer>
 
-  <!-- Main content area -->
-  <main class="main-content" id="main-content">
-    <!-- sections injected by JS -->
-  </main>
-</div>
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+<!-- Vendor JS Files -->
+<script src="https://www.effectiveschoolboards.com/assets/vendor/purecounter/purecounter_vanilla.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/vendor/aos/aos.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/vendor/glightbox/js/glightbox.min.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+<!-- Template Main JS File -->
+<script src="https://www.effectiveschoolboards.com/assets/js/main.js"></script>
 
 <!-- ─── SLIDE PANEL (submission detail) ─── -->
 <div class="panel-overlay" id="panel-overlay" onclick="closePanelOverlay(event)">
@@ -797,14 +934,13 @@ function renderApp() {
   currentUser = getUser();
   const section = getSection();
 
-  renderTopbar();
+  renderUserStrip();
 
   if (!currentUser) {
     renderLanding();
     return;
   }
 
-  // Determine where to send authenticated user
   if (currentUser.is_admin) {
     if (!section || section === 'admin') {
       setSection('admin');
@@ -835,8 +971,9 @@ function userInitials(name) {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
 }
 
-function renderTopbar() {
-  const el = document.getElementById('topbar-right');
+function renderUserStrip() {
+  const el = document.getElementById('user-strip');
+  if (!el) return;
   if (!currentUser) {
     el.innerHTML = '';
     return;
@@ -846,8 +983,8 @@ function renderTopbar() {
       <div class="user-avatar">${userInitials(currentUser.name || currentUser.email)}</div>
       <span>${escHtml(currentUser.name || currentUser.email)}</span>
     </div>
-    <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,0.7)" onclick="logout()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    <button class="btn btn-signout" onclick="logout()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Sign out
     </button>
   `;
@@ -894,8 +1031,7 @@ function fmtDate(d) {
 function renderLanding() {
   const main = document.getElementById('main-content');
   main.innerHTML = `
-    <div class="landing-hero">
-      <h1>GOTB Index<br>Certified Assessment</h1>
+    <div class="landing-intro">
       <p>The Governance Outcomes for Teaching and Boards assessment measures board effectiveness across five practice areas. Sign in below to access your portal.</p>
     </div>
     <div class="entry-cards">
@@ -918,12 +1054,8 @@ function renderLanding() {
         'Access your complete assessment history',
       ])}
     </div>
-    <div style="text-align:center; color: var(--esb-text-muted); font-size:13px; padding-bottom: 32px;">
-      &copy; ${new Date().getFullYear()} Effective School Boards · GOTB Index Certified Assessment
-    </div>
   `;
 
-  // Attach OTP logic for each card
   ['admin', 'practitioner', 'client'].forEach(type => attachOtpFlow(type));
 }
 
@@ -954,7 +1086,6 @@ function entryCard(type, title, color, iconSvg, features) {
         ${features.map(f => `<li>${escHtml(f)}</li>`).join('')}
       </ul>
       <div class="otp-flow" id="otp-flow-${type}">
-        <!-- Step 1: Enter email -->
         <div class="otp-step active" id="otp-email-${type}">
           <div id="otp-err-${type}"></div>
           <div class="form-group">
@@ -965,7 +1096,6 @@ function entryCard(type, title, color, iconSvg, features) {
             Send Access Code
           </button>
         </div>
-        <!-- Step 2: Enter code -->
         <div class="otp-step" id="otp-code-${type}">
           <button class="otp-back" onclick="resetOtp('${type}')">
             ${ICONS.arrow} Back
@@ -983,7 +1113,6 @@ function entryCard(type, title, color, iconSvg, features) {
             Verify &amp; Sign In
           </button>
         </div>
-        <!-- Step 3: Loading -->
         <div class="otp-step" id="otp-loading-${type}">
           <div class="loading-state"><div class="spinner"></div> Signing in…</div>
         </div>
@@ -1038,7 +1167,6 @@ async function requestOtp(type) {
     return;
   }
 
-  // disable button
   const btn = emailEl.closest('.otp-step').querySelector('.btn-primary');
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
 
@@ -1407,7 +1535,6 @@ function addRec(tier, areaId, level) {
   ensureContentNode(tier, areaId, level);
   emailContent[tier][areaId][level].recommendations.push('');
   renderContentEditor(tier);
-  // Re-focus the last added input
   const container = document.getElementById(`recs-${tier}-${areaId}-${level}`);
   if (container) { const inputs = container.querySelectorAll('input'); if (inputs.length) inputs[inputs.length-1].focus(); }
 }
@@ -1683,7 +1810,6 @@ function renderClientContent(submissions) {
     return;
   }
 
-  // Show most recent first, list previous ones
   const [latest, ...previous] = [...submissions].sort((a, b) =>
     new Date(b.submitted_at || b.date || 0) - new Date(a.submitted_at || a.date || 0)
   );
