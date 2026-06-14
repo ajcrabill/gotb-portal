@@ -852,6 +852,8 @@ let filterText = '';
 let questionsData = { free: [], paid: [] };
 let questionsModified = false;
 const emailContent = { free: null, paid: null, free_loaded: false, paid_loaded: false };
+let usersData = [];
+let usersLoaded = false;
 
 const AREA_META = [
   { id: 'focus',       label: 'Focus Mindset' },
@@ -1241,6 +1243,10 @@ function renderAdminDashboard() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           Paid Email Content
         </button>
+        <button class="tab-btn" onclick="adminTab('users')" data-tab="users">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Users
+        </button>
       </div>
 
       <div id="tab-free-questions" class="tab-content active">
@@ -1257,6 +1263,9 @@ function renderAdminDashboard() {
       </div>
       <div id="tab-paid-content" class="tab-content">
         <div class="loading-state"><div class="spinner"></div> Loading content…</div>
+      </div>
+      <div id="tab-users" class="tab-content">
+        <div class="loading-state"><div class="spinner"></div> Loading users…</div>
       </div>
     </div>
   `;
@@ -1276,6 +1285,7 @@ function adminTab(name) {
   }
   if (name === 'free-content' && !emailContent.free_loaded) loadContent('free');
   if (name === 'paid-content' && !emailContent.paid_loaded) loadContent('paid');
+  if (name === 'users' && !usersLoaded) loadAdminUsers();
 }
 
 async function loadAdminData() {
@@ -1991,6 +2001,176 @@ function closePanel() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closePanel();
 });
+
+// ═══════════════════════════════════════
+// USER MANAGEMENT
+// ═══════════════════════════════════════
+
+async function loadAdminUsers() {
+  const container = document.getElementById('tab-users');
+  if (!container) return;
+  container.innerHTML = `<div class="loading-state"><div class="spinner"></div> Loading users…</div>`;
+  try {
+    usersData = await api('GET', '/gotb/admin/users');
+    usersLoaded = true;
+    renderUsersTab();
+  } catch(e) {
+    container.innerHTML = renderApiError(e, 'Could not load users');
+  }
+}
+
+function renderUsersTab() {
+  const container = document.getElementById('tab-users');
+  if (!container) return;
+
+  const practitioners = usersData.filter(u => u.role === 'practitioner');
+  const clients = usersData.filter(u => u.role === 'client');
+
+  const userRow = (u) => `
+    <tr>
+      <td>${escHtml(u.name || '—')}</td>
+      <td>${escHtml(u.email)}</td>
+      <td><span class="badge ${u.role === 'practitioner' ? 'badge-blue' : 'badge-green'}">${u.role}</span></td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" onclick="openEditUser('${u.id}')" style="margin-right:4px;">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteUser('${u.id}','${escHtml(u.email)}')" style="color:#e57373;">Delete</button>
+      </td>
+    </tr>`;
+
+  container.innerHTML = `
+    <div id="users-msg" style="margin-bottom:8px;"></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div>
+        <h3 style="margin:0 0 4px;font-size:15px;color:#1e3758;">User Management</h3>
+        <p style="margin:0;font-size:13px;color:#666;">${usersData.length} user${usersData.length!==1?'s':''} — ${practitioners.length} practitioner${practitioners.length!==1?'s':''}, ${clients.length} client${clients.length!==1?'s':''}</p>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openAddUser()">+ Add User</button>
+    </div>
+
+    <!-- Add / Edit form (hidden by default) -->
+    <div id="user-form-card" class="card" style="display:none;margin-bottom:20px;">
+      <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="card-title" id="user-form-title">Add User</div>
+        <button class="btn btn-ghost btn-sm" onclick="closeUserForm()">✕</button>
+      </div>
+      <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label class="form-label">Name</label>
+          <input id="uf-name" type="text" class="form-input" placeholder="Full name">
+        </div>
+        <div>
+          <label class="form-label">Email</label>
+          <input id="uf-email" type="email" class="form-input" placeholder="email@example.com">
+        </div>
+        <div>
+          <label class="form-label">Role</label>
+          <select id="uf-role" class="form-input">
+            <option value="client">Client</option>
+            <option value="practitioner">Practitioner</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="submitUserForm()" style="flex:1;" id="uf-submit">Save</button>
+          <button class="btn btn-secondary btn-sm" onclick="closeUserForm()">Cancel</button>
+        </div>
+      </div>
+      <div id="uf-err" style="padding:0 20px 12px;font-size:13px;color:#e57373;display:none;"></div>
+    </div>
+
+    ${usersData.length === 0 ? `
+      <div style="padding:32px;text-align:center;color:#888;font-size:14px;">No users yet. Add a practitioner or client above.</div>
+    ` : `
+      <div class="card">
+        <table class="data-table">
+          <thead><tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th style="text-align:right;">Actions</th>
+          </tr></thead>
+          <tbody>${usersData.map(userRow).join('')}</tbody>
+        </table>
+      </div>
+    `}
+  `;
+}
+
+let _editingUserId = null;
+
+function openAddUser() {
+  _editingUserId = null;
+  document.getElementById('user-form-title').textContent = 'Add User';
+  document.getElementById('uf-submit').textContent = 'Add User';
+  document.getElementById('uf-name').value = '';
+  document.getElementById('uf-email').value = '';
+  document.getElementById('uf-role').value = 'client';
+  document.getElementById('uf-err').style.display = 'none';
+  document.getElementById('user-form-card').style.display = 'block';
+  document.getElementById('uf-name').focus();
+}
+
+function openEditUser(id) {
+  const u = usersData.find(x => x.id === id);
+  if (!u) return;
+  _editingUserId = id;
+  document.getElementById('user-form-title').textContent = 'Edit User';
+  document.getElementById('uf-submit').textContent = 'Save Changes';
+  document.getElementById('uf-name').value = u.name || '';
+  document.getElementById('uf-email').value = u.email;
+  document.getElementById('uf-role').value = u.role;
+  document.getElementById('uf-err').style.display = 'none';
+  document.getElementById('user-form-card').style.display = 'block';
+  document.getElementById('uf-name').focus();
+}
+
+function closeUserForm() {
+  document.getElementById('user-form-card').style.display = 'none';
+  _editingUserId = null;
+}
+
+async function submitUserForm() {
+  const name = document.getElementById('uf-name').value.trim();
+  const email = document.getElementById('uf-email').value.trim();
+  const role = document.getElementById('uf-role').value;
+  const errEl = document.getElementById('uf-err');
+  errEl.style.display = 'none';
+
+  if (!email) { errEl.textContent = 'Email is required.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('uf-submit');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    if (_editingUserId) {
+      const updated = await api('PUT', `/gotb/admin/users/${_editingUserId}`, { name, email, role });
+      const idx = usersData.findIndex(u => u.id === _editingUserId);
+      if (idx !== -1) usersData[idx] = updated;
+    } else {
+      const created = await api('POST', '/gotb/admin/users', { name, email, role });
+      usersData.unshift(created);
+    }
+    closeUserForm();
+    renderUsersTab();
+  } catch(e) {
+    errEl.textContent = e.message || 'Failed to save user.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = _editingUserId ? 'Save Changes' : 'Add User';
+  }
+}
+
+async function deleteUser(id, email) {
+  if (!confirm(`Delete user "${email}"? This cannot be undone.`)) return;
+  try {
+    await api('DELETE', `/gotb/admin/users/${id}`);
+    usersData = usersData.filter(u => u.id !== id);
+    renderUsersTab();
+  } catch(e) {
+    alert('Failed to delete user: ' + (e.message || 'Unknown error'));
+  }
+}
 
 // ─── Error helper ───
 function renderApiError(e, msg) {
