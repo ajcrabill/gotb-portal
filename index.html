@@ -1032,14 +1032,14 @@ function renderLanding() {
   const main = document.getElementById('main-content');
   main.innerHTML = `
     <div class="landing-intro">
-      <p>The Governance Outcomes for Teaching and Boards assessment measures board effectiveness across five practice areas. Sign in below to access your portal.</p>
+      <p>The Great On Their Behalf (GOTB) Index measures board effectiveness across five practice areas. Sign in below to access your portal.</p>
     </div>
     <div class="entry-cards">
-      ${entryCard('admin', 'System Administrator', '#2c3e50', adminIcon(), [
-        'Edit free and paid assessment questions',
-        'Manage all practice areas and scoring',
-        'View all submitted assessments',
-        'Full system configuration access',
+      ${entryCard('client', 'Board / District Client', '#e8a000', clientIcon(), [
+        'View your board\'s assessment results',
+        'See scores by practice area',
+        'Review strengths and growth opportunities',
+        'Access your complete assessment history',
       ])}
       ${entryCard('practitioner', 'Certified Practitioner', '#3a6ea8', practitionerIcon(), [
         'View all client self-assessment submissions',
@@ -1047,16 +1047,10 @@ function renderLanding() {
         'Sort and filter by score, district, date',
         'Track progress across all clients',
       ])}
-      ${entryCard('client', 'Board / District Client', '#e8a000', clientIcon(), [
-        'View your board\'s assessment results',
-        'See scores by practice area',
-        'Review strengths and growth opportunities',
-        'Access your complete assessment history',
-      ])}
     </div>
   `;
 
-  ['admin', 'practitioner', 'client'].forEach(type => attachOtpFlow(type));
+  ['client', 'practitioner'].forEach(type => attachOtpFlow(type));
 }
 
 function adminIcon() {
