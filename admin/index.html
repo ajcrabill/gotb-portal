@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOTB Index: Admin — Effective School Boards</title>
+
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/aos/aos.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/css/style.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/img/favicon.png" rel="icon">
+<link href="https://www.effectiveschoolboards.com/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+<style>
+  :root {
+    --esb-dark: #2c3e50;
+    --esb-blue: #3a6ea8;
+    --esb-blue-dark: #2a5285;
+    --esb-bg: #f5f6f8;
+    --esb-surface: #ffffff;
+    --esb-border: #dde2ea;
+    --esb-border-strong: #c5ccd8;
+    --esb-text: #1a2533;
+    --esb-text-secondary: #4a5568;
+    --esb-text-muted: #718096;
+    --esb-error: #9b2c2c;
+    --esb-error-bg: #fff5f5;
+    --radius-sm: 6px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
+    --transition: 150ms ease;
+  }
+
+  .admin-wrap {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 8px 0 40px;
+  }
+
+  .entry-card {
+    background: var(--esb-surface);
+    border: 1.5px solid var(--esb-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  .entry-card:hover { box-shadow: var(--shadow-md); border-color: var(--esb-blue); }
+  .entry-card-icon {
+    width: 48px; height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .entry-card h2 { font-size: 17px; font-weight: 700; color: var(--esb-text); margin-bottom: 8px; }
+  .entry-card p { font-size: 13.5px; color: var(--esb-text-secondary); line-height: 1.6; margin-bottom: 20px; }
+  .entry-card-features {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .entry-card-features li {
+    font-size: 12.5px;
+    color: var(--esb-text-muted);
+    padding-left: 18px;
+    position: relative;
+  }
+  .entry-card-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--esb-blue);
+    font-weight: 700;
+    font-size: 11px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all var(--transition);
+    text-decoration: none;
+    white-space: nowrap;
+    line-height: 1;
+    width: 100%;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--esb-blue); color: #fff; border-color: var(--esb-blue-dark); }
+  .btn-primary:hover:not(:disabled) { background: var(--esb-blue-dark); color: #fff; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 0; }
+  .form-label { font-size: 13px; font-weight: 500; color: var(--esb-text-secondary); }
+  .form-input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--esb-border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--esb-text);
+    background: var(--esb-surface);
+    transition: border-color var(--transition);
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--esb-blue); box-shadow: 0 0 0 3px rgba(58,110,168,0.12); }
+  .form-input::placeholder { color: var(--esb-text-muted); }
+
+  .alert {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .alert-error { background: var(--esb-error-bg); color: var(--esb-error); border-color: #fecaca; }
+  .alert-info { background: #ebf4ff; color: #1e40af; border-color: #bfdbfe; }
+
+  .otp-step { display: none; flex-direction: column; gap: 10px; }
+  .otp-step.active { display: flex; }
+  .otp-back {
+    background: none; border: none;
+    color: var(--esb-text-muted); font-size: 12px;
+    cursor: pointer; padding: 0;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .otp-back:hover { color: var(--esb-blue); }
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2.5px solid var(--esb-border);
+    border-top-color: var(--esb-blue);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-state {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--esb-text-muted); font-size: 14px;
+    padding: 16px; justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- ======= Header ======= -->
+<header id="header" class="fixed-top d-flex align-items-center">
+  <div class="container d-flex align-items-center">
+    <a href="/" class="logo me-auto"><img src="https://www.effectiveschoolboards.com/assets/img/logo.png" alt="Effective School Boards logo"></a>
+    <nav id="navbar" class="navbar order-last order-lg-0">
+      <ul>
+        <li><a class="nav-link scrollto" href="https://www.effectiveschoolboards.com/">Home</a></li>
+        <li class="dropdown"><a href="https://www.effectiveschoolboards.com/framework"><span>Framework</span><i class="bi bi-chevron-down"></i></a>
+          <ul>
+            <li><a href="https://www.effectiveschoolboards.com/framework/"><strong>The ESB Framework</strong></a></li>
+            <li><a href="https://www.effectiveschoolboards.com/framework/about">About The ESB Framework</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/framework/other">Related Frameworks</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/toolkit">State ESB Toolkit</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/publications/">Great On Their Behalf</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/newsletter/">ESB Newsletter</a></li>
+          </ul>
+        </li>
+        <li class="dropdown"><a href="https://www.effectiveschoolboards.com/coaches"><span>Coaches</span><i class="bi bi-chevron-down"></i></a>
+          <ul>
+            <li><a href="https://www.effectiveschoolboards.com/coaches">Find An ESB Coach</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/coaches/become">Become An ESB Coach</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/coaches/senior">Become A Senior ESB Coach</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/coach-newsletter">Subscribe to Coaches Newsletter</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/store">Visit the ESB Store</a></li>
+          </ul>
+        </li>
+        <li class="dropdown"><a href="https://www.effectiveschoolboards.com/resources"><span>Resources</span><i class="bi bi-chevron-down"></i></a>
+          <ul>
+            <li><a href="https://www.effectiveschoolboards.com/resources/time-use">Time Use Evaluation</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/board-self-eval">Board Self Evaluation</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/supt-eval">Superintendent Evaluation</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/priority-examples">Goal &amp; Guardrail Examples</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/onboarding">Board Member Onboarding</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/toolkit">State ESB Toolkit</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/glossary">Glossary</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/quizzes">Quizzes</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/resources/">Recommended Reading</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/publications">ESB Publications</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/community">Community Discussion</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/store">ESB Store</a></li>
+            <li><a href="https://www.effectiveschoolboards.com/newsletter/">ESB Newsletter</a></li>
+          </ul>
+        </li>
+        <li><a class="nav-link scrollto" href="https://www.effectiveschoolboards.com/contact">Contact</a></li>
+      </ul>
+      <i class="bi bi-list mobile-nav-toggle"></i>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="page-content" aria-label="Content">
+  <div class="wrapper">
+
+    <section class="breadcrumbs">
+      <div class="container">
+        <ol>
+          <li><a href="https://www.effectiveschoolboards.com/">Home</a></li>
+          <li><a href="/index.html">GOTB Index</a></li>
+          <li>Admin</li>
+        </ol>
+        <h1>GOTB Index: Administrator Portal</h1>
+      </div>
+    </section>
+
+    <section class="inner-page">
+      <div class="container">
+        <div class="admin-wrap">
+          <div class="entry-card" id="admin-card">
+            <div class="entry-card-icon" style="background:#2c3e50;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h2>System Administrator</h2>
+            <p>Full administrative access to the GOTB Index platform. Manage questions, email content, and view all submissions.</p>
+            <ul class="entry-card-features">
+              <li>Edit free and paid assessment questions</li>
+              <li>Manage all practice areas and scoring</li>
+              <li>Edit email content by practice area and tier</li>
+              <li>View all submitted assessments</li>
+            </ul>
+            <div id="otp-email-admin" class="otp-step active">
+              <div id="otp-err-admin"></div>
+              <div class="form-group">
+                <label class="form-label" for="otp-input-email-admin">Email address</label>
+                <input class="form-input" type="email" id="otp-input-email-admin" placeholder="you@effectiveschoolboards.com" autocomplete="email"/>
+              </div>
+              <button class="btn btn-primary" onclick="requestOtp()">Send Access Code</button>
+            </div>
+            <div id="otp-code-admin" class="otp-step">
+              <button class="otp-back" onclick="resetOtp()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+              </button>
+              <div id="otp-code-err-admin"></div>
+              <div class="alert alert-info">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span id="otp-sent-msg">A 6-digit code has been sent to your email.</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="otp-input-code-admin">Access code</label>
+                <input class="form-input" type="text" id="otp-input-code-admin" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="letter-spacing:0.2em;font-size:18px;text-align:center;"/>
+              </div>
+              <button class="btn btn-primary" onclick="verifyOtp()">Verify &amp; Sign In</button>
+            </div>
+            <div id="otp-loading-admin" class="otp-step">
+              <div class="loading-state"><div class="spinner"></div> Signing in…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ======= Footer ======= -->
+<footer id="footer">
+  <div class="footer-top">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-3 col-md-6 footer-contact">
+          <h5>Effective School Boards<span>.</span></h5>
+          <p>
+            <strong>About Coaching</strong><a href="mailto:coach@effectiveschoolboards.com?subject=Re:+ESB+Coaching"> coach at effectiveschoolboards.com</a><br>
+            <strong>General Inquiries</strong><a href="mailto:info@effectiveschoolboards.com?subject=Re:+Effective+School+Boards"> info at effectiveschoolboards.com</a><br>
+          </p>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-links">
+          <h4>For School Systems</h4>
+          <ul>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/coaches">Find A Coach</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/framework">Board Self Evaluations</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/resources">Resources</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/contact">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-links">
+          <h4>For States</h4>
+          <ul>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/coaches">Find A Coach</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/resources/toolkit">State ESB Toolkit</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/contact">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-links">
+          <h4>For Coaches</h4>
+          <ul>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/coaches/become">Become An ESB Coach</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/framework">ESB Framework</a></li>
+            <li><i class="bx bx-chevron-right"></i> <a href="https://www.effectiveschoolboards.com/store">ESB Store</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container d-md-flex py-4">
+    <div class="me-md-auto text-center text-md-start">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Effective School Boards</span></strong>. All Rights Reserved. Student outcomes don't change until adult behaviors change.&trade;
+      </div>
+    </div>
+  </div>
+</footer>
+
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+<script src="https://www.effectiveschoolboards.com/assets/vendor/purecounter/purecounter_vanilla.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/vendor/aos/aos.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/vendor/glightbox/js/glightbox.min.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/vendor/swiper/swiper-bundle.min.js"></script>
+<script src="https://www.effectiveschoolboards.com/assets/js/main.js"></script>
+
+<script>
+const API = 'https://esbcloud.taild49f53.ts.net:8443';
+
+function getToken() { return localStorage.getItem('gotb_token'); }
+function setToken(t) { localStorage.setItem('gotb_token', t); }
+function getUser() { const u = localStorage.getItem('gotb_user'); return u ? JSON.parse(u) : null; }
+function setUser(u) { localStorage.setItem('gotb_user', JSON.stringify(u)); }
+
+async function apiCall(method, path, body, auth) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (auth !== false) { const tok = getToken(); if (tok) opts.headers['Authorization'] = `Bearer ${tok}`; }
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${API}${path}`, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+function escHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function step(s) {
+  ['email','code','loading'].forEach(n => {
+    const el = document.getElementById(`otp-${n}-admin`);
+    if (el) el.classList.toggle('active', n === s);
+  });
+}
+
+function showErr(slot, msg) {
+  const el = document.getElementById(slot);
+  if (el) el.innerHTML = `<div class="alert alert-error"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ${escHtml(msg)}</div>`;
+}
+
+function resetOtp() {
+  step('email');
+  ['otp-err-admin','otp-code-err-admin'].forEach(id => { const e = document.getElementById(id); if(e) e.innerHTML=''; });
+  const c = document.getElementById('otp-input-code-admin'); if(c) c.value='';
+}
+
+async function requestOtp() {
+  const emailEl = document.getElementById('otp-input-email-admin');
+  const email = emailEl ? emailEl.value.trim() : '';
+  document.getElementById('otp-err-admin').innerHTML = '';
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showErr('otp-err-admin', 'Please enter a valid email address.');
+    return;
+  }
+  const btn = emailEl.closest('.otp-step').querySelector('.btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  try {
+    await apiCall('POST', '/auth/request', { email }, false);
+    const sentMsg = document.getElementById('otp-sent-msg');
+    if (sentMsg) sentMsg.textContent = `A 6-digit code has been sent to ${email}.`;
+    step('code');
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Access Code'; }
+    showErr('otp-err-admin', e.message || 'Failed to send code. Please try again.');
+  }
+}
+
+async function verifyOtp() {
+  const emailEl = document.getElementById('otp-input-email-admin');
+  const codeEl = document.getElementById('otp-input-code-admin');
+  const email = emailEl ? emailEl.value.trim() : '';
+  const code = codeEl ? codeEl.value.trim() : '';
+  document.getElementById('otp-code-err-admin').innerHTML = '';
+  if (!code || code.length < 6) {
+    showErr('otp-code-err-admin', 'Please enter the 6-digit code from your email.');
+    return;
+  }
+  const btn = codeEl.closest('.otp-step').querySelector('.btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
+  try {
+    const res = await apiCall('POST', '/auth/verify', { email, code }, false);
+    if (!res.ok || !res.token) throw new Error('Verification failed');
+    if (!res.user || !res.user.is_admin) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Verify & Sign In'; }
+      showErr('otp-code-err-admin', 'This account does not have administrator access.');
+      return;
+    }
+    setToken(res.token);
+    setUser(res.user);
+    step('loading');
+    await new Promise(r => setTimeout(r, 400));
+    location.href = '../index.html#admin';
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Verify & Sign In'; }
+    showErr('otp-code-err-admin', e.message || 'Invalid or expired code. Please try again.');
+  }
+}
+
+// Keyboard shortcuts
+document.getElementById('otp-input-email-admin').addEventListener('keydown', e => { if(e.key==='Enter') requestOtp(); });
+document.getElementById('otp-input-code-admin').addEventListener('keydown', e => { if(e.key==='Enter') verifyOtp(); });
+document.getElementById('otp-input-code-admin').addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
+});
+
+// If already auth'd as admin, go straight to the dashboard
+(async function() {
+  const user = getUser();
+  const tok = getToken();
+  if (user && tok) {
+    try {
+      const me = await apiCall('GET', '/auth/me');
+      if (me.is_admin) { location.href = '../index.html#admin'; return; }
+    } catch(e) { /* not auth'd, show login */ }
+  }
+})();
+</script>
+</body>
+</html>
