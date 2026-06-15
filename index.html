@@ -323,6 +323,11 @@ src="https://www.facebook.com/tr?id=3870945449879839&ev=PageView&noscript=1"
   .data-table tr.clickable { cursor: pointer; }
 
   /* ─── Tabs ─── */
+  .gotb-readonly .btn-primary { display: none !important; }
+  .gotb-readonly .form-input { pointer-events: none; background: #f8f8f8; color: #666; }
+  .gotb-readonly #tab-users { display: none !important; }
+  .gotb-readonly [data-tab="users"] { display: none !important; }
+
   .tabs {
     display: flex;
     gap: 2px;
@@ -627,10 +632,10 @@ src="https://www.facebook.com/tr?id=3870945449879839&ev=PageView&noscript=1"
   .result-meta p { font-size: 14px; color: var(--esb-text-muted); }
 
   /* ─── Rating labels ─── */
-  .rating-excellent { color: #065f46; font-weight: 600; }
-  .rating-good { color: #1e40af; font-weight: 600; }
-  .rating-developing { color: #92400e; font-weight: 600; }
-  .rating-beginning { color: #991b1b; font-weight: 600; }
+  .rating-highly-effective { color: #065f46; font-weight: 600; }
+  .rating-effective { color: #1e40af; font-weight: 600; }
+  .rating-emerging { color: #92400e; font-weight: 600; }
+  .rating-ineffective { color: #991b1b; font-weight: 600; }
 
   /* ─── Responsive ─── */
   @media (max-width: 900px) {
@@ -944,10 +949,11 @@ function renderApp() {
     return;
   }
 
-  if (currentUser.is_admin) {
+  const isGotbAdmin = hasFeature('gotb-admin');
+  if (currentUser.is_admin || isGotbAdmin) {
     if (!section || section === 'admin') {
       setSection('admin');
-      renderAdminDashboard();
+      renderAdminDashboard(!currentUser.is_admin); // readOnly=true for gotb-admin
     } else {
       renderLanding();
     }
@@ -1016,11 +1022,22 @@ function escHtml(s) {
 
 // ─── Rating ───
 function ratingForScore(score, max) {
-  const pct = (score / max) * 100;
-  if (pct >= 80) return { label: 'Excellent', cls: 'rating-excellent', badge: 'badge-green' };
-  if (pct >= 60) return { label: 'Good', cls: 'rating-good', badge: 'badge-blue' };
-  if (pct >= 40) return { label: 'Developing', cls: 'rating-developing', badge: 'badge-amber' };
-  return { label: 'Beginning', cls: 'rating-beginning', badge: 'badge-red' };
+  const pct = max > 0 ? (score / max) * 100 : score;
+  if (pct >= 80) return { label: 'Highly Effective', cls: 'rating-highly-effective', badge: 'badge-green' };
+  if (pct >= 70) return { label: 'Effective',        cls: 'rating-effective',        badge: 'badge-blue' };
+  if (pct >= 40) return { label: 'Emerging',          cls: 'rating-emerging',         badge: 'badge-amber' };
+  return           { label: 'Ineffective',            cls: 'rating-ineffective',      badge: 'badge-red' };
+}
+
+// Normalize a submission so score + area_scores are always set correctly.
+function normalizeSub(sub) {
+  if (!sub) return sub;
+  const score = sub.total_score ?? sub.score ?? null;
+  const areaKeys = ['score_focus','score_priorities','score_monitor','score_align','score_communicate'];
+  const area_scores = sub.area_scores ?? Object.fromEntries(
+    areaKeys.map((k, i) => [i, sub[k] != null ? sub[k] : null])
+  );
+  return { ...sub, score, area_scores };
 }
 
 function fmtDate(d) {
@@ -1210,16 +1227,16 @@ async function verifyOtp(type) {
 // ═══════════════════════════════════════
 // ADMIN DASHBOARD
 // ═══════════════════════════════════════
-function renderAdminDashboard() {
+function renderAdminDashboard(readOnly) {
   const main = document.getElementById('main-content');
   main.innerHTML = `
-    <div class="dashboard">
+    <div class="dashboard${readOnly ? ' gotb-readonly' : ''}">
       <div class="dashboard-header">
         <div>
           <h1>Admin Dashboard</h1>
-          <div class="dashboard-header-meta">Signed in as ${escHtml(currentUser.email)} · Administrator</div>
+          <div class="dashboard-header-meta">Signed in as ${escHtml(currentUser.email)} · ${readOnly ? 'Admin (read-only)' : 'Administrator'}</div>
         </div>
-        <span class="badge badge-purple">Administrator</span>
+        <span class="badge ${readOnly ? 'badge-gray' : 'badge-purple'}">${readOnly ? 'Admin' : 'Superadmin'}</span>
       </div>
 
       <div class="tabs" id="admin-tabs">
@@ -1227,21 +1244,21 @@ function renderAdminDashboard() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           Free Questions
         </button>
-        <button class="tab-btn" onclick="adminTab('paid-questions')" data-tab="paid-questions">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-          Paid Questions
-        </button>
-        <button class="tab-btn" onclick="adminTab('submissions')" data-tab="submissions">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          Submissions
-        </button>
         <button class="tab-btn" onclick="adminTab('free-content')" data-tab="free-content">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
           Free Email Content
         </button>
+        <button class="tab-btn" onclick="adminTab('paid-questions')" data-tab="paid-questions">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          Paid Questions
+        </button>
         <button class="tab-btn" onclick="adminTab('paid-content')" data-tab="paid-content">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           Paid Email Content
+        </button>
+        <button class="tab-btn" onclick="adminTab('submissions')" data-tab="submissions">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Submissions
         </button>
         <button class="tab-btn" onclick="adminTab('users')" data-tab="users">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
@@ -1252,17 +1269,17 @@ function renderAdminDashboard() {
       <div id="tab-free-questions" class="tab-content active">
         <div class="loading-state"><div class="spinner"></div> Loading questions…</div>
       </div>
-      <div id="tab-paid-questions" class="tab-content">
-        <div class="loading-state"><div class="spinner"></div> Loading questions…</div>
-      </div>
-      <div id="tab-submissions" class="tab-content">
-        <div class="loading-state"><div class="spinner"></div> Loading submissions…</div>
-      </div>
       <div id="tab-free-content" class="tab-content">
         <div class="loading-state"><div class="spinner"></div> Loading content…</div>
       </div>
+      <div id="tab-paid-questions" class="tab-content">
+        <div class="loading-state"><div class="spinner"></div> Loading questions…</div>
+      </div>
       <div id="tab-paid-content" class="tab-content">
         <div class="loading-state"><div class="spinner"></div> Loading content…</div>
+      </div>
+      <div id="tab-submissions" class="tab-content">
+        <div class="loading-state"><div class="spinner"></div> Loading submissions…</div>
       </div>
       <div id="tab-users" class="tab-content">
         <div class="loading-state"><div class="spinner"></div> Loading users…</div>
@@ -1600,7 +1617,7 @@ function renderPractitionerDashboard() {
           <div class="stat-sub">Out of 100</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Excellent Boards</div>
+          <div class="stat-label">Highly Effective</div>
           <div class="stat-value" id="stat-exc">—</div>
           <div class="stat-sub">Score ≥ 80</div>
         </div>
@@ -1705,8 +1722,8 @@ function updatePractitionerStats(data) {
   statsEl.style.display = '';
 
   const total = data.length;
-  const avg = total > 0 ? Math.round(data.reduce((s, d) => s + (d.score || 0), 0) / total) : 0;
-  const exc = data.filter(d => (d.score || 0) >= 80).length;
+  const avg = total > 0 ? Math.round(data.reduce((s, d) => s + (normalizeSub(d).score || 0), 0) / total) : 0;
+  const exc = data.filter(d => (normalizeSub(d).score || 0) >= 80).length;
   const now = new Date();
   const thisMonth = data.filter(d => {
     const dt = new Date(d.submitted_at || d.date || 0);
@@ -1782,14 +1799,17 @@ function renderSubmissionsTable(container, data, isAdmin) {
           </tr>
         </thead>
         <tbody>
-          ${sorted.map(sub => {
-            const r = ratingForScore(sub.score || 0, 100);
+          ${sorted.map(rawSub => {
+            const sub = normalizeSub(rawSub);
+            const r = ratingForScore(sub.score ?? 0, 100);
             const date = fmtDate(sub.submitted_at || sub.date);
+            const districtDisplay = sub.annotation_district || sub.district || '—';
+            const practLabel = sub.annotation_practitioner_name ? `<span style="font-size:11px;color:#3a6ea8;display:block;">${escHtml(sub.annotation_practitioner_name)}</span>` : '';
             return `
-              <tr class="clickable" onclick="openSubmissionPanel(${JSON.stringify(sub).replace(/"/g,'&quot;')})">
-                <td><span style="font-weight:500;">${escHtml(sub.name || '—')}</span></td>
-                <td>${escHtml(sub.district || '—')}</td>
-                <td><strong>${sub.score != null ? sub.score : '—'}</strong><span class="text-muted">/100</span></td>
+              <tr class="clickable" onclick="openSubmissionPanel(${JSON.stringify(rawSub).replace(/"/g,'&quot;')})">
+                <td><span style="font-weight:500;">${escHtml(sub.name || '—')}</span>${practLabel}</td>
+                <td>${escHtml(districtDisplay)}</td>
+                <td><strong>${sub.score != null ? Math.round(sub.score) : '—'}</strong><span class="text-muted">/100</span></td>
                 <td><span class="badge ${r.badge}">${r.label}</span></td>
                 ${isAdmin ? `<td class="text-sm text-muted">${escHtml(sub.email || '—')}</td>` : ''}
                 <td class="text-muted text-sm">${date}</td>
@@ -1950,12 +1970,13 @@ function renderClientContent(submissions) {
               <th></th>
             </tr></thead>
             <tbody>
-              ${previous.map(sub => {
-                const r = ratingForScore(sub.score || 0, 100);
+              ${previous.map(rawSub => {
+                const sub = normalizeSub(rawSub);
+                const r = ratingForScore(sub.score ?? 0, 100);
                 return `
-                  <tr class="clickable" onclick="openSubmissionPanel(${JSON.stringify(sub).replace(/"/g,'&quot;')})">
+                  <tr class="clickable" onclick="openSubmissionPanel(${JSON.stringify(rawSub).replace(/"/g,'&quot;')})">
                     <td>${fmtDate(sub.submitted_at || sub.date)}</td>
-                    <td><strong>${sub.score != null ? sub.score : '—'}</strong>/100</td>
+                    <td><strong>${sub.score != null ? Math.round(sub.score) : '—'}</strong>/100</td>
                     <td><span class="badge ${r.badge}">${r.label}</span></td>
                     <td style="text-align:right;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--esb-text-muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></td>
                   </tr>
@@ -1970,7 +1991,8 @@ function renderClientContent(submissions) {
 }
 
 function renderResultCard(sub, isLatest) {
-  const r = ratingForScore(sub.score || 0, 100);
+  sub = normalizeSub(sub);
+  const r = ratingForScore(sub.score ?? 0, 100);
   const areas = sub.area_scores || {};
 
   return `
@@ -1985,7 +2007,7 @@ function renderResultCard(sub, isLatest) {
       <div class="card-body">
         <div class="result-hero">
           <div class="score-circle" style="border-color: ${r.badge === 'badge-green' ? '#059669' : r.badge === 'badge-blue' ? 'var(--esb-blue)' : r.badge === 'badge-amber' ? '#d97706' : '#dc2626'}; background: ${r.badge === 'badge-green' ? '#d1fae5' : r.badge === 'badge-blue' ? '#dbeafe' : r.badge === 'badge-amber' ? '#fef3c7' : '#fee2e2'};">
-            <div class="score-number" style="color: ${r.badge === 'badge-green' ? '#065f46' : r.badge === 'badge-blue' ? 'var(--esb-blue)' : r.badge === 'badge-amber' ? '#92400e' : '#991b1b'};">${sub.score != null ? sub.score : '—'}</div>
+            <div class="score-number" style="color: ${r.badge === 'badge-green' ? '#065f46' : r.badge === 'badge-blue' ? 'var(--esb-blue)' : r.badge === 'badge-amber' ? '#92400e' : '#991b1b'};">${sub.score != null ? Math.round(sub.score) : '—'}</div>
             <div class="score-max">out of 100</div>
           </div>
           <div class="result-meta">
@@ -1998,16 +2020,17 @@ function renderResultCard(sub, isLatest) {
 
         <div style="font-size:14px;font-weight:600;color:var(--esb-text-secondary);margin-bottom:12px;">Score by Practice Area</div>
         ${AREAS.map(area => {
-          const areaScore = areas[area.id] || areas[area.name] || null;
-          const pct = areaScore != null ? Math.round((areaScore / area.maxWeight) * 100) : null;
+          const areaScore = areas[area.id];
+          const pct = areaScore != null ? Math.round(areaScore) : null;
+          const color = pct != null ? (pct >= 80 ? '#059669' : pct >= 70 ? 'var(--esb-blue)' : pct >= 40 ? '#d97706' : '#dc2626') : '#ccc';
           return `
             <div class="area-bar-row">
               <div class="area-bar-label">${escHtml(area.name)}</div>
               <div class="area-bar-track">
-                <div class="area-bar-fill" style="width:${pct != null ? pct : 0}%;"></div>
+                <div class="area-bar-fill" style="width:${pct != null ? pct : 0}%;background:${color};"></div>
               </div>
               <div class="area-bar-score">
-                ${areaScore != null ? `${areaScore}/${area.maxWeight}` : '<span class="text-muted">—</span>'}
+                ${pct != null ? `${pct}` : '<span class="text-muted">—</span>'}
               </div>
             </div>
           `;
@@ -2037,7 +2060,8 @@ function openSubmissionPanel(sub) {
   if (typeof sub === 'string') {
     try { sub = JSON.parse(sub); } catch(e) { return; }
   }
-  const r = ratingForScore(sub.score || 0, 100);
+  sub = normalizeSub(sub);
+  const r = ratingForScore(sub.score ?? 0, 100);
   const areas = sub.area_scores || {};
 
   document.getElementById('panel-title').textContent = sub.name || 'Submission Detail';
@@ -2046,7 +2070,7 @@ function openSubmissionPanel(sub) {
   document.getElementById('panel-body').innerHTML = `
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
       <div class="score-circle" style="width:90px;height:90px;border-color:${r.badge === 'badge-green' ? '#059669' : r.badge === 'badge-blue' ? 'var(--esb-blue)' : r.badge === 'badge-amber' ? '#d97706' : '#dc2626'};background:${r.badge === 'badge-green' ? '#d1fae5' : r.badge === 'badge-blue' ? '#dbeafe' : r.badge === 'badge-amber' ? '#fef3c7' : '#fee2e2'};">
-        <div class="score-number" style="font-size:22px;color:${r.badge === 'badge-green' ? '#065f46' : r.badge === 'badge-blue' ? 'var(--esb-blue)' : r.badge === 'badge-amber' ? '#92400e' : '#991b1b'};">${sub.score != null ? sub.score : '—'}</div>
+        <div class="score-number" style="font-size:22px;color:${r.badge === 'badge-green' ? '#065f46' : r.badge === 'badge-blue' ? 'var(--esb-blue)' : r.badge === 'badge-amber' ? '#92400e' : '#991b1b'};">${sub.score != null ? Math.round(sub.score) : '—'}</div>
         <div class="score-max">/ 100</div>
       </div>
       <div>
@@ -2072,15 +2096,16 @@ function openSubmissionPanel(sub) {
 
     <div style="font-size:13px;font-weight:600;color:var(--esb-text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em;">Score by Practice Area</div>
     ${AREAS.map(area => {
-      const areaScore = areas[area.id] || areas[area.name] || null;
-      const pct = areaScore != null ? Math.round((areaScore / area.maxWeight) * 100) : null;
+      const areaScore = areas[area.id];
+      const pct = areaScore != null ? Math.round(areaScore) : null;
+      const color = pct != null ? (pct >= 80 ? '#059669' : pct >= 70 ? 'var(--esb-blue)' : pct >= 40 ? '#d97706' : '#dc2626') : '#ccc';
       return `
         <div class="area-bar-row">
           <div class="area-bar-label" style="width:140px;font-size:12.5px;">${escHtml(area.name)}</div>
           <div class="area-bar-track">
-            <div class="area-bar-fill" style="width:${pct != null ? pct : 0}%;"></div>
+            <div class="area-bar-fill" style="width:${pct != null ? pct : 0}%;background:${color};"></div>
           </div>
-          <div class="area-bar-score" style="font-size:12px;">${areaScore != null ? `${areaScore}/${area.maxWeight}` : '—'}</div>
+          <div class="area-bar-score" style="font-size:12px;color:${pct != null ? color : 'var(--esb-text-muted)'};">${pct != null ? pct : '—'}</div>
         </div>
       `;
     }).join('')}
@@ -2097,12 +2122,94 @@ function openSubmissionPanel(sub) {
       `).join('')}
     ` : ''}
 
-    ${sub.notes ? `
+    ${currentUser && currentUser.is_admin ? `
+      <hr class="divider">
+      <div style="font-size:13px;font-weight:600;color:var(--esb-text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em;">Admin Annotation</div>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label class="form-label" style="font-size:11px;">District</label>
+          <div style="position:relative;">
+            <input id="panel-district-search" type="text" class="form-input" style="font-size:13px;"
+              placeholder="Search districts…" value="${escHtml(sub.annotation_district || sub.district || '')}"
+              oninput="onPanelDistrictSearch(this.value)" autocomplete="off">
+            <div id="panel-district-results" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:200;background:#fff;border:1px solid #d5e3f0;border-top:none;border-radius:0 0 8px 8px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:180px;overflow-y:auto;"></div>
+          </div>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">Assigned Practitioner</label>
+          <select id="panel-practitioner" class="form-input" style="font-size:13px;">
+            <option value="">— None —</option>
+            ${(practitionersList || []).map(p => `<option value="${p.id}" ${sub.annotation_practitioner_id === p.id ? 'selected' : ''}>${escHtml(p.name || p.email)}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px;">Notes</label>
+          <textarea id="panel-notes" class="form-input" rows="3" style="font-size:13px;">${escHtml(sub.notes || '')}</textarea>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-primary btn-sm" onclick="saveSubmissionAnnotation()">Save Annotation</button>
+          <span id="panel-ann-msg" style="font-size:12px;color:#3a6ea8;display:none;"></span>
+        </div>
+      </div>
+    ` : sub.notes ? `
       <hr class="divider">
       <div style="font-size:13px;font-weight:600;color:var(--esb-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">Practitioner Notes</div>
       <div style="font-size:13.5px;color:var(--esb-text-secondary);line-height:1.7;background:var(--esb-bg);padding:12px;border-radius:var(--radius-sm);">${escHtml(sub.notes)}</div>
     ` : ''}
   `;
+
+  // Store current sub key for annotation save
+  window._panelSubKey = `${(sub.email||'').toLowerCase()}|${sub.submitted_at||''}`;
+  window._panelDistrictId = sub.district_id || null;
+  let _panelDistDebounce = null;
+
+  window.onPanelDistrictSearch = function(val) {
+    clearTimeout(_panelDistDebounce);
+    if (val.length < 2) { document.getElementById('panel-district-results').style.display = 'none'; return; }
+    _panelDistDebounce = setTimeout(async () => {
+      const results = await api('GET', `/gotb/admin/districts?q=${encodeURIComponent(val)}`).catch(() => []);
+      const box = document.getElementById('panel-district-results');
+      if (!results.length) { box.style.display = 'none'; return; }
+      box.innerHTML = results.map(d => `
+        <div style="padding:7px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;"
+          onmousedown="selectPanelDistrict('${d.id}','${escHtml(d.name)}, ${escHtml(d.state)}')">
+          ${escHtml(d.name)}, ${escHtml(d.state)}${d.city ? ' · '+escHtml(d.city) : ''}
+        </div>`).join('');
+      box.style.display = 'block';
+    }, 200);
+  };
+
+  window.selectPanelDistrict = function(id, label) {
+    window._panelDistrictId = id;
+    document.getElementById('panel-district-search').value = label;
+    document.getElementById('panel-district-results').style.display = 'none';
+  };
+
+  window.saveSubmissionAnnotation = async function() {
+    const btn = document.querySelector('#panel-body .btn-primary');
+    const msg = document.getElementById('panel-ann-msg');
+    const notes = document.getElementById('panel-notes').value;
+    const practitioner_id = document.getElementById('panel-practitioner').value || null;
+    const district_search_val = document.getElementById('panel-district-search').value.trim();
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      await api('PUT', '/gotb/admin/submissions/annotate', {
+        key: window._panelSubKey,
+        district_id: window._panelDistrictId || null,
+        district_name: district_search_val || null,
+        practitioner_id,
+        notes,
+      });
+      msg.textContent = '✓ Saved'; msg.style.display = 'inline'; msg.style.color = '#059669';
+      setTimeout(() => { msg.style.display = 'none'; }, 3000);
+      // Refresh submissions list
+      submissionsData = await api('GET', '/gotb/submissions').catch(() => submissionsData);
+    } catch(e) {
+      msg.textContent = 'Error: ' + (e.message || 'failed'); msg.style.display = 'inline'; msg.style.color = '#dc2626';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save Annotation';
+    }
+  };
 
   document.getElementById('panel-overlay').classList.add('open');
 }
@@ -2152,16 +2259,22 @@ function renderUsersTab() {
   const practitioners = usersData.filter(u => u.role === 'practitioner');
   const clients = usersData.filter(u => u.role === 'client');
 
+  const isSelf = (u) => currentUser && u.id === currentUser.id;
+  const statusBadge = (u) => {
+    const s = u.status || u.role || 'client';
+    const map = { superadmin: 'badge-purple', admin: 'badge-gray', practitioner: 'badge-blue', client: 'badge-green' };
+    return `<span class="badge ${map[s] || 'badge-green'}">${s}</span>`;
+  };
   const userRow = (u) => `
-    <tr>
-      <td>${escHtml(u.name || '—')}</td>
+    <tr${isSelf(u) ? ' style="background:#f0f5ff;"' : ''}>
+      <td>${escHtml(u.name || '—')}${isSelf(u) ? ' <span style="font-size:11px;color:#3a6ea8;">(you)</span>' : ''}</td>
       <td>${escHtml(u.email)}</td>
-      <td><span class="badge ${u.role === 'practitioner' ? 'badge-blue' : 'badge-green'}">${u.role}</span></td>
+      <td>${statusBadge(u)}</td>
       <td>${u.practitioner_name ? escHtml(u.practitioner_name) : '<span style="color:#aaa">—</span>'}</td>
       <td>${u.district_name ? escHtml(u.district_name) : '<span style="color:#aaa">—</span>'}</td>
       <td style="text-align:right;white-space:nowrap;">
         <button class="btn btn-ghost btn-sm" onclick="openEditUser('${u.id}')" style="margin-right:4px;">Edit</button>
-        <button class="btn btn-ghost btn-sm" onclick="deleteUser('${u.id}','${escHtml(u.email)}')" style="color:#e57373;">Delete</button>
+        ${isSelf(u) ? '' : `<button class="btn btn-ghost btn-sm" onclick="deleteUser('${u.id}','${escHtml(u.email)}')" style="color:#e57373;">Delete</button>`}
       </td>
     </tr>`;
 
@@ -2196,10 +2309,12 @@ function renderUsersTab() {
           <input id="uf-email" type="email" class="form-input" placeholder="email@example.com">
         </div>
         <div>
-          <label class="form-label">Role</label>
+          <label class="form-label">Status</label>
           <select id="uf-role" class="form-input" onchange="onRoleChange()">
             <option value="client">Client</option>
             <option value="practitioner">Practitioner</option>
+            <option value="admin">Admin (read-only dashboard)</option>
+            <option value="superadmin">Superadmin (full access)</option>
           </select>
         </div>
         <div id="uf-pract-wrap">
@@ -2247,9 +2362,9 @@ function renderUsersTab() {
 }
 
 function onRoleChange() {
-  const role = document.getElementById('uf-role').value;
+  const status = document.getElementById('uf-role').value;
   const wrap = document.getElementById('uf-pract-wrap');
-  if (wrap) wrap.style.display = role === 'client' ? '' : 'none';
+  if (wrap) wrap.style.display = status === 'client' ? '' : 'none';
 }
 
 function onDistrictSearch(val) {
@@ -2314,10 +2429,10 @@ function openEditUser(id) {
   document.getElementById('uf-submit').textContent = 'Save Changes';
   document.getElementById('uf-name').value = u.name || '';
   document.getElementById('uf-email').value = u.email;
-  document.getElementById('uf-role').value = u.role;
+  document.getElementById('uf-role').value = u.status || u.role || 'client';
 
   const practWrap = document.getElementById('uf-pract-wrap');
-  practWrap.style.display = u.role === 'client' ? '' : 'none';
+  practWrap.style.display = (u.status || u.role) === 'client' ? '' : 'none';
   document.getElementById('uf-practitioner').value = u.practitioner_id || '';
 
   clearDistrict();
@@ -2344,7 +2459,7 @@ function closeUserForm() {
 async function submitUserForm() {
   const name = document.getElementById('uf-name').value.trim();
   const email = document.getElementById('uf-email').value.trim();
-  const role = document.getElementById('uf-role').value;
+  const status = document.getElementById('uf-role').value;
   const practitioner_id = document.getElementById('uf-practitioner').value || null;
   const district_id = _ufDistrictId || null;
   const errEl = document.getElementById('uf-err');
@@ -2356,7 +2471,7 @@ async function submitUserForm() {
   btn.disabled = true;
   btn.textContent = 'Saving…';
   try {
-    const body = { name, email, role, practitioner_id, district_id };
+    const body = { name, email, status, practitioner_id, district_id };
     let saved;
     if (_editingUserId) {
       saved = await api('PUT', `/gotb/admin/users/${_editingUserId}`, body);
@@ -2366,8 +2481,8 @@ async function submitUserForm() {
       saved = await api('POST', '/gotb/admin/users', body);
       usersData.unshift(saved);
     }
-    // If role changed to/from practitioner, refresh the practitioners list
-    if (role === 'practitioner' || (usersData.find(u => u.id === (saved?.id)) || {}).role !== role) {
+    // Refresh practitioners list if status is practitioner/admin/superadmin
+    if (['practitioner','admin','superadmin'].includes(status)) {
       try { practitionersList = await api('GET', '/gotb/admin/practitioners'); } catch(_) {}
     }
     closeUserForm();
