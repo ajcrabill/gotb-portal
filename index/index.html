@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>if(location.protocol!=='https:'&&location.hostname!=='localhost')location.replace('https:'+location.href.slice(5));</script>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOTB Index: Certified Assessment — Effective School Boards</title>
+
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/css/style.css" rel="stylesheet">
+<link href="https://www.effectiveschoolboards.com/assets/img/favicon.png" rel="icon">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --esb-dark: #2c3e50;
+    --esb-blue: #3a6ea8;
+    --esb-blue-light: #4d82c0;
+    --esb-blue-dark: #2a5285;
+    --esb-amber: #e8a000;
+    --esb-bg: #f5f6f8;
+    --esb-surface: #ffffff;
+    --esb-border: #dde2ea;
+    --esb-border-strong: #c5ccd8;
+    --esb-text: #1a2533;
+    --esb-text-secondary: #4a5568;
+    --esb-text-muted: #718096;
+    --esb-success: #276749;
+    --esb-success-bg: #e8f5ee;
+    --esb-error: #9b2c2c;
+    --esb-error-bg: #fff5f5;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+    --transition: 150ms ease;
+  }
+
+  body { background: var(--esb-bg); }
+
+  /* ── Layout ── */
+  .page-wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  /* ── Nav breadcrumb ── */
+  .breadcrumb-row {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px; margin-bottom: 20px;
+  }
+  .breadcrumb-nav { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--esb-text-muted); }
+  .breadcrumb-nav a { color: var(--esb-blue); text-decoration: none; }
+  .breadcrumb-nav a:hover { text-decoration: underline; }
+  .breadcrumb-sep { color: var(--esb-border-strong); }
+  .user-strip { font-size: 12px; color: var(--esb-text-muted); display: flex; align-items: center; gap: 10px; }
+  .btn-signout { background: none; border: 1px solid var(--esb-border); border-radius: var(--radius-sm); padding: 4px 10px; font-size: 12px; color: var(--esb-text-secondary); cursor: pointer; transition: all var(--transition); }
+  .btn-signout:hover { background: var(--esb-error-bg); border-color: var(--esb-error); color: var(--esb-error); }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500;
+    cursor: pointer; border: 1.5px solid transparent; transition: all var(--transition);
+    text-decoration: none; white-space: nowrap; line-height: 1;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--esb-blue); color: #fff; border-color: var(--esb-blue-dark); }
+  .btn-primary:hover:not(:disabled) { background: var(--esb-blue-dark); color: #fff; }
+  .btn-secondary { background: var(--esb-surface); color: var(--esb-text-secondary); border-color: var(--esb-border-strong); }
+  .btn-secondary:hover:not(:disabled) { background: var(--esb-bg); border-color: var(--esb-blue); color: var(--esb-blue); }
+  .btn-success { background: var(--esb-success); color: #fff; border-color: #1a5c0a; }
+  .btn-success:hover:not(:disabled) { background: #1a5c0a; color: #fff; }
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-lg { padding: 13px 28px; font-size: 15px; }
+
+  /* ── Forms ── */
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--esb-text-secondary); }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 9px 12px; border: 1.5px solid var(--esb-border);
+    border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;
+    color: var(--esb-text); background: var(--esb-surface); outline: none;
+    transition: border-color var(--transition);
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--esb-blue); box-shadow: 0 0 0 3px rgba(58,110,168,0.12);
+  }
+  .form-input::placeholder, .form-textarea::placeholder { color: var(--esb-text-muted); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+
+  /* ── Alerts ── */
+  .alert {
+    padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13.5px;
+    border: 1px solid transparent; display: flex; align-items: flex-start; gap: 8px; margin-bottom: 12px;
+  }
+  .alert-error { background: var(--esb-error-bg); color: var(--esb-error); border-color: #fecaca; }
+  .alert-success { background: var(--esb-success-bg); color: var(--esb-success); border-color: #a7d7b8; }
+  .alert-info { background: #ebf4ff; color: #1e40af; border-color: #bfdbfe; }
+
+  /* ── Spinner ── */
+  .spinner {
+    width: 18px; height: 18px; border: 2.5px solid var(--esb-border);
+    border-top-color: var(--esb-blue); border-radius: 50%; animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--esb-surface); border: 1.5px solid var(--esb-border);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 24px;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px; gap: 12px;
+  }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--esb-text); margin: 0; }
+  .card-subtitle { font-size: 13px; color: var(--esb-text-muted); margin: 4px 0 0; }
+
+  /* ── Page sections ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── Dashboard session list ── */
+  .session-list { display: flex; flex-direction: column; gap: 10px; }
+  .session-item {
+    background: var(--esb-surface); border: 1.5px solid var(--esb-border);
+    border-radius: var(--radius-md); padding: 16px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; cursor: pointer; transition: all var(--transition);
+  }
+  .session-item:hover { border-color: var(--esb-blue); box-shadow: var(--shadow-sm); }
+  .session-item-info { flex: 1; min-width: 0; }
+  .session-item-name { font-size: 15px; font-weight: 600; color: var(--esb-text); }
+  .session-item-meta { font-size: 12px; color: var(--esb-text-muted); margin-top: 3px; }
+  .session-item-score {
+    font-size: 28px; font-weight: 800; color: var(--esb-blue);
+    min-width: 48px; text-align: right; line-height: 1;
+  }
+  .session-item-score .score-label { font-size: 11px; font-weight: 400; color: var(--esb-text-muted); }
+  .badge {
+    display: inline-flex; align-items: center; padding: 3px 10px;
+    border-radius: 100px; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+  }
+  .badge-in-progress { background: #fef3c7; color: #92400e; }
+  .badge-complete { background: var(--esb-success-bg); color: var(--esb-success); }
+
+  /* ── Score summary bar ── */
+  .score-bar-wrap { margin-bottom: 6px; }
+  .score-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--esb-text-secondary); margin-bottom: 3px; }
+  .score-bar-track { background: var(--esb-border); border-radius: 4px; height: 8px; }
+  .score-bar-fill { height: 8px; border-radius: 4px; transition: width 0.4s ease; }
+
+  /* ── Practice rubric ── */
+  .practice-nav {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .practice-nav-btn {
+    padding: 7px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+    border: 1.5px solid var(--esb-border); background: var(--esb-surface); cursor: pointer;
+    color: var(--esb-text-secondary); transition: all var(--transition); display: flex; align-items: center; gap: 5px;
+  }
+  .practice-nav-btn.active { background: var(--esb-blue); color: #fff; border-color: var(--esb-blue-dark); }
+  .practice-nav-btn.scored { border-color: var(--esb-success); color: var(--esb-success); background: var(--esb-success-bg); }
+  .practice-nav-btn.scored.active { background: var(--esb-success); color: #fff; border-color: #1a5c0a; }
+  .practice-nav-btn .check { font-size: 11px; }
+
+  .rubric-header { margin-bottom: 16px; }
+  .rubric-title { font-size: 18px; font-weight: 700; color: var(--esb-text); margin: 0; }
+  .rubric-desc { font-size: 13.5px; color: var(--esb-text-secondary); margin: 5px 0 0; }
+  .rubric-points { font-size: 12px; color: var(--esb-text-muted); margin-top: 4px; }
+
+  .level-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+  @media (max-width: 720px) { .level-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .level-grid { grid-template-columns: 1fr; } }
+
+  .level-card {
+    border: 2px solid var(--esb-border); border-radius: var(--radius-md);
+    padding: 14px 12px; cursor: pointer; transition: all var(--transition);
+    position: relative; background: var(--esb-surface);
+  }
+  .level-card:hover { border-color: var(--esb-blue-light); box-shadow: var(--shadow-sm); }
+  .level-card.selected {
+    border-color: var(--esb-blue); box-shadow: 0 0 0 3px rgba(58,110,168,0.15);
+    background: #f0f6ff;
+  }
+  .level-card.level-0.selected { border-color: #9b2c2c; background: #fff8f8; box-shadow: 0 0 0 3px rgba(155,44,44,0.12); }
+  .level-card.level-1.selected { border-color: #b45309; background: #fffbf0; box-shadow: 0 0 0 3px rgba(180,83,9,0.12); }
+  .level-card.level-2.selected { border-color: #1d6fa4; background: #f0f7ff; box-shadow: 0 0 0 3px rgba(29,111,164,0.12); }
+  .level-card.level-3.selected { border-color: var(--esb-success); background: #f0faf4; box-shadow: 0 0 0 3px rgba(39,103,73,0.12); }
+
+  .level-name { font-size: 13px; font-weight: 700; color: var(--esb-text); margin-bottom: 4px; }
+  .level-pts { font-size: 20px; font-weight: 800; margin-bottom: 8px; line-height: 1; }
+  .level-0 .level-pts { color: #9b2c2c; }
+  .level-1 .level-pts { color: #b45309; }
+  .level-2 .level-pts { color: #1d6fa4; }
+  .level-3 .level-pts { color: var(--esb-success); }
+  .level-pts span { font-size: 12px; font-weight: 400; color: var(--esb-text-muted); }
+
+  .level-criteria { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
+  .level-criteria li {
+    font-size: 11.5px; color: var(--esb-text-secondary); line-height: 1.5;
+    padding-left: 14px; position: relative;
+  }
+  .level-criteria li::before {
+    content: '▸'; position: absolute; left: 0; color: var(--esb-text-muted); font-size: 10px; top: 2px;
+  }
+
+  .level-heading {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--esb-text-muted); margin-bottom: 6px; padding: 5px 0;
+    border-bottom: 1px solid var(--esb-border);
+  }
+  .level-0 .level-heading { color: #9b2c2c; border-color: #fca5a5; }
+  .level-1 .level-heading { color: #b45309; border-color: #fcd34d; }
+  .level-2 .level-heading { color: #1d6fa4; border-color: #93c5fd; }
+  .level-3 .level-heading { color: var(--esb-success); border-color: #86efac; }
+
+  /* ── Running total bar ── */
+  .running-total {
+    background: var(--esb-dark); color: #fff; border-radius: var(--radius-md);
+    padding: 14px 18px; display: flex; align-items: center; gap: 16px;
+    margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .running-score { font-size: 36px; font-weight: 800; line-height: 1; }
+  .running-score-label { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+  .running-breakdown { display: flex; gap: 12px; flex-wrap: wrap; flex: 1; }
+  .rt-practice { font-size: 12px; color: rgba(255,255,255,0.7); }
+  .rt-practice strong { color: #fff; }
+
+  /* ── Notes section ── */
+  .practice-notes-wrap { margin-top: 14px; }
+
+  /* ── Report ── */
+  .report-header { text-align: center; margin-bottom: 28px; }
+  .report-score-circle {
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 120px; height: 120px; border-radius: 50%;
+    border: 4px solid var(--esb-blue); margin-bottom: 14px;
+  }
+  .report-score-num { font-size: 44px; font-weight: 800; color: var(--esb-blue); line-height: 1; }
+  .report-score-denom { font-size: 12px; color: var(--esb-text-muted); }
+  .report-board { font-size: 18px; font-weight: 700; color: var(--esb-text); }
+  .report-meta { font-size: 13px; color: var(--esb-text-muted); margin-top: 4px; }
+  .report-tier { font-size: 15px; font-weight: 600; margin-top: 6px; }
+
+  .report-practices { display: flex; flex-direction: column; gap: 14px; margin: 20px 0; }
+  .report-practice {
+    border: 1.5px solid var(--esb-border); border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .report-practice-header {
+    padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+    background: var(--esb-bg);
+  }
+  .report-practice-name { font-size: 14px; font-weight: 600; color: var(--esb-text); }
+  .report-practice-score { font-size: 20px; font-weight: 800; }
+  .report-practice-level { font-size: 11px; color: var(--esb-text-muted); margin-top: 1px; }
+  .report-practice-notes { padding: 10px 16px; font-size: 13px; color: var(--esb-text-secondary); line-height: 1.6; }
+
+  .report-disclaimer {
+    font-size: 12px; color: var(--esb-text-muted); border-top: 1px solid var(--esb-border);
+    padding-top: 16px; margin-top: 20px; line-height: 1.6;
+  }
+
+  /* ── New session form ── */
+  .new-session-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 600px) { .new-session-grid { grid-template-columns: 1fr; } }
+
+  /* ── Hidden utility ── */
+  .hidden { display: none !important; }
+
+  @media print {
+    header, .breadcrumb-row, .running-total, .practice-nav,
+    .btn, .btn-row, .card-header .btn, #section-score-nav { display: none !important; }
+    .card { box-shadow: none; border: none; padding: 0; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ======= Header ======= -->
+<header id="header" class="fixed-top d-flex align-items-center">
+  <div class="container d-flex align-items-center">
+    <a href="/" class="logo me-auto"><img src="https://www.effectiveschoolboards.com/assets/img/logo.png" alt="Effective School Boards"></a>
+    <nav id="navbar" class="navbar order-last order-lg-0">
+      <ul>
+        <li><a class="nav-link scrollto" href="https://www.effectiveschoolboards.com/">Home</a></li>
+        <li><a class="nav-link scrollto" href="https://www.effectiveschoolboards.com/framework/">Framework</a></li>
+        <li><a class="nav-link scrollto" href="https://www.effectiveschoolboards.com/coaches">Coaches</a></li>
+      </ul>
+      <i class="bi bi-list mobile-nav-toggle"></i>
+    </nav>
+  </div>
+</header>
+
+<main style="padding-top: 72px;">
+<div class="page-wrap">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-row">
+    <div class="breadcrumb-nav">
+      <a href="/">GOTB Index</a>
+      <span class="breadcrumb-sep">›</span>
+      <span id="breadcrumb-current">Certified Assessment</span>
+    </div>
+    <div class="user-strip hidden" id="user-strip">
+      <span id="user-email-display"></span>
+      <button class="btn-signout" onclick="signOut()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- ── SECTION: Login ── -->
+  <div class="section active" id="section-login">
+    <div style="max-width: 420px; margin: 40px auto;">
+      <div class="card">
+        <div style="text-align: center; margin-bottom: 22px;">
+          <div style="width: 52px; height: 52px; background: #ebf3fc; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+            <i class="bi bi-shield-check" style="font-size: 24px; color: var(--esb-blue);"></i>
+          </div>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--esb-text); margin: 0;">Certified Assessment</h2>
+          <p style="font-size: 13.5px; color: var(--esb-text-muted); margin: 6px 0 0;">
+            Sign in with your Certified Practitioner email to access the assessment portal.
+          </p>
+        </div>
+
+        <div id="login-error" class="alert alert-error hidden"></div>
+
+        <!-- Step 1: email -->
+        <div id="step-email" style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">Your email address</label>
+            <input id="login-email" type="email" class="form-input" placeholder="practitioner@example.com" autocomplete="email">
+          </div>
+          <button class="btn btn-primary" onclick="sendOtp()">Continue</button>
+        </div>
+
+        <!-- Step 2: OTP -->
+        <div id="step-otp" style="display: none; flex-direction: column; gap: 12px;">
+          <button onclick="backToEmail()" style="background: none; border: none; color: var(--esb-text-muted); font-size: 12px; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 4px;">
+            <i class="bi bi-arrow-left"></i> Back
+          </button>
+          <p style="font-size: 13px; color: var(--esb-text-secondary); margin: 0;">
+            We sent a 6-digit code to <strong id="otp-email-display"></strong>. Enter it below.
+          </p>
+          <div class="form-group">
+            <label class="form-label">One-time code</label>
+            <input id="login-otp" type="text" class="form-input" placeholder="123456" maxlength="6"
+              inputmode="numeric" autocomplete="one-time-code" style="font-size: 20px; letter-spacing: .2em; text-align: center;">
+          </div>
+          <button class="btn btn-primary" onclick="verifyOtp()">Sign in</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION: Dashboard ── -->
+  <div class="section" id="section-dashboard">
+    <div class="card-header" style="margin-bottom: 18px;">
+      <div>
+        <h1 class="card-title">My Assessments</h1>
+        <p class="card-subtitle">Great On Their Behalf Certified Assessment sessions</p>
+      </div>
+      <button class="btn btn-primary" onclick="showNewSession()">
+        <i class="bi bi-plus-lg"></i> New Assessment
+      </button>
+    </div>
+
+    <div id="dashboard-error" class="alert alert-error hidden"></div>
+    <div id="dashboard-loading" style="text-align: center; padding: 40px; color: var(--esb-text-muted);">
+      <div class="spinner" style="margin: 0 auto 12px;"></div>Loading sessions…
+    </div>
+
+    <div id="session-list" class="session-list hidden"></div>
+    <div id="no-sessions" class="hidden" style="text-align: center; padding: 48px 24px; color: var(--esb-text-muted);">
+      <i class="bi bi-clipboard-check" style="font-size: 36px; display: block; margin-bottom: 12px; opacity: 0.4;"></i>
+      No assessments yet. Start your first one.
+    </div>
+  </div>
+
+  <!-- ── SECTION: New Session Form ── -->
+  <div class="section" id="section-new-session">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">New Certified Assessment</h2>
+          <p class="card-subtitle">Create a new session for a board</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="showDashboard()">
+          <i class="bi bi-arrow-left"></i> Back
+        </button>
+      </div>
+
+      <div id="new-session-error" class="alert alert-error hidden"></div>
+
+      <div class="new-session-grid">
+        <div class="form-group">
+          <label class="form-label">Board / Organization name <span style="color:var(--esb-error)">*</span></label>
+          <input id="ns-board" type="text" class="form-input" placeholder="Springfield Unified School District Board">
+        </div>
+        <div class="form-group">
+          <label class="form-label">District name <span style="color:var(--esb-error)">*</span></label>
+          <input id="ns-district" type="text" class="form-input" placeholder="Springfield USD">
+        </div>
+        <div class="form-group">
+          <label class="form-label">State</label>
+          <input id="ns-state" type="text" class="form-input" placeholder="TX" maxlength="2">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assessment date <span style="color:var(--esb-error)">*</span></label>
+          <input id="ns-date" type="date" class="form-input">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top: 14px;">
+        <label class="form-label">Notes (optional)</label>
+        <textarea id="ns-notes" class="form-textarea" placeholder="Context about this board, session goals, prior history…"></textarea>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-primary btn-lg" onclick="createSession()">
+          <i class="bi bi-play-fill"></i> Start Assessment
+        </button>
+        <button class="btn btn-secondary btn-lg" onclick="showDashboard()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION: Assessment (scoring) ── -->
+  <div class="section" id="section-assessment">
+
+    <!-- Running total -->
+    <div class="running-total" id="running-total">
+      <div>
+        <div class="running-score" id="rt-total">—</div>
+        <div class="running-score-label">out of 100</div>
+      </div>
+      <div class="running-breakdown" id="rt-breakdown"></div>
+    </div>
+
+    <!-- Practice tabs -->
+    <div class="practice-nav" id="practice-nav"></div>
+
+    <!-- Rubric card -->
+    <div class="card" id="rubric-card">
+      <div class="rubric-header">
+        <h2 class="rubric-title" id="rubric-title"></h2>
+        <p class="rubric-desc" id="rubric-desc"></p>
+        <p class="rubric-points" id="rubric-points"></p>
+      </div>
+
+      <!-- 4-column level selector -->
+      <div class="level-grid" id="level-grid"></div>
+
+      <!-- Practice notes -->
+      <div class="practice-notes-wrap">
+        <div class="form-group">
+          <label class="form-label" style="font-size: 12px;">Facilitator notes for this practice (optional)</label>
+          <textarea id="practice-notes-input" class="form-textarea" placeholder="Board discussion summary, context for this score…" style="min-height: 64px;"></textarea>
+        </div>
+      </div>
+
+      <!-- Nav buttons -->
+      <div style="display: flex; gap: 10px; justify-content: space-between; margin-top: 16px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-prev-practice" onclick="prevPractice()">
+            <i class="bi bi-arrow-left"></i> Previous
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-next-practice" onclick="nextPractice()">
+            Next <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" onclick="showDashboard()">Save &amp; Exit</button>
+          <button class="btn btn-success btn-sm" id="btn-complete" onclick="completeSession()" style="display:none;">
+            <i class="bi bi-check-circle"></i> Complete Assessment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION: Report ── -->
+  <div class="section" id="section-report">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Assessment Report</h2>
+          <p class="card-subtitle">Great On Their Behalf Index — Certified Assessment</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" onclick="showDashboard()">
+            <i class="bi bi-arrow-left"></i> Back
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print
+          </button>
+        </div>
+      </div>
+
+      <div id="report-content"></div>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+</main>
+
+<script>
+const API = 'https://esbcloud.taild49f53.ts.net:10000';
+let _token = null;
+let _userEmail = '';
+let _sessions = [];
+let _activeSession = null;
+let _activePracticeIdx = 0;
+let _pendingNotesSave = null;
+
+// ── Auth helpers ──────────────────────────────────────────────────────────────
+function getToken() {
+  return _token || sessionStorage.getItem('gotb_token');
+}
+
+function setToken(t) {
+  _token = t;
+  sessionStorage.setItem('gotb_token', t);
+}
+
+function signOut() {
+  _token = null;
+  _userEmail = '';
+  sessionStorage.removeItem('gotb_token');
+  sessionStorage.removeItem('gotb_email');
+  document.getElementById('user-strip').classList.add('hidden');
+  show('section-login');
+}
+
+// ── Navigation helpers ────────────────────────────────────────────────────────
+function show(sectionId) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(sectionId).classList.add('active');
+}
+
+function setError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (msg) { el.textContent = msg; el.classList.remove('hidden'); }
+  else { el.classList.add('hidden'); }
+}
+
+// ── API wrapper ───────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const headers = { 'Content-Type': 'application/json' };
+  const tok = getToken();
+  if (tok) headers['Authorization'] = 'Bearer ' + tok;
+  const res = await fetch(API + path, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ── Login flow ────────────────────────────────────────────────────────────────
+async function sendOtp() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) { setError('login-error', 'Please enter your email address.'); return; }
+  setError('login-error', '');
+  try {
+    await api('POST', '/auth/otp/request', { email });
+    document.getElementById('otp-email-display').textContent = email;
+    document.getElementById('step-email').style.display = 'none';
+    document.getElementById('step-otp').style.display = 'flex';
+    document.getElementById('login-otp').focus();
+  } catch(e) {
+    setError('login-error', e.message);
+  }
+}
+
+async function verifyOtp() {
+  const email = document.getElementById('login-email').value.trim();
+  const code = document.getElementById('login-otp').value.trim();
+  if (!code) { setError('login-error', 'Enter the 6-digit code.'); return; }
+  setError('login-error', '');
+  try {
+    const data = await api('POST', '/auth/otp/verify', { email, code });
+    setToken(data.access_token);
+    _userEmail = email;
+    sessionStorage.setItem('gotb_email', email);
+    document.getElementById('user-email-display').textContent = email;
+    document.getElementById('user-strip').classList.remove('hidden');
+    await showDashboard();
+  } catch(e) {
+    setError('login-error', e.message);
+  }
+}
+
+function backToEmail() {
+  document.getElementById('step-otp').style.display = 'none';
+  document.getElementById('step-email').style.display = 'flex';
+  document.getElementById('login-otp').value = '';
+  setError('login-error', '');
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+async function showDashboard() {
+  show('section-dashboard');
+  document.getElementById('breadcrumb-current').textContent = 'Certified Assessment';
+  document.getElementById('dashboard-loading').classList.remove('hidden');
+  document.getElementById('session-list').classList.add('hidden');
+  document.getElementById('no-sessions').classList.add('hidden');
+  setError('dashboard-error', '');
+  try {
+    _sessions = await api('GET', '/gotb/certified/sessions');
+    renderDashboard();
+  } catch(e) {
+    if (e.message.includes('401') || e.message.includes('403')) {
+      signOut();
+    } else {
+      setError('dashboard-error', e.message);
+      document.getElementById('dashboard-loading').classList.add('hidden');
+    }
+  }
+}
+
+function tierLabel(score) {
+  if (score >= 80) return 'Highly Effective';
+  if (score >= 60) return 'Effective';
+  if (score >= 30) return 'Emerging';
+  return 'Ineffective';
+}
+
+function tierColor(score) {
+  if (score >= 80) return '#276749';
+  if (score >= 60) return '#1d6fa4';
+  if (score >= 30) return '#b45309';
+  return '#9b2c2c';
+}
+
+function renderDashboard() {
+  document.getElementById('dashboard-loading').classList.add('hidden');
+  const list = document.getElementById('session-list');
+  const empty = document.getElementById('no-sessions');
+  if (!_sessions.length) { empty.classList.remove('hidden'); return; }
+  list.innerHTML = '';
+  _sessions.forEach(s => {
+    const score = s.total_score || 0;
+    const complete = s.status === 'complete';
+    const pracCount = Object.keys(s.scores || {}).length;
+    const item = document.createElement('div');
+    item.className = 'session-item';
+    item.onclick = () => openSession(s.session_id);
+    item.innerHTML = `
+      <div class="session-item-info">
+        <div class="session-item-name">${esc(s.board_name)}</div>
+        <div class="session-item-meta">
+          ${esc(s.district)}${s.state ? ', '+esc(s.state) : ''} &nbsp;·&nbsp;
+          ${s.assessment_date || ''} &nbsp;·&nbsp;
+          <span class="badge ${complete ? 'badge-complete' : 'badge-in-progress'}">
+            ${complete ? '✓ Complete' : `In progress (${pracCount}/6)`}
+          </span>
+        </div>
+      </div>
+      <div class="session-item-score">
+        ${complete || pracCount > 0 ? `<div style="color:${tierColor(score)}">${score}</div><div class="score-label">/ 100</div>` : '<div style="font-size:13px;font-weight:400;color:var(--esb-text-muted)">—</div>'}
+      </div>
+      <div><i class="bi bi-chevron-right" style="color:var(--esb-text-muted);"></i></div>
+    `;
+    list.appendChild(item);
+  });
+  list.classList.remove('hidden');
+}
+
+// ── New session ───────────────────────────────────────────────────────────────
+function showNewSession() {
+  // Default date to today
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('ns-date').value = today;
+  document.getElementById('ns-board').value = '';
+  document.getElementById('ns-district').value = '';
+  document.getElementById('ns-state').value = '';
+  document.getElementById('ns-notes').value = '';
+  setError('new-session-error', '');
+  show('section-new-session');
+}
+
+async function createSession() {
+  const board = document.getElementById('ns-board').value.trim();
+  const district = document.getElementById('ns-district').value.trim();
+  const date = document.getElementById('ns-date').value;
+  if (!board || !district || !date) {
+    setError('new-session-error', 'Board name, district, and assessment date are required.');
+    return;
+  }
+  setError('new-session-error', '');
+  try {
+    const s = await api('POST', '/gotb/certified/sessions', {
+      board_name: board,
+      district,
+      state: document.getElementById('ns-state').value.trim().toUpperCase(),
+      assessment_date: date,
+      notes: document.getElementById('ns-notes').value.trim(),
+    });
+    _sessions.unshift(s);
+    openSession(s.session_id);
+  } catch(e) {
+    setError('new-session-error', e.message);
+  }
+}
+
+// ── Assessment / scoring ──────────────────────────────────────────────────────
+function openSession(sessionId) {
+  _activeSession = _sessions.find(s => s.session_id === sessionId);
+  if (!_activeSession) return;
+  // If complete, go to report
+  if (_activeSession.status === 'complete') {
+    showReport(_activeSession);
+    return;
+  }
+  // Find first unscored practice
+  _activePracticeIdx = 0;
+  for (let i = 0; i < PRACTICES.length; i++) {
+    if (_activeSession.scores && _activeSession.scores[PRACTICES[i].key] !== undefined) continue;
+    _activePracticeIdx = i;
+    break;
+  }
+  show('section-assessment');
+  document.getElementById('breadcrumb-current').textContent = _activeSession.board_name;
+  renderPracticeNav();
+  renderPractice(_activePracticeIdx);
+}
+
+function renderPracticeNav() {
+  const nav = document.getElementById('practice-nav');
+  nav.innerHTML = '';
+  PRACTICES.forEach((p, i) => {
+    const scored = _activeSession.scores && _activeSession.scores[p.key] !== undefined;
+    const btn = document.createElement('button');
+    btn.className = `practice-nav-btn${i === _activePracticeIdx ? ' active' : ''}${scored ? ' scored' : ''}`;
+    btn.innerHTML = `${p.short}${scored ? ' <span class="check">✓</span>' : ''}`;
+    btn.onclick = () => { saveCurrentNotes(); switchPractice(i); };
+    nav.appendChild(btn);
+  });
+}
+
+function renderPractice(idx) {
+  _activePracticeIdx = idx;
+  const p = PRACTICES[idx];
+  document.getElementById('rubric-title').textContent = p.name;
+  document.getElementById('rubric-desc').textContent = p.desc;
+  document.getElementById('rubric-points').textContent =
+    `Possible scores: ${p.levels.map(l => l.pts + ' pts').join(' / ')} — select the highest level the board fully satisfies.`;
+
+  // Notes
+  const notes = (_activeSession.practice_notes || {})[p.key] || '';
+  document.getElementById('practice-notes-input').value = notes;
+
+  // Level grid
+  const grid = document.getElementById('level-grid');
+  grid.innerHTML = '';
+  const currentLevel = (_activeSession.scores || {})[p.key];
+  p.levels.forEach((lvl, li) => {
+    const card = document.createElement('div');
+    card.className = `level-card level-${li}${currentLevel === li ? ' selected' : ''}`;
+    card.onclick = () => selectLevel(idx, li);
+    const criteriaHtml = lvl.criteria.map(c => `<li>${esc(c)}</li>`).join('');
+    card.innerHTML = `
+      <div class="level-heading">${lvl.name}</div>
+      <div class="level-pts">${lvl.pts}<span> pts</span></div>
+      <ul class="level-criteria">${criteriaHtml}</ul>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Nav buttons
+  document.getElementById('btn-prev-practice').disabled = idx === 0;
+  document.getElementById('btn-next-practice').disabled = idx === PRACTICES.length - 1;
+
+  // Show "Complete" button if all practices scored
+  const allScored = PRACTICES.every(pr => (_activeSession.scores || {})[pr.key] !== undefined);
+  document.getElementById('btn-complete').style.display = allScored ? 'inline-flex' : 'none';
+
+  renderRunningTotal();
+  renderPracticeNav();
+}
+
+async function selectLevel(practiceIdx, levelIdx) {
+  const p = PRACTICES[practiceIdx];
+  if (!_activeSession.scores) _activeSession.scores = {};
+  _activeSession.scores[p.key] = levelIdx;
+
+  // Recalculate total
+  _activeSession.total_score = calcTotal(_activeSession.scores);
+
+  // Highlight selected card
+  document.querySelectorAll('.level-card').forEach((c, i) => {
+    c.classList.toggle('selected', i === levelIdx);
+  });
+
+  renderRunningTotal();
+  renderPracticeNav();
+
+  // Show complete button if all scored
+  const allScored = PRACTICES.every(pr => (_activeSession.scores || {})[pr.key] !== undefined);
+  document.getElementById('btn-complete').style.display = allScored ? 'inline-flex' : 'none';
+
+  // Persist to backend
+  try {
+    await api('PATCH', `/gotb/certified/sessions/${_activeSession.session_id}`, {
+      scores: _activeSession.scores,
+    });
+  } catch(e) {
+    console.warn('Score save failed:', e.message);
+  }
+}
+
+function calcTotal(scores) {
+  const map = {
+    focus_mindset:  [0, 1,  5,  10],
+    goals:          [0, 5,  15, 20],
+    guardrails:     [0, 5,  12, 15],
+    monitor:        [0, 10, 20, 30],
+    align:          [0, 5,  15, 20],
+    communicate:    [0, 1,  3,  5],
+  };
+  return Object.entries(scores).reduce((sum, [k, v]) => sum + (map[k]?.[v] ?? 0), 0);
+}
+
+function renderRunningTotal() {
+  const scores = _activeSession.scores || {};
+  const total = calcTotal(scores);
+  document.getElementById('rt-total').textContent = Object.keys(scores).length ? total : '—';
+
+  const breakdown = document.getElementById('rt-breakdown');
+  breakdown.innerHTML = PRACTICES.map(p => {
+    const lvl = scores[p.key];
+    const pts = lvl !== undefined ? calcTotal({[p.key]: lvl}) : '—';
+    return `<div class="rt-practice"><strong>${pts}</strong> ${p.short}</div>`;
+  }).join('');
+}
+
+function saveCurrentNotes() {
+  if (!_activeSession) return;
+  const notes = document.getElementById('practice-notes-input').value.trim();
+  const key = PRACTICES[_activePracticeIdx].key;
+  if (!_activeSession.practice_notes) _activeSession.practice_notes = {};
+  if (_activeSession.practice_notes[key] !== notes) {
+    _activeSession.practice_notes[key] = notes;
+    api('PATCH', `/gotb/certified/sessions/${_activeSession.session_id}`, {
+      practice_notes: _activeSession.practice_notes,
+    }).catch(e => console.warn('Notes save failed:', e.message));
+  }
+}
+
+function switchPractice(idx) {
+  _activePracticeIdx = idx;
+  renderPractice(idx);
+}
+
+function prevPractice() { saveCurrentNotes(); if (_activePracticeIdx > 0) switchPractice(_activePracticeIdx - 1); }
+function nextPractice() { saveCurrentNotes(); if (_activePracticeIdx < PRACTICES.length - 1) switchPractice(_activePracticeIdx + 1); }
+
+async function completeSession() {
+  saveCurrentNotes();
+  if (!confirm('Mark this assessment as complete? You will not be able to change scores after this.')) return;
+  try {
+    const updated = await api('POST', `/gotb/certified/sessions/${_activeSession.session_id}/complete`);
+    _activeSession = updated;
+    // Update in list
+    const idx = _sessions.findIndex(s => s.session_id === updated.session_id);
+    if (idx >= 0) _sessions[idx] = updated;
+    showReport(updated);
+  } catch(e) {
+    alert('Could not complete session: ' + e.message);
+  }
+}
+
+// ── Report ────────────────────────────────────────────────────────────────────
+function showReport(session) {
+  show('section-report');
+  document.getElementById('breadcrumb-current').textContent = 'Report — ' + session.board_name;
+
+  const scores = session.scores || {};
+  const total = session.total_score || calcTotal(scores);
+  const color = tierColor(total);
+
+  const practicesHtml = PRACTICES.map(p => {
+    const lvlIdx = scores[p.key];
+    const lvl = lvlIdx !== undefined ? p.levels[lvlIdx] : null;
+    const pts = lvl ? lvl.pts : 0;
+    const noteText = (session.practice_notes || {})[p.key] || '';
+    return `
+      <div class="report-practice">
+        <div class="report-practice-header">
+          <div>
+            <div class="report-practice-name">${esc(p.name)}</div>
+            <div class="report-practice-level" style="color:${lvl ? levelColor(lvlIdx) : 'var(--esb-text-muted)'}">
+              ${lvl ? lvl.name : 'Not scored'}
+            </div>
+          </div>
+          <div class="report-practice-score" style="color:${lvl ? levelColor(lvlIdx) : 'var(--esb-text-muted)'}">
+            ${pts}<span style="font-size:13px;font-weight:400;color:var(--esb-text-muted)"> / ${p.levels[3].pts}</span>
+          </div>
+        </div>
+        ${noteText ? `<div class="report-practice-notes">${esc(noteText)}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('report-content').innerHTML = `
+    <div class="report-header">
+      <div class="report-score-circle" style="border-color:${color}">
+        <div class="report-score-num" style="color:${color}">${total}</div>
+        <div class="report-score-denom">out of 100</div>
+      </div>
+      <div class="report-board">${esc(session.board_name)}</div>
+      <div class="report-meta">
+        ${esc(session.district)}${session.state ? ', ' + esc(session.state) : ''}
+        &nbsp;·&nbsp; ${session.assessment_date || ''}
+        &nbsp;·&nbsp; Facilitated by ${esc(session.facilitator_email)}
+      </div>
+      <div class="report-tier" style="color:${color}">${tierLabel(total)}</div>
+    </div>
+
+    <div class="report-practices">${practicesHtml}</div>
+
+    <div class="report-disclaimer">
+      <strong>Great On Their Behalf Index — Certified Assessment</strong><br>
+      Administered by a Certified Great On Their Behalf Practitioner using the validated Effective School Boards
+      Framework Instrument. This assessment was facilitated by a trained practitioner and reflects a consensus
+      score reached through structured facilitation. Scoring is based on the non-linear Framework Instrument
+      scale (0–100). National benchmarking available upon validation completion.
+      <br><br>
+      © Effective School Boards LLC &nbsp;|&nbsp; effectiveschoolboards.com &nbsp;|&nbsp;
+      "Student outcomes don't change until adult behaviors change."™
+    </div>
+  `;
+}
+
+function levelColor(i) {
+  return ['#9b2c2c', '#b45309', '#1d6fa4', '#276749'][i] || 'var(--esb-text-muted)';
+}
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Rubric data ───────────────────────────────────────────────────────────────
+// Source: Effective School Boards Framework Instrument
+// Each practice: key, name, short, desc, levels[0..3] (Ineffective→Highly Effective)
+// Criteria are distilled from the Framework Instrument for facilitator reference.
+const PRACTICES = [
+  {
+    key: 'focus_mindset',
+    name: 'Focus Mindset',
+    short: 'Focus',
+    desc: 'The board keeps its attention fixed on improving outcomes for students, changing adult behaviors — starting with its own.',
+    levels: [
+      {
+        name: 'Ineffective', pts: 0,
+        criteria: [
+          'Board received training on knowledge & skills but NOT on the mindset needed to be effective (prior 36 months)',
+          'Board has not consistently distinguished between inputs, outputs, and student outcomes',
+          'Board has not consistently distinguished between adult inputs and student outcomes',
+          'Board has not conducted a self-evaluation in the previous 12 months',
+          'Board has not evaluated its use of time in Board-authorized public meetings in the previous 12 months',
+          'Board has not participated in a full governance team training (all members present) in the previous 12 months',
+        ]
+      },
+      {
+        name: 'Emerging', pts: 1,
+        criteria: [
+          'Board received training on the Effective School Boards framework',
+          'Quarterly self-evaluations scheduled; annual self-eval ≤45 days before next Superintendent evaluation',
+          'Board tracks time use and reports at least quarterly the % of meeting time focused on student outcomes',
+          'Board has hosted and led or co-led at least one ESB framework training session in the previous 12 months',
+          'Most recent self-evaluation ≤12 months ago using this instrument; Board voted to adopt results',
+          'Board tracks average annual cost of staff time invested in governance during self-evaluation',
+        ]
+      },
+      {
+        name: 'Effective', pts: 5,
+        criteria: [
+          'Students were included as presenters in at least one ESB framework training in the previous 12 months',
+          'All newly selected Board Members received ESB framework training from fellow members or a certified coach prior to selection',
+          'Board self-evaluated in the last 3 months (if prior score <80) or last 12 months (if ≥80)',
+          'Annual self-evaluation includes each Board Member sharing examples of when their behaviors made it harder for students to achieve goals',
+        ]
+      },
+      {
+        name: 'Highly Effective', pts: 10,
+        criteria: [
+          'All Effective criteria met consistently',
+          'Student-outcomes focus is institutional (survives board member turnover) — not reliant on individual champion',
+          'Board explicitly evaluates and documents when focus slips and corrects it',
+        ]
+      },
+    ]
+  },
+  {
+    key: 'goals',
+    name: 'Clarify Priorities: Vision & Goals',
+    short: 'Goals',
+    desc: 'The board has adopted SMART goals that represent the community\'s vision for student outcomes.',
+    levels: [
+      {
+        name: 'Ineffective', pts: 0,
+        criteria: [
+          'Board has not adopted policies about goals that clarify the community\'s vision',
+          'Board has not consistently distinguished between adult inputs and student outcomes',
+          'Board has not consistently distinguished between SMART goals and vague aspirations',
+          'Board has not hosted community listening opportunities in the previous 36 months',
+        ]
+      },
+      {
+        name: 'Emerging', pts: 5,
+        criteria: [
+          'Board received training on listening for the community\'s vision and setting SMART goals',
+          'Board included students, parents, staff, and community members in the goal development process',
+          'Board used root cause analysis or research-based tools to inform goal identification',
+          'Board developed goals collaboratively with the Superintendent representing what students should know/do',
+          'Board publicly posted goals for comment before adoption',
+          'Board has identified annual targets (goal ending points for each year)',
+        ]
+      },
+      {
+        name: 'Effective', pts: 15,
+        criteria: [
+          'Board has adopted 1–5 goals (max 3 recommended); all are SMART, student-outcome focused',
+          'Superintendent has adopted 1–3 interim goals per goal; each is SMART and predictive/influenceable',
+          'All interim goals pertain to student outputs or outcomes — not inputs or adult outputs',
+          'Interim goal status can be updated multiple times per school year',
+          'Board adopted goals through a process that led community members to express ownership',
+          'All Board Members have memorized all adopted goals and current status',
+        ]
+      },
+      {
+        name: 'Highly Effective', pts: 20,
+        criteria: [
+          'All Effective criteria met',
+          'Board and Superintendent agree goals/interim goals will challenge the organization and require adult behavior change',
+          'All Board goals last 3–5 years; interim goals 1–3 years',
+          'Community re-engagement process in place as goals are met or conditions change',
+        ]
+      },
+    ]
+  },
+  {
+    key: 'guardrails',
+    name: 'Clarify Priorities: Values & Guardrails',
+    short: 'Guardrails',
+    desc: 'The board has adopted guardrails that represent the community\'s non-negotiable values on how goals are pursued.',
+    levels: [
+      {
+        name: 'Ineffective', pts: 0,
+        criteria: [
+          'Board has not adopted policies about goals that clarify the community\'s vision',
+          'Board has not adopted policies about guardrails that clarify the community\'s values',
+          'Board has not hosted community listening opportunities (values) in the previous 36 months',
+        ]
+      },
+      {
+        name: 'Emerging', pts: 5,
+        criteria: [
+          'Board received training on listening for community values and setting guardrails',
+          'Board included students, parents, staff, and community members in the guardrail development process',
+          'Board developed guardrails collaboratively with the Superintendent; each describes actions the Superintendent may not use/allow',
+          'Board publicly posted guardrails for comment before adoption',
+          'Board has developed 1–5 guardrails (max 3 recommended) that do not hinder pursuit of the goals',
+        ]
+      },
+      {
+        name: 'Effective', pts: 12,
+        criteria: [
+          'Superintendent has adopted 1–3 interim guardrails per guardrail; each is SMART and predictive/influenceable',
+          'All interim guardrails pertain to outputs or outcomes — not inputs',
+          'Interim guardrail status can be updated multiple times per year',
+          'Board adopted guardrails through a process that led community members to express ownership',
+          'Board has considered adoption of one or more theories of action',
+        ]
+      },
+      {
+        name: 'Highly Effective', pts: 15,
+        criteria: [
+          'All Effective criteria met',
+          'Guardrails, interim guardrails, and any theories of action will challenge the organization and require adult behavior change',
+          'In addition to Superintendent guardrails, Board has adopted 1–5 guardrails on its OWN behavior and evaluates itself against them at least quarterly',
+          'All Board guardrails last 3–5 years; interim guardrails last 1–3 years',
+        ]
+      },
+    ]
+  },
+  {
+    key: 'monitor',
+    name: 'Monitor Progress',
+    short: 'Monitor',
+    desc: 'The board devotes significant time monthly to highly effective monitoring of progress toward its goals.',
+    levels: [
+      {
+        name: 'Ineffective', pts: 0,
+        criteria: [
+          'Board has not adopted policies about goals that clarify the community\'s vision',
+          'Board has not consistently distinguished between effective and ineffective monitoring',
+          'Board does not track its use of time in Board-authorized public meetings',
+          'Board does not schedule each goal to be monitored at least 4 times per year',
+          'Board does not schedule each guardrail to be monitored at least once per year',
+          'Board has not adopted a monitoring calendar',
+          'School system has not achieved any interim goals in the previous 12 months',
+        ]
+      },
+      {
+        name: 'Emerging', pts: 10,
+        criteria: [
+          'Board received training on effective monitoring',
+          'Superintendent and team received training on creating effective monitoring reports',
+          'Superintendent (collaboratively with Board) led the monitoring calendar development',
+          'Monitoring calendar spans the length of the Board\'s goals',
+          'No more than 2 goals calendared for monitoring per month; every goal monitored at least 4× per year',
+          'Every guardrail calendared at least once per year',
+          'Board conducted its first practice monitoring session',
+          'Board has adopted a monitoring calendar',
+        ]
+      },
+      {
+        name: 'Effective', pts: 20,
+        criteria: [
+          'Board demonstrated effective monitoring (80%+ quality) during each monitoring conversation',
+          'Board invests ≥50% of total public meeting minutes monthly into effective goal monitoring',
+          'Board has received monitoring reports in accordance with its calendar',
+          'Board modifies goals/guardrails/calendar no more than once during the span of adopted goals',
+          'Board publicly displays status and targets of all goals/interim goals in meeting room',
+          'Board tracks its use of time in Board-authorized public meetings',
+        ]
+      },
+      {
+        name: 'Highly Effective', pts: 30,
+        criteria: [
+          'All Effective criteria met',
+          'Board demonstrated HIGHLY effective monitoring (90%+ quality) during each monitoring conversation',
+          'School system has achieved at least half of its interim goals in the previous 12 months',
+          'Board has provided time to recognize student/staff accomplishments regarding goal progress',
+        ]
+      },
+    ]
+  },
+  {
+    key: 'align',
+    name: 'Align Resources',
+    short: 'Align',
+    desc: 'The board ensures that resource allocation — time, talent, and treasure — is focused on accomplishment of the goals.',
+    levels: [
+      {
+        name: 'Ineffective', pts: 0,
+        criteria: [
+          'Board has not adopted policies about goals that clarify the community\'s vision',
+          'Board has not consistently distinguished between Board work and Superintendent work',
+          'Board has not adopted policies about governing that establish the Board\'s operating processes',
+          'Board has not adopted policies about delegation that establish the Board\'s relationship to its direct reports',
+          'Any Board Member voted on an item with a conflict of interest as defined by law',
+          'Board Members serve on Superintendent-formed committees without proper authorization',
+          'Any Board-authorized meeting lasted more than 8 hours in the previous 12 months (excluding retreats)',
+        ]
+      },
+      {
+        name: 'Emerging', pts: 5,
+        criteria: [
+          'Board received training on aligning time, talent, and treasure resources with goals and guardrails',
+          'Board received training on how to use a policy diet to make Board policies transparent and manageable',
+          'All Board Members agree that committees (if any) only advise the Board, not the staff',
+          'Superintendent evaluation instrument only includes sections regarding the Board\'s goals, guardrails, and interim goals/guardrails',
+          'Board has been provided copies of Superintendent\'s implementation plan(s) but did not vote to approve/disapprove',
+          'Board has adopted an Ethics & Conflicts of Interest Statement with the required elements',
+          'Board has adopted a policy requiring that information provided to one Board Member is provided to all',
+          'Board has not allowed the Superintendent to serve more than 12 months without an evaluation',
+        ]
+      },
+      {
+        name: 'Effective', pts: 15,
+        criteria: [
+          'Board conducted a quarterly self-evaluation (or annual if score ≥80) and unanimously voted to adopt results',
+          'Board invests ≥50% of total public meeting minutes monthly into effectively monitoring its goals',
+          'Only Board work was discussed and/or acted on during Board-authorized public meetings',
+          'Board unanimously agreed that all members adhered to all governing policies and honored all ethical boundaries',
+          'Board approves annual budget only after determining goals are the first priority for resource allocation',
+        ]
+      },
+      {
+        name: 'Highly Effective', pts: 20,
+        criteria: [
+          'All Effective criteria met',
+          'Board has conducted a policy diet; Board reviews all remaining Board policies at least once per Board Member term length',
+          'Resource alignment process is documented and institutional — survives Board member turnover',
+        ]
+      },
+    ]
+  },
+  {
+    key: 'communicate',
+    name: 'Communicate Results',
+    short: 'Communicate',
+    desc: 'The board leads transparently and interacts with stakeholders in honest pursuit of the goals.',
+    levels: [
+      {
+        name: 'Ineffective', pts: 0,
+        criteria: [
+          'Board has not adopted policies about goals that clarify the community\'s vision',
+          'Board has not consistently distinguished between customer service issues and owner service issues',
+          'Board did not receive final meeting materials at least 3 calendar days before the meeting',
+          'More than 6 Board-authorized public meetings in a single month in the previous 12 months',
+          'Board has not hosted community vision/values listening opportunities in the previous 36 months',
+          'Board does not use a consent agenda',
+        ]
+      },
+      {
+        name: 'Emerging', pts: 1,
+        criteria: [
+          'Board received training on listening for community vision/values and community engagement',
+          'Board received training on how to use an agenda diet to make meetings transparent and observable',
+          'Board limits governance policy adoption to matters required by law or appropriate oversight of adopted goals/guardrails',
+          'All consent-eligible items were placed on consent agenda; most voted on via consent agenda',
+          'No more than 5 Board-authorized public meetings per month; none lasting more than 3 hours',
+          'Board schedules no more than 5 topics for discussion during any one meeting',
+        ]
+      },
+      {
+        name: 'Effective', pts: 3,
+        criteria: [
+          'Existing policies not fitting one of the 4 governance policy categories have been removed from the governance policy manual',
+          'Board made no edits to meeting agenda during the meeting or in the 3 business days before (absent emergency)',
+          'No more than 3 Board-authorized public meetings per month; none lasting more than 2 hours',
+          'No more than 3 topics for discussion per meeting',
+          'Board received final meeting materials 7–14 calendar days before the meeting',
+        ]
+      },
+      {
+        name: 'Highly Effective', pts: 5,
+        criteria: [
+          'All Effective criteria met',
+          'Board used a process that included students, parents, staff, and community members in a way that led them to express ownership of adopted goals and guardrails',
+          'Communication practices are documented and institutional — survive Board member turnover',
+        ]
+      },
+    ]
+  },
+];
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  // Set default assessment date in new session form
+  const today = new Date().toISOString().slice(0,10);
+  const nsDate = document.getElementById('ns-date');
+  if (nsDate) nsDate.value = today;
+
+  // Resume session if token already exists
+  const tok = sessionStorage.getItem('gotb_token');
+  const email = sessionStorage.getItem('gotb_email');
+  if (tok && email) {
+    _token = tok;
+    _userEmail = email;
+    document.getElementById('user-email-display').textContent = email;
+    document.getElementById('user-strip').classList.remove('hidden');
+    try {
+      await showDashboard();
+    } catch(e) {
+      signOut();
+    }
+  }
+
+  // Enter key support
+  document.getElementById('login-email').addEventListener('keydown', e => { if (e.key === 'Enter') sendOtp(); });
+  document.getElementById('login-otp').addEventListener('keydown', e => { if (e.key === 'Enter') verifyOtp(); });
+});
+</script>
+
+</body>
+</html>
