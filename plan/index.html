@@ -397,6 +397,24 @@
       color: #555;
       line-height: 1.5;
     }
+    .cite-block {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .cite-label {
+      font-weight: 600;
+      color: #334155;
+    }
+    .cite-link {
+      color: var(--blue);
+      text-decoration: underline;
+      word-break: break-all;
+      margin-right: 6px;
+    }
+    .cite-link:hover { color: var(--navy); }
+    .cite-text { margin-right: 6px; }
 
     /* Disclaimer */
     .disclaimer {
@@ -544,12 +562,12 @@ function setLoading(btnId, loading, defaultLabel, loadingLabel) {
 
 let _researchTimer = null;
 const _RESEARCH_PHASES = [
-  "Searching for evidence-based research…",
-  "Gathering leading-indicator data…",
-  "Research expert brainstorming…",
-  "Governance & equity expert brainstorming…",
-  "Synthesizing council findings…",
-  "Drafting your strategic plan…",
+  "Drafting goal and guardrail structure…",
+  "Searching peer-reviewed literature for each interim goal…",
+  "Searching peer-reviewed literature for each interim guardrail…",
+  "Verifying citation sources…",
+  "Writing research-backed initiatives…",
+  "Finalizing your strategic plan…",
 ];
 function startResearchStatus(btnId, defaultLabel) {
   let i = 0;
@@ -705,6 +723,17 @@ function esc(str) {
     .replace(/"/g, "&quot;");
 }
 
+function renderCitations(citations) {
+  if (!citations || !citations.length) return "";
+  const links = citations.map(c => {
+    const url  = (c.url || "").trim();
+    const text = esc(c.text || url);
+    if (!url) return `<span class="cite-text">${text}</span>`;
+    return `<a class="cite-link" href="${esc(url)}" target="_blank" rel="noopener">${text}</a>`;
+  }).join("");
+  return `<div class="cite-block"><span class="cite-label">Research basis:</span> ${links}</div>`;
+}
+
 function renderInitiatives(initiatives, colorClass) {
   if (!initiatives || !initiatives.length) return "";
   const isGr = colorClass === "guardrail";
@@ -718,6 +747,7 @@ function renderInitiatives(initiatives, colorClass) {
         <div class="init-title">${esc(init.title || "")}</div>
         <div class="init-statement">${esc(init.statement || "")}</div>
         <div class="init-desc">${esc(init.description || "")}</div>
+        ${renderCitations(init.citations)}
       </div>
     </div>`).join("")}</div>`;
 }
