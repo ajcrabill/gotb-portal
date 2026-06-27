@@ -831,6 +831,139 @@ td.legacy-comp-cell .comp-check {
 .tracker-table thead .row-main th { top: 0; }
 .tracker-table thead .row-cat th { top: 30px; }
 .tracker-table thead .row-comp th { top: 60px; }
+
+/* ── View tabs ── */
+.view-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--white);
+  border-bottom: 2px solid var(--gray-200);
+  padding: 0 1rem;
+}
+.view-tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  padding: 0.65rem 1.1rem;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Open Sans', sans-serif;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.view-tab:hover { color: var(--navy); }
+.view-tab.active { color: var(--navy); border-bottom-color: var(--navy); }
+
+/* ── Competency management panel ── */
+.comp-panel {
+  padding: 1.25rem 1.5rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.comp-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.comp-panel-title {
+  font-family: 'Raleway', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+}
+
+.comp-mgmt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.comp-mgmt-table th {
+  background: var(--navy);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  position: sticky;
+  top: 0;
+}
+
+.comp-mgmt-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--gray-200);
+  vertical-align: middle;
+  color: var(--gray-700);
+}
+
+.comp-mgmt-table tr:last-child td { border-bottom: none; }
+.comp-mgmt-table tr:hover td { background: rgba(21,42,78,0.03); }
+
+.comp-mgmt-table td.col-key {
+  font-family: 'Poppins', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--navy);
+  white-space: nowrap;
+}
+
+.comp-mgmt-table td.col-cat {
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold-dark, #7a5c00);
+}
+
+.comp-mgmt-table td.col-legacy span.legacy-badge {
+  background: var(--gray-200);
+  color: var(--gray-500);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.comp-mgmt-table td.col-actions {
+  white-space: nowrap;
+  text-align: right;
+  width: 80px;
+}
+
+.btn-icon-sm {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 0.4rem;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: color 0.12s, background 0.12s;
+  display: inline-flex;
+  align-items: center;
+  color: var(--gray-400);
+}
+
+.btn-icon-sm.edit:hover { color: var(--navy); background: rgba(21,42,78,0.08); }
+.btn-icon-sm.del:hover { color: var(--danger); background: #ffeaea; }
+
+.comp-sort-order {
+  font-size: 11px;
+  color: var(--gray-400);
+  width: 50px;
+  text-align: right;
+}
 </style>
 </head>
 <body>
@@ -888,8 +1021,18 @@ td.legacy-comp-cell .comp-check {
     </div>
   </nav>
 
-  <!-- Action Bar -->
-  <div class="action-bar">
+  <!-- View Tabs -->
+  <div class="view-tabs">
+    <button class="view-tab active" id="tab-coaches" onclick="switchView('coaches')">
+      <i class="bi bi-people-fill"></i> Coaches
+    </button>
+    <button class="view-tab" id="tab-competencies" onclick="switchView('competencies')">
+      <i class="bi bi-list-check"></i> Competencies
+    </button>
+  </div>
+
+  <!-- Action Bar (coaches view) -->
+  <div class="action-bar" id="coaches-action-bar">
     <button class="btn-gold" onclick="openAddCoach()">
       <i class="bi bi-person-plus-fill"></i> Add Coach
     </button>
@@ -906,7 +1049,7 @@ td.legacy-comp-cell .comp-check {
   </div>
 
   <!-- Grid -->
-  <div class="grid-container" id="grid-container">
+  <div class="grid-container" id="grid-container" style="display:none">
     <div class="table-loading" id="table-loading">
       <span class="spinner"></span> Loading coaches…
     </div>
@@ -914,6 +1057,21 @@ td.legacy-comp-cell .comp-check {
     <div class="empty-state" id="empty-state" style="display:none">
       <i class="bi bi-people"></i>
       <div>No coaches match your filters.</div>
+    </div>
+  </div>
+
+  <!-- Competency Panel -->
+  <div class="comp-panel" id="comp-panel" style="display:none">
+    <div class="comp-panel-header">
+      <h2 class="comp-panel-title">Competencies</h2>
+      <button class="btn-gold" onclick="openAddCompetency()">
+        <i class="bi bi-plus-circle-fill"></i> Add Competency
+      </button>
+    </div>
+    <div id="comp-table-wrap">
+      <div class="table-loading" id="comp-loading">
+        <span class="spinner"></span> Loading competencies…
+      </div>
     </div>
   </div>
 </div>
@@ -1056,6 +1214,107 @@ td.legacy-comp-cell .comp-check {
   </div>
 </div>
 
+<!-- Add Competency Modal -->
+<div class="modal-overlay" id="modal-comp-add" style="display:none" onclick="closeModalOnOverlay(event,'modal-comp-add')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Add Competency</h2>
+      <button class="modal-close" onclick="closeModal('modal-comp-add')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row" style="margin-bottom:0.75rem">
+        <div class="form-group">
+          <label class="modal-label">Key <span style="color:var(--danger)">*</span></label>
+          <input type="text" class="modal-input" id="comp-add-key" placeholder="e.g. GK14">
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Category <span style="color:var(--danger)">*</span></label>
+          <input type="text" class="modal-input" id="comp-add-category" placeholder="e.g. Governance Knowledge">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0.75rem">
+        <label class="modal-label">Description <span style="color:var(--danger)">*</span></label>
+        <textarea class="modal-input" id="comp-add-desc" rows="3" placeholder="Full competency description" style="resize:vertical"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="modal-label">Sort Order</label>
+          <input type="number" class="modal-input" id="comp-add-sort" value="0" min="0">
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:0.5rem;padding-top:1.6rem">
+          <input type="checkbox" id="comp-add-legacy" style="width:16px;height:16px;cursor:pointer">
+          <label for="comp-add-legacy" class="modal-label" style="margin:0;cursor:pointer">Mark as legacy</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="closeModal('modal-comp-add')">Cancel</button>
+      <button class="btn-modal-primary" id="btn-comp-add-save" onclick="saveAddCompetency()">Add Competency</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Competency Modal -->
+<div class="modal-overlay" id="modal-comp-edit" style="display:none" onclick="closeModalOnOverlay(event,'modal-comp-edit')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="comp-edit-title">Edit Competency</h2>
+      <button class="modal-close" onclick="closeModal('modal-comp-edit')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="comp-edit-key">
+      <div class="form-row" style="margin-bottom:0.75rem">
+        <div class="form-group">
+          <label class="modal-label">Key (read-only)</label>
+          <input type="text" class="modal-input" id="comp-edit-key-display" disabled style="background:var(--gray-100);color:var(--gray-500)">
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Category <span style="color:var(--danger)">*</span></label>
+          <input type="text" class="modal-input" id="comp-edit-category">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0.75rem">
+        <label class="modal-label">Description <span style="color:var(--danger)">*</span></label>
+        <textarea class="modal-input" id="comp-edit-desc" rows="3" style="resize:vertical"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="modal-label">Sort Order</label>
+          <input type="number" class="modal-input" id="comp-edit-sort" min="0">
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:0.5rem;padding-top:1.6rem">
+          <input type="checkbox" id="comp-edit-legacy" style="width:16px;height:16px;cursor:pointer">
+          <label for="comp-edit-legacy" class="modal-label" style="margin:0;cursor:pointer">Mark as legacy</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="closeModal('modal-comp-edit')">Cancel</button>
+      <button class="btn-modal-primary" id="btn-comp-edit-save" onclick="saveEditCompetency()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Competency Modal -->
+<div class="modal-overlay" id="modal-comp-delete" style="display:none" onclick="closeModalOnOverlay(event,'modal-comp-delete')">
+  <div class="modal-box" style="max-width:420px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" style="color:var(--danger)"><i class="bi bi-exclamation-triangle-fill" style="font-size:16px;margin-right:6px"></i>Delete Competency</h2>
+      <button class="modal-close" onclick="closeModal('modal-comp-delete')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text" id="comp-delete-text"></p>
+      <p style="margin-top:0.75rem;font-size:12px;color:var(--danger);font-weight:600">
+        <i class="bi bi-exclamation-circle"></i> This will also delete all coach completion records for this competency.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="closeModal('modal-comp-delete')">Cancel</button>
+      <button class="btn-danger" id="btn-comp-del-confirm" onclick="confirmDeleteCompetency()">Delete Competency</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast container -->
 <div class="toast-container" id="toast-container"></div>
 
@@ -1069,6 +1328,8 @@ let allCoaches = [];
 let allCompetencies = [];
 let filteredCoaches = [];
 let pendingDeleteCode = null;
+let currentView = 'coaches';
+let pendingDeleteCompKey = null;
 
 // ─────────────────────────────────────────
 // BOOT
@@ -1112,7 +1373,7 @@ async function apiFetch(method, path, body) {
 
   if (!res.ok) {
     let msg = 'Request failed';
-    try { const j = await res.json(); msg = j.error || j.message || msg; } catch(e) {}
+    try { const j = await res.json(); msg = j.detail || j.error || j.message || msg; } catch(e) {}
     throw new Error(msg);
   }
 
@@ -1155,6 +1416,7 @@ function showAdmin() {
   document.getElementById('admin-panel').style.display = 'flex';
   document.getElementById('admin-panel').classList.add('active');
   document.getElementById('nav-user-email').textContent = currentUser?.email || '';
+  switchView('coaches');
   loadData();
 }
 
@@ -1537,7 +1799,7 @@ function closeModalOnOverlay(e, id) {
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    ['modal-edit','modal-add','modal-confirm'].forEach(id => {
+    ['modal-edit','modal-add','modal-confirm','modal-comp-add','modal-comp-edit','modal-comp-delete'].forEach(id => {
       const el = document.getElementById(id);
       if (el && el.style.display !== 'none') closeModal(id);
     });
@@ -1698,6 +1960,193 @@ function isoDate(d) {
     if (isNaN(dt)) return '';
     return dt.toISOString().slice(0,10);
   } catch(e) { return ''; }
+}
+
+// ─────────────────────────────────────────
+// VIEW SWITCHING
+// ─────────────────────────────────────────
+function switchView(view) {
+  currentView = view;
+
+  document.getElementById('tab-coaches').classList.toggle('active', view === 'coaches');
+  document.getElementById('tab-competencies').classList.toggle('active', view === 'competencies');
+
+  document.getElementById('coaches-action-bar').style.display = view === 'coaches' ? '' : 'none';
+  document.getElementById('grid-container').style.display = view === 'coaches' ? '' : 'none';
+  document.getElementById('comp-panel').style.display = view === 'competencies' ? '' : 'none';
+
+  if (view === 'competencies') renderCompetencyTable();
+}
+
+// ─────────────────────────────────────────
+// COMPETENCY MANAGEMENT
+// ─────────────────────────────────────────
+function renderCompetencyTable() {
+  const wrap = document.getElementById('comp-table-wrap');
+  if (!allCompetencies.length) {
+    wrap.innerHTML = '<div class="table-loading"><span class="spinner"></span> Loading…</div>';
+    return;
+  }
+
+  const cats = [...new Set(allCompetencies.map(c => c.category).filter(Boolean))];
+  let html = `<table class="comp-mgmt-table">
+    <thead><tr>
+      <th style="width:80px">Key</th>
+      <th style="width:180px">Category</th>
+      <th>Description</th>
+      <th style="width:60px;text-align:center">Legacy</th>
+      <th style="width:60px;text-align:right">Order</th>
+      <th style="width:80px"></th>
+    </tr></thead><tbody>`;
+
+  let lastCat = null;
+  allCompetencies.forEach(comp => {
+    if (comp.category !== lastCat) {
+      lastCat = comp.category;
+      html += `<tr style="background:rgba(21,42,78,0.04)">
+        <td colspan="6" style="padding:0.35rem 0.75rem;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--navy);border-bottom:1px solid var(--gray-200)">
+          ${escHtml(comp.category)}
+        </td>
+      </tr>`;
+    }
+    html += `<tr>
+      <td class="col-key">${escHtml(comp.key)}</td>
+      <td class="col-cat">${escHtml(comp.category)}</td>
+      <td style="font-size:12px;color:var(--gray-700)">${escHtml(comp.desc || '')}</td>
+      <td class="col-legacy" style="text-align:center">
+        ${comp.is_legacy ? '<span class="legacy-badge">legacy</span>' : ''}
+      </td>
+      <td class="comp-sort-order">${comp.sort_order}</td>
+      <td class="col-actions">
+        <button class="btn-icon-sm edit" onclick="openEditCompetency('${escHtml(comp.key)}')" title="Edit"><i class="bi bi-pencil"></i></button>
+        <button class="btn-icon-sm del" onclick="openDeleteCompetency('${escHtml(comp.key)}')" title="Delete"><i class="bi bi-trash3"></i></button>
+      </td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>`;
+  wrap.innerHTML = html;
+}
+
+function openAddCompetency() {
+  ['comp-add-key','comp-add-category','comp-add-desc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('comp-add-sort').value = '0';
+  document.getElementById('comp-add-legacy').checked = false;
+  document.getElementById('btn-comp-add-save').disabled = false;
+  document.getElementById('modal-comp-add').style.display = 'flex';
+  setTimeout(() => document.getElementById('comp-add-key').focus(), 50);
+}
+
+async function saveAddCompetency() {
+  const key = document.getElementById('comp-add-key').value.trim().toUpperCase();
+  const category = document.getElementById('comp-add-category').value.trim();
+  const desc = document.getElementById('comp-add-desc').value.trim();
+  if (!key || !category || !desc) { toast('Key, Category, and Description are required.', 'warning'); return; }
+
+  const btn = document.getElementById('btn-comp-add-save');
+  btn.disabled = true;
+  btn.textContent = 'Adding…';
+
+  try {
+    const result = await apiFetch('POST', '/tracker/admin/competencies', {
+      key,
+      category,
+      desc,
+      is_legacy: document.getElementById('comp-add-legacy').checked,
+      sort_order: parseInt(document.getElementById('comp-add-sort').value) || 0,
+    });
+    allCompetencies.push(result);
+    allCompetencies.sort((a,b) => (a.sort_order||0) - (b.sort_order||0) || a.key.localeCompare(b.key));
+    closeModal('modal-comp-add');
+    toast(`Competency "${key}" added.`, 'success');
+    renderCompetencyTable();
+    buildCategoryFilter();
+  } catch(e) {
+    toast('Add failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Add Competency';
+  }
+}
+
+function openEditCompetency(key) {
+  const comp = allCompetencies.find(c => c.key === key);
+  if (!comp) return;
+  document.getElementById('comp-edit-key').value = key;
+  document.getElementById('comp-edit-key-display').value = key;
+  document.getElementById('comp-edit-title').textContent = 'Edit Competency — ' + key;
+  document.getElementById('comp-edit-category').value = comp.category || '';
+  document.getElementById('comp-edit-desc').value = comp.desc || '';
+  document.getElementById('comp-edit-sort').value = comp.sort_order || 0;
+  document.getElementById('comp-edit-legacy').checked = !!comp.is_legacy;
+  document.getElementById('btn-comp-edit-save').disabled = false;
+  document.getElementById('modal-comp-edit').style.display = 'flex';
+}
+
+async function saveEditCompetency() {
+  const key = document.getElementById('comp-edit-key').value;
+  const category = document.getElementById('comp-edit-category').value.trim();
+  const desc = document.getElementById('comp-edit-desc').value.trim();
+  if (!category || !desc) { toast('Category and Description are required.', 'warning'); return; }
+
+  const btn = document.getElementById('btn-comp-edit-save');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const result = await apiFetch('PUT', `/tracker/admin/competencies/${encodeURIComponent(key)}`, {
+      category,
+      desc,
+      is_legacy: document.getElementById('comp-edit-legacy').checked,
+      sort_order: parseInt(document.getElementById('comp-edit-sort').value) || 0,
+    });
+    const idx = allCompetencies.findIndex(c => c.key === key);
+    if (idx >= 0) allCompetencies[idx] = result;
+    allCompetencies.sort((a,b) => (a.sort_order||0) - (b.sort_order||0) || a.key.localeCompare(b.key));
+    closeModal('modal-comp-edit');
+    toast(`Competency "${key}" updated.`, 'success');
+    renderCompetencyTable();
+    buildCategoryFilter();
+  } catch(e) {
+    toast('Save failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
+  }
+}
+
+function openDeleteCompetency(key) {
+  const comp = allCompetencies.find(c => c.key === key);
+  if (!comp) return;
+  pendingDeleteCompKey = key;
+  document.getElementById('comp-delete-text').innerHTML =
+    `Delete <strong>${escHtml(key)}</strong>: "${escHtml(comp.desc || '')}"?`;
+  document.getElementById('btn-comp-del-confirm').disabled = false;
+  document.getElementById('modal-comp-delete').style.display = 'flex';
+}
+
+async function confirmDeleteCompetency() {
+  const key = pendingDeleteCompKey;
+  if (!key) return;
+  const btn = document.getElementById('btn-comp-del-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+
+  try {
+    await apiFetch('DELETE', `/tracker/admin/competencies/${encodeURIComponent(key)}`);
+    allCompetencies = allCompetencies.filter(c => c.key !== key);
+    allCoaches.forEach(coach => { if (coach.competencies) delete coach.competencies[key]; });
+    closeModal('modal-comp-delete');
+    toast(`Competency "${key}" deleted.`, 'success');
+    renderCompetencyTable();
+    buildCategoryFilter();
+  } catch(e) {
+    toast('Delete failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Delete Competency';
+    pendingDeleteCompKey = null;
+  }
 }
 </script>
 </body>
