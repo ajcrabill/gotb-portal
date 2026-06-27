@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strategic Plan Generator — Effective School Boards</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #1a2840;
+      --navy-mid:#243450;
+      --navy-lt: #2f4268;
+      --blue:    #2f6eb5;
+      --blue-lt: #4a89d0;
+      --amber:   #e8a000;
+      --amber-lt:#f5b830;
+      --red:     #c0392b;
+      --green:   #1e7e4a;
+      --teal:    #1a7a72;
+      --text:    #1c2330;
+      --muted:   #64748b;
+      --border:  #dde3ec;
+      --bg:      #f4f6fb;
+      --white:   #ffffff;
+      --card-shadow: 0 2px 12px rgba(26,40,64,.10);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--navy);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 56px;
+      border-bottom: 2px solid var(--amber);
+    }
+    .header-logo {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.5);
+    }
+    .header-sep { color: rgba(255,255,255,.2); }
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: .01em;
+    }
+
+    /* ── Layout ── */
+    .page { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* ── Hero ── */
+    .hero { text-align: center; margin-bottom: 40px; }
+    .hero h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.25;
+      margin-bottom: 10px;
+    }
+    .hero p {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* ── Stage pill ── */
+    .stage-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--navy);
+      color: rgba(255,255,255,.7);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .stage-pill .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--card-shadow);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    /* ── Textarea ── */
+    textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text);
+      line-height: 1.6;
+      resize: vertical;
+      min-height: 110px;
+      transition: border-color .15s;
+      outline: none;
+    }
+    textarea:focus { border-color: var(--blue); }
+    textarea::placeholder { color: #aab4c4; }
+
+    /* ── Input ── */
+    input[type="text"] {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s;
+    }
+    input[type="text"]:focus { border-color: var(--blue); }
+
+    /* ── Question group ── */
+    .question-group { margin-bottom: 20px; }
+    .question-group:last-child { margin-bottom: 0; }
+    .question-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .question-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--blue-lt); }
+    .btn-amber { background: var(--amber); color: #fff; }
+    .btn-amber:hover:not(:disabled) { background: var(--amber-lt); }
+    .btn-ghost {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+      padding: 8px 16px;
+    }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+
+    .btn-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    .error-box {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #b91c1c;
+      margin-top: 16px;
+    }
+
+    /* ── Hidden ── */
+    .hidden { display: none !important; }
+
+    /* ───────────────────────────────────────────────
+       PLAN OUTPUT STYLES
+    ─────────────────────────────────────────────── */
+
+    #plan-output { margin-top: 8px; }
+
+    .plan-section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .plan-section-header h2 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .plan-section-header hr {
+      flex: 1;
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Goal card */
+    .goal-card {
+      background: linear-gradient(135deg, #1e3a6e 0%, #2f6eb5 100%);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+    .goal-card .gc-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.55);
+      margin-bottom: 6px;
+    }
+    .goal-card .gc-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .goal-card .gc-statement {
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(255,255,255,.88);
+      background: rgba(0,0,0,.15);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-style: italic;
+    }
+
+    /* Guardrail card */
+    .guardrail-card {
+      background: #fff;
+      border: 1px solid #fecaca;
+      border-left: 4px solid var(--red);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 10px;
+    }
+    .guardrail-card .gr-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 4px;
+    }
+    .guardrail-card .gr-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .guardrail-card .gr-statement {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    /* Interim block */
+    .interim-block {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .interim-block-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .interim-badge {
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+    .badge-goal { background: #dbeafe; color: #1e40af; }
+    .badge-guardrail { background: #fef2f2; color: #991b1b; }
+    .badge-init { background: #f0fdf4; color: #166534; }
+
+    .interim-block-header .ib-content { flex: 1; }
+    .interim-block-header .ib-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+    .interim-block-header .ib-statement {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-style: italic;
+    }
+
+    /* Initiative list */
+    .initiatives-list { padding: 0 20px 16px; }
+    .initiative-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .initiative-item:last-child { border-bottom: none; }
+    .init-num {
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+    .init-body { flex: 1; }
+    .init-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 3px;
+    }
+    .init-statement {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 3px;
+      line-height: 1.5;
+    }
+    .init-desc {
+      font-size: 12px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    /* Disclaimer */
+    .disclaimer {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 12px;
+      color: #78350f;
+      line-height: 1.6;
+      margin-top: 24px;
+    }
+    .disclaimer strong { font-weight: 700; }
+
+    /* Print / copy bar */
+    .plan-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .plan-actions .restart-link {
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .plan-actions .restart-link:hover { color: var(--blue); }
+
+    @media print {
+      header, .stage-pill, .plan-actions, .disclaimer { display: none !important; }
+      body { background: #fff; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
+    }
+
+    @media (max-width: 600px) {
+      .page { padding: 24px 16px 60px; }
+      .card { padding: 20px 18px; }
+      .hero h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="header-logo">Effective School Boards</span>
+  <span class="header-sep">·</span>
+  <span class="header-title">Strategic Plan Generator</span>
+</header>
+
+<div class="page">
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <h1>From desired outcome to strategic plan</h1>
+    <p>Describe what you want students to know or be able to do. We'll help you shape it into a SMART Goal and generate a full draft strategic plan aligned to the ESB framework.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STAGE 1 — OUTCOME INPUT
+  ══════════════════════════════════════════ -->
+  <div id="stage-1">
+    <div class="stage-pill"><span class="dot"></span>Step 1 of 3 — Desired Outcome</div>
+    <div class="card">
+      <div class="card-label">What do you want students to know or be able to do?</div>
+      <textarea
+        id="outcome-input"
+        placeholder="e.g., More students reading at grade level by 3rd grade… or paste an existing goal draft here."
+        rows="4"
+      ></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="analyze-btn" onclick="runAnalyze()">
+          Continue
+        </button>
+      </div>
+      <div id="analyze-error" class="error-box hidden"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STAGE 2 — CLARIFYING QUESTIONS
+  ══════════════════════════════════════════ -->
+  <div id="stage-2" class="hidden">
+    <div class="stage-pill"><span class="dot"></span>Step 2 of 3 — Clarifying Questions</div>
+    <div class="card">
+      <div class="card-label">A few details to build your SMART Goal</div>
+      <div id="questions-container"></div>
+      <div class="btn-row">
+        <button class="btn btn-amber" id="generate-btn" onclick="runGenerate()">
+          Generate Strategic Plan
+        </button>
+        <button class="btn btn-ghost" onclick="goBack()">Back</button>
+      </div>
+      <div id="generate-error" class="error-box hidden"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STAGE 3 — PLAN OUTPUT
+  ══════════════════════════════════════════ -->
+  <div id="stage-3" class="hidden">
+    <div class="stage-pill"><span class="dot"></span>Step 3 of 3 — Draft Strategic Plan</div>
+
+    <div class="plan-actions">
+      <button class="btn btn-ghost" style="font-size:13px;" onclick="window.print()">
+        ⬇ Print / Save PDF
+      </button>
+      <button class="restart-link" onclick="restart()">Start over</button>
+    </div>
+
+    <div id="plan-output"></div>
+
+    <div class="disclaimer">
+      <strong>Draft only.</strong> This plan was generated to give you a starting point. Numbers labeled [District Data Needed] must be replaced with actual district data. All Goals, Guardrails, Interim Goals, and Initiatives should be reviewed and refined with the board and superintendent before adoption. Community listening is required before Goals and Guardrails are finalized.
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+const API = "https://esbcloud.taild49f53.ts.net:10000";
+
+let _outcome = "";
+let _questions = [];
+
+/* ── helpers ─────────────────────────────────────────────────────────── */
+function show(id)  { document.getElementById(id).classList.remove("hidden"); }
+function hide(id)  { document.getElementById(id).classList.add("hidden"); }
+function setError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  msg ? el.classList.remove("hidden") : el.classList.add("hidden");
+}
+function setLoading(btnId, loading, defaultLabel, loadingLabel) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? `<span class="spinner"></span> ${loadingLabel || "Working…"}`
+    : defaultLabel;
+}
+
+let _researchTimer = null;
+const _RESEARCH_PHASES = [
+  "Searching for evidence-based research…",
+  "Gathering leading-indicator data…",
+  "Research expert brainstorming…",
+  "Governance & equity expert brainstorming…",
+  "Synthesizing council findings…",
+  "Drafting your strategic plan…",
+];
+function startResearchStatus(btnId, defaultLabel) {
+  let i = 0;
+  const btn = document.getElementById(btnId);
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> ${_RESEARCH_PHASES[0]}`;
+  _researchTimer = setInterval(() => {
+    i = Math.min(i + 1, _RESEARCH_PHASES.length - 1);
+    if (btn.disabled) btn.innerHTML = `<span class="spinner"></span> ${_RESEARCH_PHASES[i]}`;
+  }, 10000);
+}
+function stopResearchStatus(btnId, defaultLabel) {
+  clearInterval(_researchTimer);
+  _researchTimer = null;
+  const btn = document.getElementById(btnId);
+  btn.disabled = false;
+  btn.innerHTML = defaultLabel;
+}
+
+/* ── Stage 1 → analyze ───────────────────────────────────────────────── */
+async function runAnalyze() {
+  setError("analyze-error", "");
+  _outcome = document.getElementById("outcome-input").value.trim();
+  if (!_outcome) {
+    setError("analyze-error", "Please describe the desired student outcome.");
+    return;
+  }
+
+  setLoading("analyze-btn", true, "Continue");
+  try {
+    const res = await fetch(`${API}/plan/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ outcome: _outcome }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Server error (${res.status})`);
+    }
+    const data = await res.json();
+    _questions = data.questions || [];
+
+    if (_questions.length === 0) {
+      // No questions needed — skip to generation
+      await runGenerateWith({});
+      return;
+    }
+
+    renderQuestions(_questions);
+    hide("stage-1");
+    show("stage-2");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (e) {
+    setError("analyze-error", e.message || "Something went wrong. Please try again.");
+  } finally {
+    setLoading("analyze-btn", false, "Continue");
+  }
+}
+
+/* ── Render question fields ──────────────────────────────────────────── */
+const HINTS = {
+  population:        "e.g., 3rd graders, 9th graders, economically disadvantaged students",
+  instrument:        "e.g., the district's MAP reading assessment, state summative literacy test",
+  baseline:          "e.g., 45% — or leave blank if unknown (we'll note it as a placeholder)",
+  baseline_date:     "e.g., September 2025",
+  target:            "e.g., 70% — or leave blank to generate an illustrative target",
+  target_date:       "e.g., September 2030 (should be 3–5 years from start)",
+  community_values:  "e.g., equitable access to resources, community engagement before major decisions, no inequitable treatment of any student group",
+};
+
+function renderQuestions(questions) {
+  const container = document.getElementById("questions-container");
+  container.innerHTML = "";
+  questions.forEach(q => {
+    const hint = HINTS[q.id] || "";
+    const isTextarea = q.id === "community_values";
+    container.insertAdjacentHTML("beforeend", `
+      <div class="question-group">
+        <label class="question-label" for="q_${q.id}">${q.question}</label>
+        ${isTextarea
+          ? `<textarea id="q_${q.id}" data-qid="${q.id}" rows="3" placeholder="${hint}"></textarea>`
+          : `<input type="text" id="q_${q.id}" data-qid="${q.id}" placeholder="${hint}" />`
+        }
+        ${hint && !isTextarea ? `<div class="question-hint">${hint}</div>` : ""}
+      </div>
+    `);
+  });
+}
+
+/* ── Stage 2 → generate ──────────────────────────────────────────────── */
+async function runGenerate() {
+  setError("generate-error", "");
+  const answers = {};
+  document.querySelectorAll("[data-qid]").forEach(el => {
+    const val = el.value.trim();
+    if (val) answers[el.dataset.qid] = val;
+  });
+  await runGenerateWith(answers);
+}
+
+async function runGenerateWith(answers) {
+  const errId = _questions.length === 0 ? "analyze-error" : "generate-error";
+  const btnId  = _questions.length === 0 ? "analyze-btn"  : "generate-btn";
+  const label  = _questions.length === 0 ? "Continue"      : "Generate Strategic Plan";
+
+  startResearchStatus(btnId, label);
+  try {
+    const res = await fetch(`${API}/plan/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ outcome: _outcome, answers }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Server error (${res.status})`);
+    }
+    const data = await res.json();
+    renderPlan(data.plan);
+    hide("stage-1");
+    hide("stage-2");
+    show("stage-3");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (e) {
+    setError(errId, e.message || "Something went wrong. Please try again.");
+  } finally {
+    stopResearchStatus(btnId, label);
+  }
+}
+
+/* ── Back / restart ──────────────────────────────────────────────────── */
+function goBack() {
+  hide("stage-2");
+  show("stage-1");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function restart() {
+  _outcome = "";
+  _questions = [];
+  document.getElementById("outcome-input").value = "";
+  document.getElementById("plan-output").innerHTML = "";
+  hide("stage-2");
+  hide("stage-3");
+  show("stage-1");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ── Render plan ─────────────────────────────────────────────────────── */
+function esc(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderPlan(plan) {
+  const out = document.getElementById("plan-output");
+  if (!plan) { out.innerHTML = "<p>No plan returned. Please try again.</p>"; return; }
+
+  let html = "";
+
+  /* ── Goal ── */
+  const g = plan.smart_goal || {};
+  html += `
+    <div class="plan-section-header">
+      <h2>Step 1 — Aligned Outcomes</h2><hr>
+    </div>
+    <div class="goal-card">
+      <div class="gc-eyebrow">Board-Adopted SMART Goal</div>
+      <div class="gc-title">${esc(g.title || "Student Outcome Goal")}</div>
+      <div class="gc-statement">${esc(g.statement || "")}</div>
+    </div>
+  `;
+
+  /* ── Guardrails ── */
+  const guardrails = plan.guardrails || [];
+  if (guardrails.length) {
+    html += `<div style="margin-top:8px;">`;
+    guardrails.forEach((gr, i) => {
+      html += `
+        <div class="guardrail-card">
+          <div class="gr-eyebrow">Guardrail ${i + 1}</div>
+          <div class="gr-title">${esc(gr.title || "")}</div>
+          <div class="gr-statement">${esc(gr.statement || "")}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  /* ── Interim Goals ── */
+  const interimGoals = plan.interim_goals || [];
+  if (interimGoals.length) {
+    html += `
+      <div class="plan-section-header" style="margin-top:32px;">
+        <h2>Step 2 — Aligned Outputs (Goal Side)</h2><hr>
+      </div>
+    `;
+    interimGoals.forEach((ig, i) => {
+      const initiatives = ig.initiatives || [];
+      html += `
+        <div class="interim-block">
+          <div class="interim-block-header">
+            <span class="interim-badge badge-goal">Interim Goal ${i + 1}</span>
+            <div class="ib-content">
+              <div class="ib-title">${esc(ig.title || "")}</div>
+              <div class="ib-statement">${esc(ig.statement || "")}</div>
+            </div>
+          </div>
+          ${initiatives.length ? `<div class="initiatives-list">` : ""}
+          ${initiatives.map((init, j) => `
+            <div class="initiative-item">
+              <div class="init-num">${j + 1}</div>
+              <div class="init-body">
+                <div class="init-title">${esc(init.title || "")}</div>
+                <div class="init-statement">${esc(init.statement || "")}</div>
+                <div class="init-desc">${esc(init.description || "")}</div>
+              </div>
+            </div>
+          `).join("")}
+          ${initiatives.length ? `</div>` : ""}
+        </div>
+      `;
+    });
+  }
+
+  /* ── Interim Guardrails ── */
+  const interimGuardrails = plan.interim_guardrails || [];
+  if (interimGuardrails.length) {
+    html += `
+      <div class="plan-section-header" style="margin-top:32px;">
+        <h2>Step 2 — Aligned Outputs (Guardrail Side)</h2><hr>
+      </div>
+    `;
+    interimGuardrails.forEach((ig, i) => {
+      const initiatives = ig.initiatives || [];
+      const grIdx = typeof ig.guardrail_index === "number" ? ig.guardrail_index + 1 : i + 1;
+      html += `
+        <div class="interim-block">
+          <div class="interim-block-header">
+            <span class="interim-badge badge-guardrail">Interim Guardrail ${grIdx}.${i + 1}</span>
+            <div class="ib-content">
+              <div class="ib-title">${esc(ig.title || "")}</div>
+              <div class="ib-statement">${esc(ig.statement || "")}</div>
+            </div>
+          </div>
+          ${initiatives.length ? `<div class="initiatives-list">` : ""}
+          ${initiatives.map((init, j) => `
+            <div class="initiative-item">
+              <div class="init-num" style="background:#fef2f2;border-color:#fca5a5;color:#991b1b;">${j + 1}</div>
+              <div class="init-body">
+                <div class="init-title">${esc(init.title || "")}</div>
+                <div class="init-statement">${esc(init.statement || "")}</div>
+                <div class="init-desc">${esc(init.description || "")}</div>
+              </div>
+            </div>
+          `).join("")}
+          ${initiatives.length ? `</div>` : ""}
+        </div>
+      `;
+    });
+  }
+
+  out.innerHTML = html;
+}
+</script>
+</body>
+</html>
