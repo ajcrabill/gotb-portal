@@ -705,111 +705,117 @@ function esc(str) {
     .replace(/"/g, "&quot;");
 }
 
+function renderInitiatives(initiatives, colorClass) {
+  if (!initiatives || !initiatives.length) return "";
+  const isGr = colorClass === "guardrail";
+  const numStyle = isGr
+    ? "background:#fef2f2;border-color:#fca5a5;color:#991b1b;"
+    : "";
+  return `<div class="initiatives-list">${initiatives.map((init, j) => `
+    <div class="initiative-item">
+      <div class="init-num" style="${numStyle}">${j + 1}</div>
+      <div class="init-body">
+        <div class="init-title">${esc(init.title || "")}</div>
+        <div class="init-statement">${esc(init.statement || "")}</div>
+        <div class="init-desc">${esc(init.description || "")}</div>
+      </div>
+    </div>`).join("")}</div>`;
+}
+
 function renderPlan(plan) {
   const out = document.getElementById("plan-output");
   if (!plan) { out.innerHTML = "<p>No plan returned. Please try again.</p>"; return; }
 
   let html = "";
-
-  /* ── Goal ── */
   const g = plan.smart_goal || {};
+  // Support both nested schema (g.interim_goals) and flat legacy (plan.interim_goals)
+  const interimGoals = g.interim_goals || plan.interim_goals || [];
+  const guardrails   = plan.guardrails || [];
+
+  /* ═══════════════════════════════════════════════════
+     GOAL CHAIN
+     Goal 1 → Interim Goal 1.1 → Initiatives 1.1.1…
+  ═══════════════════════════════════════════════════ */
   html += `
     <div class="plan-section-header">
-      <h2>Step 1 — Aligned Outcomes</h2><hr>
+      <h2>Goal Chain</h2><hr>
     </div>
     <div class="goal-card">
-      <div class="gc-eyebrow">Board-Adopted SMART Goal</div>
+      <div class="gc-eyebrow">Goal 1 — Board-Adopted SMART Goal</div>
       <div class="gc-title">${esc(g.title || "Student Outcome Goal")}</div>
       <div class="gc-statement">${esc(g.statement || "")}</div>
     </div>
   `;
 
-  /* ── Guardrails ── */
-  const guardrails = plan.guardrails || [];
+  interimGoals.forEach((ig, i) => {
+    const igNum = `1.${i + 1}`;
+    const initiatives = ig.initiatives || [];
+    html += `
+      <div class="interim-block" style="margin-top:8px;">
+        <div class="interim-block-header">
+          <span class="interim-badge badge-goal">Interim Goal ${igNum}</span>
+          <div class="ib-content">
+            <div class="ib-title">${esc(ig.title || "")}</div>
+            <div class="ib-statement">${esc(ig.statement || "")}</div>
+          </div>
+        </div>
+        ${renderInitiatives(initiatives.map((init, j) => ({
+          ...init,
+          title: `${igNum}.${j + 1} — ${init.title || "Initiative"}`
+        })), "goal")}
+      </div>
+    `;
+  });
+
+  /* ═══════════════════════════════════════════════════
+     GUARDRAIL CHAINS
+     Guardrail 1 → Interim Guardrail 1.1 → Initiatives 1.1.1…
+     Guardrail 2 → Interim Guardrail 2.1 → …
+  ═══════════════════════════════════════════════════ */
   if (guardrails.length) {
-    html += `<div style="margin-top:8px;">`;
-    guardrails.forEach((gr, i) => {
+    html += `
+      <div class="plan-section-header" style="margin-top:40px;">
+        <h2>Guardrail Chain${guardrails.length > 1 ? "s" : ""}</h2><hr>
+      </div>
+    `;
+    guardrails.forEach((gr, gi) => {
+      const grNum = gi + 1;
+      // Support both nested schema (gr.interim_guardrails) and flat legacy
+      const igs = gr.interim_guardrails
+        || (plan.interim_guardrails || []).filter(x => x.guardrail_index === gi)
+        || [];
+
       html += `
         <div class="guardrail-card">
-          <div class="gr-eyebrow">Guardrail ${i + 1}</div>
+          <div class="gr-eyebrow">Guardrail ${grNum}</div>
           <div class="gr-title">${esc(gr.title || "")}</div>
           <div class="gr-statement">${esc(gr.statement || "")}</div>
         </div>
       `;
-    });
-    html += `</div>`;
-  }
 
-  /* ── Interim Goals ── */
-  const interimGoals = plan.interim_goals || [];
-  if (interimGoals.length) {
-    html += `
-      <div class="plan-section-header" style="margin-top:32px;">
-        <h2>Step 2 — Aligned Outputs (Goal Side)</h2><hr>
-      </div>
-    `;
-    interimGoals.forEach((ig, i) => {
-      const initiatives = ig.initiatives || [];
-      html += `
-        <div class="interim-block">
-          <div class="interim-block-header">
-            <span class="interim-badge badge-goal">Interim Goal ${i + 1}</span>
-            <div class="ib-content">
-              <div class="ib-title">${esc(ig.title || "")}</div>
-              <div class="ib-statement">${esc(ig.statement || "")}</div>
-            </div>
-          </div>
-          ${initiatives.length ? `<div class="initiatives-list">` : ""}
-          ${initiatives.map((init, j) => `
-            <div class="initiative-item">
-              <div class="init-num">${j + 1}</div>
-              <div class="init-body">
-                <div class="init-title">${esc(init.title || "")}</div>
-                <div class="init-statement">${esc(init.statement || "")}</div>
-                <div class="init-desc">${esc(init.description || "")}</div>
+      igs.forEach((ig, i) => {
+        const igNum = `${grNum}.${i + 1}`;
+        const initiatives = ig.initiatives || [];
+        html += `
+          <div class="interim-block" style="margin-top:8px;">
+            <div class="interim-block-header">
+              <span class="interim-badge badge-guardrail">Interim Guardrail ${igNum}</span>
+              <div class="ib-content">
+                <div class="ib-title">${esc(ig.title || "")}</div>
+                <div class="ib-statement">${esc(ig.statement || "")}</div>
               </div>
             </div>
-          `).join("")}
-          ${initiatives.length ? `</div>` : ""}
-        </div>
-      `;
-    });
-  }
-
-  /* ── Interim Guardrails ── */
-  const interimGuardrails = plan.interim_guardrails || [];
-  if (interimGuardrails.length) {
-    html += `
-      <div class="plan-section-header" style="margin-top:32px;">
-        <h2>Step 2 — Aligned Outputs (Guardrail Side)</h2><hr>
-      </div>
-    `;
-    interimGuardrails.forEach((ig, i) => {
-      const initiatives = ig.initiatives || [];
-      const grIdx = typeof ig.guardrail_index === "number" ? ig.guardrail_index + 1 : i + 1;
-      html += `
-        <div class="interim-block">
-          <div class="interim-block-header">
-            <span class="interim-badge badge-guardrail">Interim Guardrail ${grIdx}.${i + 1}</span>
-            <div class="ib-content">
-              <div class="ib-title">${esc(ig.title || "")}</div>
-              <div class="ib-statement">${esc(ig.statement || "")}</div>
-            </div>
+            ${renderInitiatives(initiatives.map((init, j) => ({
+              ...init,
+              title: `${igNum}.${j + 1} — ${init.title || "Initiative"}`
+            })), "guardrail")}
           </div>
-          ${initiatives.length ? `<div class="initiatives-list">` : ""}
-          ${initiatives.map((init, j) => `
-            <div class="initiative-item">
-              <div class="init-num" style="background:#fef2f2;border-color:#fca5a5;color:#991b1b;">${j + 1}</div>
-              <div class="init-body">
-                <div class="init-title">${esc(init.title || "")}</div>
-                <div class="init-statement">${esc(init.statement || "")}</div>
-                <div class="init-desc">${esc(init.description || "")}</div>
-              </div>
-            </div>
-          `).join("")}
-          ${initiatives.length ? `</div>` : ""}
-        </div>
-      `;
+        `;
+      });
+
+      if (gi < guardrails.length - 1) {
+        html += `<div style="margin-top:32px;"></div>`;
+      }
     });
   }
 
