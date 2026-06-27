@@ -302,19 +302,32 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    height: 90px;
+    height: 120px;
     padding-bottom: 6px;
   }
   .coach-col-header-inner .code-label {
     display: block;
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: 0.88rem;
+    font-weight: 700;
     font-family: 'Poppins', monospace;
     color: #fff;
     letter-spacing: 0.04em;
     white-space: nowrap;
+  }
+  .coach-pct-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.75);
+    text-align: center;
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+    font-family: 'Poppins', monospace;
+  }
+  .coach-col-header.is-mine .coach-pct-label {
+    color: var(--esb-gold-light);
   }
   .coach-col-header.is-certified .code-label::after {
     content: ' ★';
@@ -770,9 +783,13 @@ function buildTable(competencies, coaches) {
     const bar = document.createElement('div');
     bar.className = 'coach-progress-bar';
     bar.innerHTML = `<div class="coach-progress-fill" style="width:${pct}%"></div>`;
+    const pctLabel = document.createElement('span');
+    pctLabel.className = 'coach-pct-label';
+    pctLabel.textContent = pct + '%';
     const barWrap = document.createElement('div');
     barWrap.appendChild(label);
     barWrap.appendChild(bar);
+    barWrap.appendChild(pctLabel);
     inner.appendChild(barWrap);
     th.appendChild(inner);
     th.title = `${coach.code}${coach.cert_status ? ' ★ Certified' : ''} — ${pct}% complete`;
