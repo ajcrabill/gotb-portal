@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESB Tracker Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://www.effectiveschoolboards.com/assets/vendor/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://www.effectiveschoolboards.com/assets/vendor/bootstrap-icons/bootstrap-icons.css">
+<style>
+:root {
+  --navy: #152a4e;
+  --navy-light: #1e3a6a;
+  --navy-dark: #0d1e38;
+  --gold: #f5a623;
+  --gold-light: #ffc04d;
+  --gold-muted: #f5a62340;
+  --white: #ffffff;
+  --gray-50: #f8f9fa;
+  --gray-100: #f0f1f3;
+  --gray-200: #e2e5ea;
+  --gray-300: #c8cdd6;
+  --gray-400: #9aa3b0;
+  --gray-500: #6b7585;
+  --gray-600: #4a5568;
+  --gray-700: #2d3748;
+  --legacy-bg: #f5f5f5;
+  --legacy-text: #9aa3b0;
+  --success: #28a745;
+  --danger: #dc3545;
+  --warning: #ffc107;
+  --cert-bg: #fef9ee;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+  background: var(--gray-50);
+  color: var(--gray-700);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* ── Login ── */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+}
+
+.login-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-logo h1 {
+  font-family: 'Raleway', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0.5rem 0 0;
+}
+
+.login-logo .subtitle {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+.login-logo .brand-badge {
+  background: var(--navy);
+  color: var(--gold);
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.login-step { display: none; }
+.login-step.active { display: block; }
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.4rem;
+}
+
+.form-control {
+  border: 1.5px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  font-size: 14px;
+  font-family: 'Open Sans', sans-serif;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(21,42,78,0.12);
+}
+
+.btn-primary-esb {
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.5rem;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Open Sans', sans-serif;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-primary-esb:hover { background: var(--navy-light); }
+.btn-primary-esb:active { transform: scale(0.98); }
+.btn-primary-esb:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.alert-msg {
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 0.75rem;
+  display: none;
+}
+
+.alert-success { background: #d4edda; color: #155724; }
+.alert-error { background: #f8d7da; color: #721c24; }
+.alert-msg.show { display: block; }
+
+.otp-hint {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin: 0.4rem 0 0;
+}
+
+/* ── Admin Panel ── */
+#admin-panel { display: none; }
+#admin-panel.active { display: flex; flex-direction: column; height: 100vh; }
+
+/* Top nav */
+.top-nav {
+  background: var(--navy);
+  color: var(--white);
+  padding: 0 1.25rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.top-nav .brand {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.top-nav .brand .dot {
+  color: var(--gold);
+}
+
+.top-nav .user-info {
+  margin-left: auto;
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-nav-logout {
+  background: rgba(255,255,255,0.12);
+  color: var(--white);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  padding: 0.3rem 0.85rem;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-nav-logout:hover { background: rgba(255,255,255,0.2); }
+
+/* Action bar */
+.action-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0.6rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.btn-gold {
+  background: var(--gold);
+  color: var(--navy-dark);
+  border: none;
+  border-radius: 7px;
+  padding: 0.45rem 1rem;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Open Sans', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btn-gold:hover { background: var(--gold-light); }
+
+.search-input {
+  border: 1.5px solid var(--gray-200);
+  border-radius: 7px;
+  padding: 0.42rem 0.75rem 0.42rem 2rem;
+  font-size: 12px;
+  font-family: 'Open Sans', sans-serif;
+  width: 220px;
+  background: var(--gray-50) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239aa3b0' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") 0.55rem center no-repeat;
+  transition: border-color 0.15s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--navy);
+  background-color: var(--white);
+}
+
+.filter-select {
+  border: 1.5px solid var(--gray-200);
+  border-radius: 7px;
+  padding: 0.42rem 0.75rem;
+  font-size: 12px;
+  font-family: 'Open Sans', sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--navy);
+}
+
+.stat-chip {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+
+.stat-chip strong { color: var(--navy); }
+
+/* Grid container */
+.grid-container {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* Main grid table */
+.tracker-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  white-space: nowrap;
+  min-width: 100%;
+}
+
+.tracker-table th,
+.tracker-table td {
+  border-right: 1px solid var(--gray-200);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+/* Sticky header */
+.tracker-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--navy);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0;
+  z-index: 20;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Fixed left cols: sticky header cells */
+.tracker-table thead th.fixed-col {
+  z-index: 30;
+  text-align: left;
+}
+
+.tracker-table thead th .th-inner {
+  padding: 0.5rem 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.tracker-table thead th.comp-col .th-inner {
+  justify-content: center;
+  padding: 0.4rem 0.25rem;
+  font-size: 10px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  height: 80px;
+  cursor: default;
+}
+
+.tracker-table thead th.comp-col.legacy-col .th-inner {
+  color: rgba(255,255,255,0.45);
+}
+
+.cat-header th {
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  background: var(--navy-dark);
+}
+
+/* Category sub-header row */
+.cat-header th.fixed-spacer {
+  background: var(--navy-dark);
+  z-index: 28;
+}
+
+.cat-header th .cat-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gold);
+  padding: 0.2rem 0.5rem;
+  text-align: center;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Two-row header: push both rows sticky */
+.tracker-table thead tr:first-child th { top: 0; }
+.tracker-table thead tr:nth-child(2) th { top: 30px; }
+.tracker-table thead tr:nth-child(3) th { top: 60px; }
+
+/* Body rows */
+.tracker-table tbody tr { transition: background 0.1s; }
+.tracker-table tbody tr:hover td { background: rgba(21,42,78,0.04); }
+.tracker-table tbody tr:hover td.fixed-col { background: #eef1f7; }
+.tracker-table tbody tr.certified-row td { background: var(--cert-bg); }
+.tracker-table tbody tr.certified-row:hover td { background: #fef3d8; }
+.tracker-table tbody tr.certified-row td.fixed-col { background: #fef3d8; }
+
+/* Fixed columns sticky */
+.fixed-col {
+  position: sticky;
+  left: 0;
+  background: var(--white);
+  z-index: 10;
+}
+
+.tracker-table tbody td.fixed-col {
+  background: var(--white);
+}
+
+.tracker-table tbody tr.certified-row td.fixed-col {
+  background: var(--cert-bg);
+}
+
+/* Fixed col widths */
+.col-code { width: 52px; min-width: 52px; left: 0; }
+.col-name { width: 160px; min-width: 160px; left: 52px; }
+.col-state { width: 54px; min-width: 54px; left: 212px; }
+.col-certstatus { width: 76px; min-width: 76px; left: 266px; }
+.col-certdate { width: 90px; min-width: 90px; left: 342px; }
+.col-progress { width: 68px; min-width: 68px; left: 432px; }
+
+.tracker-table tbody td {
+  padding: 0;
+  vertical-align: middle;
+  font-size: 12px;
+}
+
+.tracker-table tbody td .cell-inner {
+  padding: 0.42rem 0.6rem;
+}
+
+.tracker-table tbody td.comp-cell {
+  text-align: center;
+  width: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  cursor: pointer;
+}
+
+.tracker-table tbody td.comp-cell:hover {
+  background: rgba(21,42,78,0.08) !important;
+}
+
+/* Coach name link */
+.coach-name-link {
+  color: var(--navy);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 12px;
+  display: block;
+  padding: 0.42rem 0.6rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 158px;
+}
+
+.coach-name-link:hover { color: var(--gold); text-decoration: underline; }
+
+/* Cert status badge */
+.cert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+}
+
+.cert-badge.certified {
+  background: #d4edda;
+  color: #155724;
+}
+
+.cert-badge.pending {
+  background: var(--gray-100);
+  color: var(--gray-500);
+}
+
+/* Progress bar */
+.progress-cell {
+  padding: 0.4rem 0.6rem;
+}
+
+.progress-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--navy);
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.progress-bar-wrap {
+  height: 4px;
+  background: var(--gray-200);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--navy);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.progress-bar-fill.complete { background: var(--success); }
+
+/* Competency checkbox */
+.comp-check {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 4px;
+  background: var(--white);
+  transition: all 0.12s;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.comp-check.checked {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--white);
+}
+
+.comp-check.legacy-check {
+  border-color: var(--gray-200);
+  background: var(--gray-50);
+}
+
+.comp-check.legacy-check.checked {
+  background: var(--gray-400);
+  border-color: var(--gray-400);
+}
+
+.comp-check.loading-check {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+td.legacy-comp-cell .comp-check {
+  opacity: 0.65;
+}
+
+/* Category column groups */
+.cat-divider {
+  border-left: 2px solid var(--navy) !important;
+}
+
+/* Delete button */
+.btn-del {
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: color 0.12s, background 0.12s;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-del:hover { color: var(--danger); background: #ffeaea; }
+
+/* ── Modals ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-box {
+  background: var(--white);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.modal-title {
+  font-family: 'Raleway', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 0.2rem;
+  line-height: 1;
+  transition: color 0.12s;
+}
+
+.modal-close:hover { color: var(--gray-700); }
+
+.modal-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.form-group { margin-bottom: 1rem; }
+.form-group:last-child { margin-bottom: 0; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.modal-input {
+  border: 1.5px solid var(--gray-200);
+  border-radius: 7px;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  font-family: 'Open Sans', sans-serif;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(21,42,78,0.1);
+}
+
+.modal-select {
+  border: 1.5px solid var(--gray-200);
+  border-radius: 7px;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  font-family: 'Open Sans', sans-serif;
+  width: 100%;
+  background: var(--white);
+  cursor: pointer;
+}
+
+.modal-select:focus {
+  outline: none;
+  border-color: var(--navy);
+}
+
+.modal-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
+}
+
+.btn-modal-primary {
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  border-radius: 7px;
+  padding: 0.55rem 1.25rem;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Open Sans', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-modal-primary:hover { background: var(--navy-light); }
+.btn-modal-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-modal-secondary {
+  background: var(--white);
+  color: var(--gray-600);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 7px;
+  padding: 0.55rem 1.25rem;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Open Sans', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-modal-secondary:hover { background: var(--gray-50); border-color: var(--gray-300); }
+
+.btn-danger {
+  background: var(--danger);
+  color: var(--white);
+  border: none;
+  border-radius: 7px;
+  padding: 0.55rem 1.25rem;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Open Sans', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-danger:hover { background: #b02a37; }
+
+/* ── Toasts ── */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--gray-700);
+  color: var(--white);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  animation: toastIn 0.2s ease;
+  pointer-events: all;
+  min-width: 240px;
+  max-width: 360px;
+}
+
+.toast.success { background: #1a5c2e; border-left: 3px solid var(--success); }
+.toast.error { background: #6b1a1a; border-left: 3px solid var(--danger); }
+.toast.warning { background: #5c4b00; border-left: 3px solid var(--warning); }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Loading overlay for table */
+.table-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--gray-400);
+  font-size: 14px;
+  gap: 0.75rem;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--gray-300);
+  border-top-color: var(--navy);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--gray-400);
+}
+
+.empty-state i { font-size: 40px; display: block; margin-bottom: 0.75rem; }
+
+/* Confirm modal */
+.confirm-text {
+  font-size: 14px;
+  color: var(--gray-600);
+  margin: 0;
+}
+
+.confirm-text strong { color: var(--navy); }
+
+/* Scrollbar */
+.grid-container::-webkit-scrollbar { width: 8px; height: 8px; }
+.grid-container::-webkit-scrollbar-track { background: var(--gray-100); }
+.grid-container::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
+.grid-container::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+/* Tooltip for comp header */
+[data-tooltip] { position: relative; cursor: default; }
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gray-700);
+  color: var(--white);
+  font-size: 11px;
+  padding: 0.35rem 0.6rem;
+  border-radius: 5px;
+  white-space: nowrap;
+  z-index: 999;
+  pointer-events: none;
+  max-width: 220px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Cat header sticky positioning */
+.tracker-table thead .row-main th { top: 0; }
+.tracker-table thead .row-cat th { top: 30px; }
+.tracker-table thead .row-comp th { top: 60px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="brand-badge">ESB</div>
+      <h1>Tracker Admin</h1>
+      <p class="subtitle">Effective School Boards — Coach Certification Portal</p>
+    </div>
+
+    <div id="step-email" class="login-step active">
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">Admin Email</label>
+        <input type="email" id="login-email" class="form-control" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <button class="btn-primary-esb" id="btn-send-otp">
+        <span id="btn-send-otp-text">Send Code</span>
+      </button>
+      <div id="email-msg" class="alert-msg"></div>
+    </div>
+
+    <div id="step-otp" class="login-step">
+      <p class="otp-hint" style="margin-bottom:1rem">A one-time code was sent to <strong id="sent-to-email"></strong>.</p>
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">Verification Code</label>
+        <input type="text" id="login-otp" class="form-control" placeholder="Enter code" autocomplete="one-time-code" inputmode="numeric" maxlength="8">
+      </div>
+      <button class="btn-primary-esb" id="btn-verify-otp">
+        <span id="btn-verify-text">Verify</span>
+      </button>
+      <div id="otp-msg" class="alert-msg"></div>
+      <div style="margin-top:0.75rem;text-align:center">
+        <button onclick="resetLogin()" style="background:none;border:none;color:var(--gray-500);font-size:12px;cursor:pointer;text-decoration:underline">Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <!-- Top Nav -->
+  <nav class="top-nav">
+    <div class="brand">
+      <span style="color:var(--gold)">ESB</span><span style="margin-left:4px">Tracker Admin</span>
+    </div>
+    <div class="user-info">
+      <i class="bi bi-person-circle"></i>
+      <span id="nav-user-email"></span>
+      <button class="btn-nav-logout" onclick="logout()">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </button>
+    </div>
+  </nav>
+
+  <!-- Action Bar -->
+  <div class="action-bar">
+    <button class="btn-gold" onclick="openAddCoach()">
+      <i class="bi bi-person-plus-fill"></i> Add Coach
+    </button>
+    <input type="text" class="search-input" id="search-input" placeholder="Search name, code, org, state…" oninput="applyFilters()">
+    <select class="filter-select" id="cat-filter" onchange="applyFilters()">
+      <option value="">All categories</option>
+    </select>
+    <select class="filter-select" id="cert-filter" onchange="applyFilters()">
+      <option value="">All status</option>
+      <option value="1">Certified</option>
+      <option value="0">Pending</option>
+    </select>
+    <span class="stat-chip" id="stat-chip"></span>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid-container" id="grid-container">
+    <div class="table-loading" id="table-loading">
+      <span class="spinner"></span> Loading coaches…
+    </div>
+    <div id="table-wrap" style="display:none"></div>
+    <div class="empty-state" id="empty-state" style="display:none">
+      <i class="bi bi-people"></i>
+      <div>No coaches match your filters.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- Edit Coach Modal -->
+<div class="modal-overlay" id="modal-edit" style="display:none" onclick="closeModalOnOverlay(event,'modal-edit')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="edit-modal-title">Edit Coach</h2>
+      <button class="modal-close" onclick="closeModal('modal-edit')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-coach-code">
+      <div class="form-row" style="margin-bottom:0.75rem">
+        <div class="form-group">
+          <label class="modal-label">Name</label>
+          <input type="text" class="modal-input" id="edit-name">
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Code</label>
+          <input type="text" class="modal-input" id="edit-code-display" disabled style="background:var(--gray-100);color:var(--gray-500)">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:0.75rem">
+        <div class="form-group">
+          <label class="modal-label">Email</label>
+          <input type="email" class="modal-input" id="edit-email">
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Phone</label>
+          <input type="tel" class="modal-input" id="edit-phone">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:0.75rem">
+        <div class="form-group">
+          <label class="modal-label">Organization</label>
+          <input type="text" class="modal-input" id="edit-org">
+        </div>
+        <div class="form-group">
+          <label class="modal-label">State</label>
+          <input type="text" class="modal-input" id="edit-state" maxlength="2" style="text-transform:uppercase">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="modal-label">Certification Status</label>
+          <select class="modal-select" id="edit-cert-status">
+            <option value="0">Pending</option>
+            <option value="1">Certified</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Cert Date</label>
+          <input type="date" class="modal-input" id="edit-cert-date">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="closeModal('modal-edit')">Cancel</button>
+      <button class="btn-modal-primary" id="btn-save-edit" onclick="saveEditCoach()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Coach Modal -->
+<div class="modal-overlay" id="modal-add" style="display:none" onclick="closeModalOnOverlay(event,'modal-add')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Add Coach</h2>
+      <button class="modal-close" onclick="closeModal('modal-add')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row" style="margin-bottom:0.75rem">
+        <div class="form-group">
+          <label class="modal-label">Name <span style="color:var(--danger)">*</span></label>
+          <input type="text" class="modal-input" id="add-name" placeholder="Full name">
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Code <span style="color:var(--danger)">*</span></label>
+          <input type="text" class="modal-input" id="add-code" placeholder="e.g. JD01" style="text-transform:uppercase">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:0.75rem">
+        <div class="form-group">
+          <label class="modal-label">Email</label>
+          <input type="email" class="modal-input" id="add-email" placeholder="coach@example.com">
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Phone</label>
+          <input type="tel" class="modal-input" id="add-phone" placeholder="(555) 000-0000">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:0.75rem">
+        <div class="form-group">
+          <label class="modal-label">Organization</label>
+          <input type="text" class="modal-input" id="add-org" placeholder="District / Org name">
+        </div>
+        <div class="form-group">
+          <label class="modal-label">State</label>
+          <input type="text" class="modal-input" id="add-state" maxlength="2" placeholder="TX" style="text-transform:uppercase">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="modal-label">Certification Status</label>
+          <select class="modal-select" id="add-cert-status">
+            <option value="0">Pending</option>
+            <option value="1">Certified</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Cert Date</label>
+          <input type="date" class="modal-input" id="add-cert-date">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn-modal-primary" id="btn-save-add" onclick="saveAddCoach()">Add Coach</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="modal-overlay" id="modal-confirm" style="display:none" onclick="closeModalOnOverlay(event,'modal-confirm')">
+  <div class="modal-box" style="max-width:400px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" style="color:var(--danger)"><i class="bi bi-exclamation-triangle-fill" style="font-size:16px;margin-right:6px"></i>Remove Coach</h2>
+      <button class="modal-close" onclick="closeModal('modal-confirm')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text" id="confirm-text"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="closeModal('modal-confirm')">Cancel</button>
+      <button class="btn-danger" id="btn-confirm-del" onclick="confirmDelete()">Remove Coach</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const API = 'https://esbcloud.taild49f53.ts.net:10000';
+const TOKEN_KEY = 'tracker_token';
+
+let token = null;
+let currentUser = null;
+let allCoaches = [];
+let allCompetencies = [];
+let filteredCoaches = [];
+let pendingDeleteCode = null;
+
+// ─────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────
+(async function boot() {
+  const stored = localStorage.getItem(TOKEN_KEY);
+  if (stored) {
+    token = stored;
+    try {
+      const me = await apiFetch('GET', '/auth/me');
+      if (me && me.user) {
+        currentUser = me.user;
+        showAdmin();
+        return;
+      }
+    } catch(e) {
+      localStorage.removeItem(TOKEN_KEY);
+      token = null;
+    }
+  }
+  showLogin();
+})();
+
+// ─────────────────────────────────────────
+// API
+// ─────────────────────────────────────────
+async function apiFetch(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' }
+  };
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body !== undefined) opts.body = JSON.stringify(body);
+
+  const res = await fetch(API + path, opts);
+
+  if (res.status === 401) {
+    handleUnauth();
+    throw new Error('Unauthorized');
+  }
+
+  if (!res.ok) {
+    let msg = 'Request failed';
+    try { const j = await res.json(); msg = j.error || j.message || msg; } catch(e) {}
+    throw new Error(msg);
+  }
+
+  const ct = res.headers.get('content-type') || '';
+  if (ct.includes('application/json')) return res.json();
+  return null;
+}
+
+function handleUnauth() {
+  token = null;
+  localStorage.removeItem(TOKEN_KEY);
+  showLogin();
+  toast('Session expired — please log in again.', 'warning');
+}
+
+// ─────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────
+function toast(msg, type = 'success', duration = 3000) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  const iconMap = { success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill' };
+  t.innerHTML = `<i class="bi ${iconMap[type] || 'bi-info-circle-fill'}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, duration);
+}
+
+// ─────────────────────────────────────────
+// LOGIN
+// ─────────────────────────────────────────
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('admin-panel').classList.remove('active');
+  document.getElementById('admin-panel').style.display = 'none';
+}
+
+function showAdmin() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'flex';
+  document.getElementById('admin-panel').classList.add('active');
+  document.getElementById('nav-user-email').textContent = currentUser?.email || '';
+  loadData();
+}
+
+function resetLogin() {
+  document.getElementById('step-email').classList.add('active');
+  document.getElementById('step-otp').classList.remove('active');
+  setMsg('email-msg', '', '');
+  setMsg('otp-msg', '', '');
+}
+
+function setMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'alert-msg' + (text ? ' show alert-' + type : '');
+}
+
+document.getElementById('btn-send-otp').addEventListener('click', async () => {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) return setMsg('email-msg', 'Please enter your email.', 'error');
+
+  const btn = document.getElementById('btn-send-otp');
+  btn.disabled = true;
+  document.getElementById('btn-send-otp-text').textContent = 'Sending…';
+  setMsg('email-msg', '', '');
+
+  try {
+    await apiFetch('POST', '/auth/request', { email });
+    document.getElementById('sent-to-email').textContent = email;
+    document.getElementById('step-email').classList.remove('active');
+    document.getElementById('step-otp').classList.add('active');
+    document.getElementById('login-otp').focus();
+  } catch(e) {
+    setMsg('email-msg', e.message || 'Failed to send code.', 'error');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('btn-send-otp-text').textContent = 'Send Code';
+  }
+});
+
+document.getElementById('login-otp').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btn-verify-otp').click();
+});
+
+document.getElementById('btn-verify-otp').addEventListener('click', async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const code = document.getElementById('login-otp').value.trim();
+  if (!code) return setMsg('otp-msg', 'Please enter the code.', 'error');
+
+  const btn = document.getElementById('btn-verify-otp');
+  btn.disabled = true;
+  document.getElementById('btn-verify-text').textContent = 'Verifying…';
+  setMsg('otp-msg', '', '');
+
+  try {
+    const res = await apiFetch('POST', '/auth/verify', { email, code });
+    if (res.ok && res.token) {
+      token = res.token;
+      currentUser = res.user;
+      localStorage.setItem(TOKEN_KEY, token);
+      showAdmin();
+    } else {
+      setMsg('otp-msg', 'Invalid or expired code.', 'error');
+    }
+  } catch(e) {
+    setMsg('otp-msg', e.message || 'Verification failed.', 'error');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('btn-verify-text').textContent = 'Verify';
+  }
+});
+
+function logout() {
+  token = null;
+  currentUser = null;
+  localStorage.removeItem(TOKEN_KEY);
+  allCoaches = [];
+  allCompetencies = [];
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-otp').value = '';
+  resetLogin();
+  showLogin();
+}
+
+// ─────────────────────────────────────────
+// DATA LOADING
+// ─────────────────────────────────────────
+async function loadData() {
+  showTableLoading(true);
+  try {
+    const [comps, coaches] = await Promise.all([
+      apiFetch('GET', '/tracker/competencies'),
+      apiFetch('GET', '/tracker/admin/coaches')
+    ]);
+    allCompetencies = (comps || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    allCoaches = coaches || [];
+    buildCategoryFilter();
+    applyFilters();
+  } catch(e) {
+    showTableLoading(false);
+    toast('Failed to load data: ' + e.message, 'error', 6000);
+  }
+}
+
+function buildCategoryFilter() {
+  const cats = [...new Set(allCompetencies.map(c => c.category).filter(Boolean))];
+  const sel = document.getElementById('cat-filter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All categories</option>';
+  cats.forEach(cat => {
+    const o = document.createElement('option');
+    o.value = cat;
+    o.textContent = cat;
+    sel.appendChild(o);
+  });
+  if (cur) sel.value = cur;
+}
+
+function applyFilters() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const cat = document.getElementById('cat-filter').value;
+  const cert = document.getElementById('cert-filter').value;
+
+  filteredCoaches = allCoaches.filter(c => {
+    if (q) {
+      const hay = [c.code, c.name, c.state, c.org, c.email].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (cert !== '') {
+      if (String(c.cert_status) !== cert) return false;
+    }
+    return true;
+  });
+
+  // Sort: certified first, then by name asc
+  filteredCoaches.sort((a, b) => {
+    if ((b.cert_status || 0) !== (a.cert_status || 0)) return (b.cert_status || 0) - (a.cert_status || 0);
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
+  // Competency filter (column visibility)
+  let visComps = allCompetencies;
+  if (cat) visComps = allCompetencies.filter(c => c.category === cat);
+
+  renderTable(filteredCoaches, visComps);
+  updateStat();
+}
+
+function updateStat() {
+  const total = allCoaches.length;
+  const certified = allCoaches.filter(c => c.cert_status == 1).length;
+  const showing = filteredCoaches.length;
+  const el = document.getElementById('stat-chip');
+  el.innerHTML = `Showing <strong>${showing}</strong> of <strong>${total}</strong> coaches &nbsp;·&nbsp; <strong>${certified}</strong> certified`;
+}
+
+// ─────────────────────────────────────────
+// TABLE RENDER
+// ─────────────────────────────────────────
+function showTableLoading(on) {
+  document.getElementById('table-loading').style.display = on ? 'flex' : 'none';
+  document.getElementById('table-wrap').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'none';
+}
+
+function renderTable(coaches, comps) {
+  document.getElementById('table-loading').style.display = 'none';
+
+  if (coaches.length === 0 && allCoaches.length > 0) {
+    document.getElementById('table-wrap').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('table-wrap').style.display = 'block';
+
+  // Group comps by category
+  const catGroups = {};
+  comps.forEach(c => {
+    const k = c.category || 'Other';
+    if (!catGroups[k]) catGroups[k] = [];
+    catGroups[k].push(c);
+  });
+  const cats = Object.keys(catGroups);
+
+  const activeComps = comps.filter(c => !c.is_legacy);
+  const totalActive = activeComps.length;
+
+  let html = `<table class="tracker-table"><thead>`;
+
+  // Row 1: fixed col headers + category spans
+  html += `<tr class="row-main">`;
+  html += `<th class="fixed-col col-code"><div class="th-inner">Code</div></th>`;
+  html += `<th class="fixed-col col-name"><div class="th-inner">Name</div></th>`;
+  html += `<th class="fixed-col col-state"><div class="th-inner">ST</div></th>`;
+  html += `<th class="fixed-col col-certstatus"><div class="th-inner">Status</div></th>`;
+  html += `<th class="fixed-col col-certdate"><div class="th-inner">Cert Date</div></th>`;
+  html += `<th class="fixed-col col-progress"><div class="th-inner">Progress</div></th>`;
+  cats.forEach((cat, ci) => {
+    const span = catGroups[cat].length;
+    html += `<th colspan="${span}" style="border-left:2px solid rgba(255,255,255,0.2)">
+      <div class="th-inner" style="justify-content:center;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.5px;text-transform:uppercase">${cat}</div>
+    </th>`;
+  });
+  html += `</tr>`;
+
+  // Row 2: competency column headers
+  html += `<tr class="row-comp">`;
+  html += `<th class="fixed-col col-code" style="top:30px"></th>`;
+  html += `<th class="fixed-col col-name" style="top:30px"></th>`;
+  html += `<th class="fixed-col col-state" style="top:30px"></th>`;
+  html += `<th class="fixed-col col-certstatus" style="top:30px"></th>`;
+  html += `<th class="fixed-col col-certdate" style="top:30px"></th>`;
+  html += `<th class="fixed-col col-progress" style="top:30px"></th>`;
+  cats.forEach((cat, ci) => {
+    catGroups[cat].forEach((comp, ki) => {
+      const isLeg = comp.is_legacy;
+      const isFirst = ki === 0;
+      const legCls = isLeg ? ' legacy-col' : '';
+      const borderStyle = isFirst ? 'border-left:2px solid rgba(255,255,255,0.2)' : '';
+      html += `<th class="comp-col${legCls}" style="top:30px;${borderStyle}" data-tooltip="${escHtml(comp.desc || comp.key)}">
+        <div class="th-inner">${escHtml(comp.key)}</div>
+      </th>`;
+    });
+  });
+  html += `</tr></thead><tbody>`;
+
+  // Body rows
+  coaches.forEach(coach => {
+    const compsMap = coach.competencies || {};
+    const completedActive = activeComps.filter(c => compsMap[c.key]).length;
+    const pct = totalActive > 0 ? Math.round((completedActive / totalActive) * 100) : 0;
+    const isCert = coach.cert_status == 1;
+
+    html += `<tr class="${isCert ? 'certified-row' : ''}" data-code="${escHtml(coach.code)}">`;
+
+    // Code
+    html += `<td class="fixed-col col-code"><div class="cell-inner" style="font-size:11px;font-weight:700;color:var(--gray-500);font-family:'Poppins',sans-serif">${escHtml(coach.code)}</div></td>`;
+
+    // Name (clickable)
+    html += `<td class="fixed-col col-name" style="padding:0">
+      <a class="coach-name-link" onclick="openEditCoach('${escHtml(coach.code)}')" title="${escHtml(coach.name)}">${escHtml(coach.name)}</a>
+    </td>`;
+
+    // State
+    html += `<td class="fixed-col col-state"><div class="cell-inner" style="font-size:11px;font-weight:600;color:var(--gray-500)">${escHtml(coach.state || '—')}</div></td>`;
+
+    // Cert Status
+    if (isCert) {
+      html += `<td class="fixed-col col-certstatus"><div class="cell-inner"><span class="cert-badge certified"><i class="bi bi-patch-check-fill"></i> Cert</span></div></td>`;
+    } else {
+      html += `<td class="fixed-col col-certstatus"><div class="cell-inner"><span class="cert-badge pending">Pending</span></div></td>`;
+    }
+
+    // Cert Date
+    const certDateStr = coach.cert_date ? formatDate(coach.cert_date) : '—';
+    html += `<td class="fixed-col col-certdate"><div class="cell-inner" style="font-size:11px;color:var(--gray-500)">${certDateStr}</div></td>`;
+
+    // Progress
+    const fillCls = completedActive === totalActive && totalActive > 0 ? 'complete' : '';
+    html += `<td class="fixed-col col-progress" style="padding:0">
+      <div class="progress-cell">
+        <div class="progress-label">${completedActive}/${totalActive}</div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill ${fillCls}" style="width:${pct}%"></div></div>
+      </div>
+    </td>`;
+
+    // Competency cells
+    cats.forEach((cat, ci) => {
+      catGroups[cat].forEach((comp, ki) => {
+        const done = !!compsMap[comp.key];
+        const isLeg = comp.is_legacy;
+        const isFirst = ki === 0;
+        const borderStyle = isFirst ? 'border-left:2px solid var(--gray-200)' : '';
+        const legCls = isLeg ? 'legacy-comp-cell' : '';
+
+        html += `<td class="comp-cell ${legCls}" style="${borderStyle}"
+          data-code="${escHtml(coach.code)}"
+          data-key="${escHtml(comp.key)}"
+          data-legacy="${isLeg ? '1' : '0'}"
+          onclick="toggleComp(this)">
+          <div class="comp-check${done ? ' checked' : ''}${isLeg ? ' legacy-check' : ''}" id="chk-${escHtml(coach.code)}-${escHtml(comp.key)}">
+            ${done ? '<i class="bi bi-check" style="font-size:13px;line-height:1"></i>' : ''}
+          </div>
+        </td>`;
+      });
+    });
+
+    // Delete button (extra fixed-right column)
+    html += `<td style="width:40px;text-align:center;padding:0 0.3rem">
+      <button class="btn-del" onclick="openDeleteConfirm('${escHtml(coach.code)}','${escHtml(coach.name)}')" title="Remove coach">
+        <i class="bi bi-trash3"></i>
+      </button>
+    </td>`;
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById('table-wrap').innerHTML = html;
+}
+
+// ─────────────────────────────────────────
+// COMPETENCY TOGGLE
+// ─────────────────────────────────────────
+const inFlight = new Set();
+
+async function toggleComp(td) {
+  const code = td.dataset.code;
+  const key = td.dataset.key;
+  const id = `${code}__${key}`;
+  if (inFlight.has(id)) return;
+
+  const chkEl = document.getElementById(`chk-${code}-${key}`);
+  if (!chkEl) return;
+
+  const coach = allCoaches.find(c => c.code === code);
+  if (!coach) return;
+
+  const wasCompleted = !!(coach.competencies || {})[key];
+  const newVal = !wasCompleted;
+
+  // Optimistic update
+  if (!coach.competencies) coach.competencies = {};
+  coach.competencies[key] = newVal;
+  updateCheckEl(chkEl, newVal, td.dataset.legacy === '1');
+  updateRowProgress(code);
+
+  inFlight.add(id);
+  chkEl.classList.add('loading-check');
+
+  try {
+    await apiFetch('PUT', `/tracker/admin/coaches/${encodeURIComponent(code)}/competencies/${encodeURIComponent(key)}`, { completed: newVal });
+  } catch(e) {
+    // Revert
+    coach.competencies[key] = wasCompleted;
+    updateCheckEl(chkEl, wasCompleted, td.dataset.legacy === '1');
+    updateRowProgress(code);
+    toast('Failed to save: ' + e.message, 'error');
+  } finally {
+    inFlight.delete(id);
+    chkEl.classList.remove('loading-check');
+  }
+}
+
+function updateCheckEl(el, checked, isLegacy) {
+  el.className = 'comp-check' + (checked ? ' checked' : '') + (isLegacy ? ' legacy-check' : '');
+  el.innerHTML = checked ? '<i class="bi bi-check" style="font-size:13px;line-height:1"></i>' : '';
+}
+
+function updateRowProgress(code) {
+  const coach = allCoaches.find(c => c.code === code);
+  if (!coach) return;
+  const activeComps = allCompetencies.filter(c => !c.is_legacy);
+  const total = activeComps.length;
+  const done = activeComps.filter(c => (coach.competencies || {})[c.key]).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const row = document.querySelector(`tr[data-code="${code}"]`);
+  if (!row) return;
+  const progCell = row.querySelector('.progress-cell');
+  if (progCell) {
+    progCell.querySelector('.progress-label').textContent = `${done}/${total}`;
+    const bar = progCell.querySelector('.progress-bar-fill');
+    bar.style.width = pct + '%';
+    bar.className = 'progress-bar-fill' + (done === total && total > 0 ? ' complete' : '');
+  }
+}
+
+// ─────────────────────────────────────────
+// MODALS
+// ─────────────────────────────────────────
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+function closeModalOnOverlay(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['modal-edit','modal-add','modal-confirm'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.style.display !== 'none') closeModal(id);
+    });
+  }
+});
+
+// EDIT COACH
+function openEditCoach(code) {
+  const coach = allCoaches.find(c => c.code === code);
+  if (!coach) return;
+
+  document.getElementById('edit-modal-title').textContent = 'Edit Coach — ' + coach.name;
+  document.getElementById('edit-coach-code').value = code;
+  document.getElementById('edit-code-display').value = code;
+  document.getElementById('edit-name').value = coach.name || '';
+  document.getElementById('edit-email').value = coach.email || '';
+  document.getElementById('edit-phone').value = coach.phone || '';
+  document.getElementById('edit-org').value = coach.org || '';
+  document.getElementById('edit-state').value = coach.state || '';
+  document.getElementById('edit-cert-status').value = String(coach.cert_status || 0);
+  document.getElementById('edit-cert-date').value = coach.cert_date ? isoDate(coach.cert_date) : '';
+  document.getElementById('btn-save-edit').disabled = false;
+  document.getElementById('modal-edit').style.display = 'flex';
+}
+
+async function saveEditCoach() {
+  const code = document.getElementById('edit-coach-code').value;
+  const btn = document.getElementById('btn-save-edit');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const body = {
+    name: document.getElementById('edit-name').value.trim(),
+    email: document.getElementById('edit-email').value.trim(),
+    phone: document.getElementById('edit-phone').value.trim(),
+    org: document.getElementById('edit-org').value.trim(),
+    state: document.getElementById('edit-state').value.trim().toUpperCase(),
+    cert_status: parseInt(document.getElementById('edit-cert-status').value),
+    cert_date: document.getElementById('edit-cert-date').value || null
+  };
+
+  try {
+    await apiFetch('PUT', `/tracker/admin/coaches/${encodeURIComponent(code)}`, body);
+    const coach = allCoaches.find(c => c.code === code);
+    if (coach) Object.assign(coach, body);
+    closeModal('modal-edit');
+    toast('Coach updated successfully.', 'success');
+    applyFilters();
+  } catch(e) {
+    toast('Save failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
+  }
+}
+
+// ADD COACH
+function openAddCoach() {
+  ['add-name','add-code','add-email','add-phone','add-org','add-state','add-cert-date'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('add-cert-status').value = '0';
+  document.getElementById('btn-save-add').disabled = false;
+  document.getElementById('modal-add').style.display = 'flex';
+  setTimeout(() => document.getElementById('add-name').focus(), 50);
+}
+
+async function saveAddCoach() {
+  const name = document.getElementById('add-name').value.trim();
+  const code = document.getElementById('add-code').value.trim().toUpperCase();
+  if (!name || !code) { toast('Name and Code are required.', 'warning'); return; }
+
+  if (allCoaches.find(c => c.code === code)) {
+    toast(`Code "${code}" already exists.`, 'error'); return;
+  }
+
+  const btn = document.getElementById('btn-save-add');
+  btn.disabled = true;
+  btn.textContent = 'Adding…';
+
+  const body = {
+    code,
+    name,
+    email: document.getElementById('add-email').value.trim(),
+    phone: document.getElementById('add-phone').value.trim(),
+    org: document.getElementById('add-org').value.trim(),
+    state: document.getElementById('add-state').value.trim().toUpperCase(),
+    cert_status: parseInt(document.getElementById('add-cert-status').value),
+    cert_date: document.getElementById('add-cert-date').value || null
+  };
+
+  try {
+    const result = await apiFetch('POST', '/tracker/admin/coaches', body);
+    const newCoach = Object.assign({ competencies: {} }, body, result || {});
+    allCoaches.push(newCoach);
+    closeModal('modal-add');
+    toast(`Coach "${name}" added.`, 'success');
+    applyFilters();
+  } catch(e) {
+    toast('Add failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Add Coach';
+  }
+}
+
+// DELETE
+function openDeleteConfirm(code, name) {
+  pendingDeleteCode = code;
+  document.getElementById('confirm-text').innerHTML =
+    `Are you sure you want to remove <strong>${escHtml(name)}</strong> (${escHtml(code)})? This action cannot be undone.`;
+  document.getElementById('modal-confirm').style.display = 'flex';
+}
+
+async function confirmDelete() {
+  const code = pendingDeleteCode;
+  if (!code) return;
+  const btn = document.getElementById('btn-confirm-del');
+  btn.disabled = true;
+  btn.textContent = 'Removing…';
+
+  try {
+    await apiFetch('DELETE', `/tracker/admin/coaches/${encodeURIComponent(code)}`);
+    allCoaches = allCoaches.filter(c => c.code !== code);
+    closeModal('modal-confirm');
+    toast('Coach removed.', 'success');
+    applyFilters();
+  } catch(e) {
+    toast('Delete failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Remove Coach';
+    pendingDeleteCode = null;
+  }
+}
+
+// ─────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  try {
+    const dt = new Date(d);
+    if (isNaN(dt)) return d;
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  } catch(e) { return d; }
+}
+
+function isoDate(d) {
+  if (!d) return '';
+  try {
+    const dt = new Date(d);
+    if (isNaN(dt)) return '';
+    return dt.toISOString().slice(0,10);
+  } catch(e) { return ''; }
+}
+</script>
+</body>
+</html>
