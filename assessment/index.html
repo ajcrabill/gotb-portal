@@ -572,7 +572,7 @@ async function sendOtp() {
   if (!email) { setError('login-error', 'Please enter your email address.'); return; }
   setError('login-error', '');
   try {
-    await api('POST', '/auth/otp/request', { email });
+    await api('POST', '/auth/request', { email });
     document.getElementById('otp-email-display').textContent = email;
     document.getElementById('step-email').style.display = 'none';
     document.getElementById('step-otp').style.display = 'flex';
@@ -588,7 +588,7 @@ async function verifyOtp() {
   if (!code) { setError('login-error', 'Enter the 6-digit code.'); return; }
   setError('login-error', '');
   try {
-    const data = await api('POST', '/auth/otp/verify', { email, code });
+    const data = await api('POST', '/auth/verify', { email, code });
     setToken(data.access_token);
     _userEmail = email;
     sessionStorage.setItem('gotb_email', email);
