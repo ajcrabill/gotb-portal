@@ -179,17 +179,18 @@
   .level-card {
     border: 2px solid var(--esb-border); border-radius: var(--radius-md);
     padding: 14px 12px; cursor: pointer; transition: all var(--transition);
-    position: relative; background: var(--esb-surface);
+    position: relative;
   }
-  .level-card:hover { border-color: var(--esb-blue-light); box-shadow: var(--shadow-sm); }
-  .level-card.selected {
-    border-color: var(--esb-blue); box-shadow: 0 0 0 3px rgba(58,110,168,0.15);
-    background: #f0f6ff;
-  }
-  .level-card.level-0.selected { border-color: #9b2c2c; background: #fff8f8; box-shadow: 0 0 0 3px rgba(155,44,44,0.12); }
-  .level-card.level-1.selected { border-color: #b45309; background: #fffbf0; box-shadow: 0 0 0 3px rgba(180,83,9,0.12); }
-  .level-card.level-2.selected { border-color: #1d6fa4; background: #f0f7ff; box-shadow: 0 0 0 3px rgba(29,111,164,0.12); }
-  .level-card.level-3.selected { border-color: var(--esb-success); background: #f0faf4; box-shadow: 0 0 0 3px rgba(39,103,73,0.12); }
+  .level-card.level-0 { background: #fff5f5; border-color: #fca5a5; }
+  .level-card.level-1 { background: #fffbf0; border-color: #fcd34d; }
+  .level-card.level-2 { background: #f0f7ff; border-color: #93c5fd; }
+  .level-card.level-3 { background: #f0faf4; border-color: #86efac; }
+  .level-card:hover { filter: brightness(0.97); box-shadow: var(--shadow-sm); }
+  .level-card.selected { box-shadow: 0 0 0 3px rgba(58,110,168,0.25); filter: none; }
+  .level-card.level-0.selected { border-color: #9b2c2c; box-shadow: 0 0 0 3px rgba(155,44,44,0.2); }
+  .level-card.level-1.selected { border-color: #b45309; box-shadow: 0 0 0 3px rgba(180,83,9,0.2); }
+  .level-card.level-2.selected { border-color: #1d6fa4; box-shadow: 0 0 0 3px rgba(29,111,164,0.2); }
+  .level-card.level-3.selected { border-color: var(--esb-success); box-shadow: 0 0 0 3px rgba(39,103,73,0.2); }
 
   .level-name { font-size: 13px; font-weight: 700; color: var(--esb-text); margin-bottom: 4px; }
   .level-pts { font-size: 20px; font-weight: 800; margin-bottom: 8px; line-height: 1; }
@@ -952,53 +953,49 @@ function esc(s) {
 }
 
 // ── Rubric data ───────────────────────────────────────────────────────────────
-// Source: Effective School Boards Framework Instrument
+// Source: Effective School Boards Framework Instrument (verbatim criteria)
 // Each practice: key, name, short, desc, levels[0..3] (Ineffective→Highly Effective)
-// Criteria are distilled from the Framework Instrument for facilitator reference.
 const PRACTICES = [
   {
     key: 'focus_mindset',
     name: 'Focus Mindset',
     short: 'Focus',
-    desc: 'The board keeps its attention fixed on improving outcomes for students, changing adult behaviors — starting with its own.',
+    desc: 'The Board will focus on improving student outcomes by changing adult behaviors — starting with its own.',
     levels: [
       {
         name: 'Ineffective', pts: 0,
         criteria: [
-          'Board received training on knowledge & skills but NOT on the mindset needed to be effective (prior 36 months)',
-          'Board has not consistently distinguished between inputs, outputs, and student outcomes',
-          'Board has not consistently distinguished between adult inputs and student outcomes',
-          'Board has not conducted a self-evaluation in the previous 12 months',
-          'Board has not evaluated its use of time in Board-authorized public meetings in the previous 12 months',
-          'Board has not participated in a full governance team training (all members present) in the previous 12 months',
+          'The Board has received training related to the knowledge and skills school boards need to be effective but not the mindset needed to be effective during the previous thirty-six month period.',
+          'The Board has not consistently demonstrated the ability to distinguish between inputs, outputs, and outcomes.',
+          'The Board has not consistently demonstrated the ability to distinguish between adult inputs and student outcomes.',
+          'The Board has not conducted a self evaluation during the previous twelve month period.',
+          'The Board has not evaluated its use of time in Board-authorized public meetings during the previous twelve month period.',
+          'The Board has not participated in a governance team training or retreat where all members of the governance team were present, during the previous twelve month period.',
         ]
       },
       {
         name: 'Emerging', pts: 1,
         criteria: [
-          'Board received training on the Effective School Boards framework',
-          'Quarterly self-evaluations scheduled; annual self-eval ≤45 days before next Superintendent evaluation',
-          'Board tracks time use and reports at least quarterly the % of meeting time focused on student outcomes',
-          'Board has hosted and led or co-led at least one ESB framework training session in the previous 12 months',
-          'Most recent self-evaluation ≤12 months ago using this instrument; Board voted to adopt results',
-          'Board tracks average annual cost of staff time invested in governance during self-evaluation',
+          'The Board received training on the effective school boards framework.',
+          'The Board has scheduled quarterly self evaluations, with the annual self evaluation scheduled to take place no more than 45 days prior to the next Superintendent evaluation.',
+          'The Board tracks its use of time and reports at least quarterly the percentage of Board-authorized public meetings where there is time focused on student outcomes.',
         ]
       },
       {
         name: 'Effective', pts: 5,
         criteria: [
-          'Students were included as presenters in at least one ESB framework training in the previous 12 months',
-          'All newly selected Board Members received ESB framework training from fellow members or a certified coach prior to selection',
-          'Board self-evaluated in the last 3 months (if prior score <80) or last 12 months (if ≥80)',
-          'Annual self-evaluation includes each Board Member sharing examples of when their behaviors made it harder for students to achieve goals',
+          'The Board has hosted and the Board Members have led or co-led at least one training session on the effective school boards framework during the previous twelve month period.',
+          'The most recent Board self-evaluation took place no more than 12 months ago using this instrument or a research-aligned instrument and the Board voted to adopt the results.',
+          'The Board tracks the average annual cost of staff time invested in governance during its annual self evaluation. This includes the time of any staff members invested in preparing for, attending, and debriefing after meetings. This includes all Board-authorized public meetings as well as all closed sessions and all hearings.',
         ]
       },
       {
         name: 'Highly Effective', pts: 10,
         criteria: [
-          'All Effective criteria met consistently',
-          'Student-outcomes focus is institutional (survives board member turnover) — not reliant on individual champion',
-          'Board explicitly evaluates and documents when focus slips and corrects it',
+          'The Board included students as presenters in at least one of the effective school boards framework training sessions during the previous twelve months.',
+          'Prior to being selected, all newly selected Board Members received training on the effective school boards framework from fellow Board Members on their Board or from a coach certified in the effective school boards framework.',
+          'The Board self evaluated using this instrument during the last three month period if its previous score was below 80 using this instrument, or during the last twelve month period if its previous score was 80+.',
+          'The Board\'s annual self evaluation includes an opportunity for each Board Member to share examples of when their adult behaviors made it harder for students to achieve the goals.',
         ]
       },
     ]
@@ -1007,46 +1004,48 @@ const PRACTICES = [
     key: 'goals',
     name: 'Clarify Priorities: Vision & Goals',
     short: 'Goals',
-    desc: 'The board has adopted SMART goals that represent the community\'s vision for student outcomes.',
+    desc: 'The Board will adopt goals that represent the community\'s vision for improving student outcomes.',
     levels: [
       {
         name: 'Ineffective', pts: 0,
         criteria: [
-          'Board has not adopted policies about goals that clarify the community\'s vision',
-          'Board has not consistently distinguished between adult inputs and student outcomes',
-          'Board has not consistently distinguished between SMART goals and vague aspirations',
-          'Board has not hosted community listening opportunities in the previous 36 months',
+          'The Board has not adopted policies about goals that clarify the community\'s vision.',
+          'The Board has not consistently demonstrated the ability to distinguish between adult inputs and student outcomes.',
+          'The Board has not consistently demonstrated the ability to distinguish between goals that are SMART — that include a specific measure, population, starting point, an ending point, a starting date, and an ending date — and those that are not.',
+          'The Board has not hosted opportunities to listen to the vision of the community during the previous thirty-six month period.',
         ]
       },
       {
         name: 'Emerging', pts: 5,
         criteria: [
-          'Board received training on listening for the community\'s vision and setting SMART goals',
-          'Board included students, parents, staff, and community members in the goal development process',
-          'Board used root cause analysis or research-based tools to inform goal identification',
-          'Board developed goals collaboratively with the Superintendent representing what students should know/do',
-          'Board publicly posted goals for comment before adoption',
-          'Board has identified annual targets (goal ending points for each year)',
+          'The Board received training on listening for the community\'s vision and using what the Board hears to set SMART goals.',
+          'The Board included students, parents, staff, and community members in the goal development process.',
+          'The Board relied on a root cause analysis, comprehensive student needs assessment, and/or similar research-based tool to inform identification of and prioritization of potential goals.',
+          'The Board has developed, in collaboration with the Superintendent, a set of goals that represent the community\'s vision for what students should know and be able to do.',
+          'The Board publicly posted the goals for public comment prior to adoption.',
+          'In addition to the goal ending points, the Board has identified annual targets, goal ending points for each year leading up to the ending dates.',
+          'The Board has adopted no fewer than one and no more than five goals. A max of three is recommended because fewer goals allow for greater focus; more allow for less.',
         ]
       },
       {
         name: 'Effective', pts: 15,
         criteria: [
-          'Board has adopted 1–5 goals (max 3 recommended); all are SMART, student-outcome focused',
-          'Superintendent has adopted 1–3 interim goals per goal; each is SMART and predictive/influenceable',
-          'All interim goals pertain to student outputs or outcomes — not inputs or adult outputs',
-          'Interim goal status can be updated multiple times per school year',
-          'Board adopted goals through a process that led community members to express ownership',
-          'All Board Members have memorized all adopted goals and current status',
+          'The Superintendent has adopted, in collaboration with the Board, one to three interim goals to progress monitor each goal, and each interim goal is SMART. The recommended number of interim goals is three.',
+          'All of the interim goals are predictive of their respective goals, and are influenceable by the Superintendent. Predictive suggests evidence of a correlation between the interim goal and the goal. Influenceable suggests the Superintendent has authority over roughly 80% of whatever the interim goal is measuring.',
+          'The Superintendent has provided interim goal ending points for each year leading up to the ending date.',
+          'All interim goals pertain to student outputs or student outcomes, not inputs or adult outputs.',
+          'The status of each interim goal is able to be updated multiple times during each school year.',
         ]
       },
       {
         name: 'Highly Effective', pts: 20,
         criteria: [
-          'All Effective criteria met',
-          'Board and Superintendent agree goals/interim goals will challenge the organization and require adult behavior change',
-          'All Board goals last 3–5 years; interim goals 1–3 years',
-          'Community re-engagement process in place as goals are met or conditions change',
+          'The Board adopted goals using a process that included students, parents, staff, and community members in a way that led them to express ownership of the adopted goals.',
+          'The Board has adopted only SMART goals.',
+          'The Board\'s goals all pertain to desired student outcomes rather than adult inputs.',
+          'The Board and superintendent agree that the goals and interim goals will challenge the organization and will require change in adult behaviors.',
+          'All Board goals last from three to five years; interim goals generally last from one to three years.',
+          'All Board Members have memorized all of the Board\'s adopted goals and the current status of each.',
         ]
       },
     ]
@@ -1055,43 +1054,44 @@ const PRACTICES = [
     key: 'guardrails',
     name: 'Clarify Priorities: Values & Guardrails',
     short: 'Guardrails',
-    desc: 'The board has adopted guardrails that represent the community\'s non-negotiable values on how goals are pursued.',
+    desc: 'The Board will adopt guardrails that represent the community\'s non-negotiable values.',
     levels: [
       {
         name: 'Ineffective', pts: 0,
         criteria: [
-          'Board has not adopted policies about goals that clarify the community\'s vision',
-          'Board has not adopted policies about guardrails that clarify the community\'s values',
-          'Board has not hosted community listening opportunities (values) in the previous 36 months',
+          'The Board has not adopted policies about goals that clarify the community\'s vision.',
+          'The Board has not adopted policies about guardrails that clarify the community\'s values.',
+          'The Board has not hosted opportunities to listen to the values of the community during the previous thirty-six month period.',
         ]
       },
       {
         name: 'Emerging', pts: 5,
         criteria: [
-          'Board received training on listening for community values and setting guardrails',
-          'Board included students, parents, staff, and community members in the guardrail development process',
-          'Board developed guardrails collaboratively with the Superintendent; each describes actions the Superintendent may not use/allow',
-          'Board publicly posted guardrails for comment before adoption',
-          'Board has developed 1–5 guardrails (max 3 recommended) that do not hinder pursuit of the goals',
+          'The Board received training on listening for the community\'s values and using what the Board hears to set guardrails.',
+          'The Board included students, parents, staff, and community members in the guardrail development process.',
+          'The Board has developed, in collaboration with the Superintendent, guardrails based on the community\'s values that do not hinder pursuit of the goals. Each guardrail describes a single operational action or class of actions the Superintendent may not use or allow in pursuit of the goals.',
+          'The Board has developed no fewer than one and no more than five guardrails. A max of three is recommended because fewer guardrails allow for greater focus; more allow for less.',
+          'The Board publicly posted the guardrails for public comment prior to adoption.',
         ]
       },
       {
         name: 'Effective', pts: 12,
         criteria: [
-          'Superintendent has adopted 1–3 interim guardrails per guardrail; each is SMART and predictive/influenceable',
-          'All interim guardrails pertain to outputs or outcomes — not inputs',
-          'Interim guardrail status can be updated multiple times per year',
-          'Board adopted guardrails through a process that led community members to express ownership',
-          'Board has considered adoption of one or more theories of action',
+          'The Superintendent has adopted, in collaboration with the Board, one to three interim guardrails for each guardrail, and each interim guardrail is SMART.',
+          'All of the interim guardrails are predictive of their respective guardrails, and are influenceable by the Superintendent. Predictive suggests evidence of a correlation between the interim guardrail and the guardrail. Influenceable suggests the Superintendent has authority over roughly 80% of whatever the interim guardrail is measuring.',
+          'The Superintendent has provided interim guardrail ending points for each year leading up to the ending date.',
+          'All interim guardrails pertain to outputs or outcomes, not inputs.',
+          'The status of each interim guardrail is able to be updated multiple times during each school year.',
         ]
       },
       {
         name: 'Highly Effective', pts: 15,
         criteria: [
-          'All Effective criteria met',
-          'Guardrails, interim guardrails, and any theories of action will challenge the organization and require adult behavior change',
-          'In addition to Superintendent guardrails, Board has adopted 1–5 guardrails on its OWN behavior and evaluates itself against them at least quarterly',
-          'All Board guardrails last 3–5 years; interim guardrails last 1–3 years',
+          'The Board adopted guardrails using a process that included students, parents, staff, and community members in a way that led them to express ownership of the adopted guardrails and, if applicable, theories of action.',
+          'The Board has considered adoption of one or more theories of action to drive the school system\'s overall strategic direction. If there is a permanent Superintendent, that person was included in the theory consideration process.',
+          'The guardrails, interim guardrails, and theories of action will challenge the organization and require change in adult behaviors.',
+          'In addition to the guardrails on the Superintendent\'s authority, the Board has adopted one to five guardrails on its own behavior and evaluates itself against them at least quarterly.',
+          'All Board guardrails last from three to five years; all interim guardrails last from one to three years.',
         ]
       },
     ]
@@ -1100,51 +1100,51 @@ const PRACTICES = [
     key: 'monitor',
     name: 'Monitor Progress',
     short: 'Monitor',
-    desc: 'The board devotes significant time monthly to highly effective monitoring of progress toward its goals.',
+    desc: 'The Board will devote significant time monthly to highly effective monitoring of progress toward the goals.',
     levels: [
       {
         name: 'Ineffective', pts: 0,
         criteria: [
-          'Board has not adopted policies about goals that clarify the community\'s vision',
-          'Board has not consistently distinguished between effective and ineffective monitoring',
-          'Board does not track its use of time in Board-authorized public meetings',
-          'Board does not schedule each goal to be monitored at least 4 times per year',
-          'Board does not schedule each guardrail to be monitored at least once per year',
-          'Board has not adopted a monitoring calendar',
-          'School system has not achieved any interim goals in the previous 12 months',
+          'The Board has not adopted policies about goals that clarify the community\'s vision.',
+          'The Board has not consistently demonstrated the ability to distinguish between effective monitoring and ineffective monitoring.',
+          'The Board does not track its use of time in Board-authorized public meetings.',
+          'The Board does not schedule each goal to be monitored at least four times per year.',
+          'The Board does not schedule each guardrail to be monitored at least once per year.',
+          'The Board has not adopted a monitoring calendar.',
+          'The school system has not achieved any of its interim goals during the previous twelve month period.',
         ]
       },
       {
         name: 'Emerging', pts: 10,
         criteria: [
-          'Board received training on effective monitoring',
-          'Superintendent and team received training on creating effective monitoring reports',
-          'Superintendent (collaboratively with Board) led the monitoring calendar development',
-          'Monitoring calendar spans the length of the Board\'s goals',
-          'No more than 2 goals calendared for monitoring per month; every goal monitored at least 4× per year',
-          'Every guardrail calendared at least once per year',
-          'Board conducted its first practice monitoring session',
-          'Board has adopted a monitoring calendar',
+          'The Board received training on effective monitoring.',
+          'The Superintendent and their team received training on creating effective monitoring reports.',
+          'The Superintendent, working collaboratively with the Board, led the monitoring calendar development process.',
+          'The Board\'s monitoring calendar spans the length of the Board\'s goals. A longer span allows for more focus; shorter allows for less.',
+          'No more than two goals are calendared for monitoring per month.',
+          'Every goal is calendared to be monitored at least four times per year.',
+          'Every guardrail is calendared to be monitored at least once per year.',
+          'The Board conducted its first practice monitoring session.',
         ]
       },
       {
         name: 'Effective', pts: 20,
         criteria: [
-          'Board demonstrated effective monitoring (80%+ quality) during each monitoring conversation',
-          'Board invests ≥50% of total public meeting minutes monthly into effective goal monitoring',
-          'Board has received monitoring reports in accordance with its calendar',
-          'Board modifies goals/guardrails/calendar no more than once during the span of adopted goals',
-          'Board publicly displays status and targets of all goals/interim goals in meeting room',
-          'Board tracks its use of time in Board-authorized public meetings',
+          'The Board modifies its goals, guardrails, and monitoring calendar no more than once during the span of the Board\'s adopted goals (unless they are met sooner). A longer period allows for more focus; shorter allows for less.',
+          'The Board has provided time during regularly scheduled Board-authorized public meetings to recognize the accomplishments of its students and staff regarding progress toward goals and interim goals.',
+          'The Board publicly displays the status and targets of all goals and interim goals in the room in which the Board most frequently holds regularly scheduled Board meetings.',
+          'The Board tracks its use of time in Board-authorized public meetings.',
+          'The Board has adopted a monitoring calendar.',
+          'The Board demonstrated effective monitoring (80% or higher) during each monitoring conversation.',
         ]
       },
       {
         name: 'Highly Effective', pts: 30,
         criteria: [
-          'All Effective criteria met',
-          'Board demonstrated HIGHLY effective monitoring (90%+ quality) during each monitoring conversation',
-          'School system has achieved at least half of its interim goals in the previous 12 months',
-          'Board has provided time to recognize student/staff accomplishments regarding goal progress',
+          'The Board invests no less than 50% of its total Board-authorized public meeting minutes each month into effectively monitoring its goals.',
+          'The Board has received monitoring reports in accordance with its monitoring calendar.',
+          'The Board demonstrated highly effective monitoring (90% or higher) during each monitoring conversation.',
+          'The school system has achieved at least half of its interim goals during the previous twelve month period.',
         ]
       },
     ]
@@ -1153,49 +1153,47 @@ const PRACTICES = [
     key: 'align',
     name: 'Align Resources',
     short: 'Align',
-    desc: 'The board ensures that resource allocation — time, talent, and treasure — is focused on accomplishment of the goals.',
+    desc: 'The Board will ensure that resource allocation — time, talent, and treasure — is focused on accomplishment of the goals.',
     levels: [
       {
         name: 'Ineffective', pts: 0,
         criteria: [
-          'Board has not adopted policies about goals that clarify the community\'s vision',
-          'Board has not consistently distinguished between Board work and Superintendent work',
-          'Board has not adopted policies about governing that establish the Board\'s operating processes',
-          'Board has not adopted policies about delegation that establish the Board\'s relationship to its direct reports',
-          'Any Board Member voted on an item with a conflict of interest as defined by law',
-          'Board Members serve on Superintendent-formed committees without proper authorization',
-          'Any Board-authorized meeting lasted more than 8 hours in the previous 12 months (excluding retreats)',
+          'The Board has not adopted policies about goals that clarify the community\'s vision.',
+          'The Board has not consistently demonstrated the ability to distinguish between Board work and Superintendent work.',
+          'The Board has not adopted policies about governing that establish the Board\'s operating processes.',
+          'The Board has not adopted policies about delegation that establish the Board\'s relationship to its direct reports.',
+          'Any Board Member voted on an item on which they had a conflict of interest, as defined by law.',
+          'Board Members serve on committees formed by the Superintendent or staff when it\'s not legally mandated without both an invitation from the Superintendent and the selection by and approval of a majority of the Board.',
+          'Any meeting of the Board lasted more than eight hours during the previous twelve month period (not including retreats/trainings).',
         ]
       },
       {
         name: 'Emerging', pts: 5,
         criteria: [
-          'Board received training on aligning time, talent, and treasure resources with goals and guardrails',
-          'Board received training on how to use a policy diet to make Board policies transparent and manageable',
-          'All Board Members agree that committees (if any) only advise the Board, not the staff',
-          'Superintendent evaluation instrument only includes sections regarding the Board\'s goals, guardrails, and interim goals/guardrails',
-          'Board has been provided copies of Superintendent\'s implementation plan(s) but did not vote to approve/disapprove',
-          'Board has adopted an Ethics & Conflicts of Interest Statement with the required elements',
-          'Board has adopted a policy requiring that information provided to one Board Member is provided to all',
-          'Board has not allowed the Superintendent to serve more than 12 months without an evaluation',
+          'The Board received training on aligning time, talent, and treasure resources with the goals and guardrails.',
+          'The Board received training on how to use a policy diet to make Board policies transparent and manageable.',
+          'All Board Members agree that if the Board has committees, their role is only to advise the Board, not to advise the staff.',
+          'The Superintendent evaluation instrument only includes sections regarding the Board\'s goals, guardrails, and interim goals/guardrails. The Board considers Superintendent evaluation to be identical to school system evaluation.',
+          'The Board has been provided copies of — but, unless required by law, did not vote to approve/disapprove — the Superintendent\'s plan(s) for implementing the Board\'s goals and worked to ensure that the plan included both an implementation timeline and implementation instruments.',
         ]
       },
       {
         name: 'Effective', pts: 15,
         criteria: [
-          'Board conducted a quarterly self-evaluation (or annual if score ≥80) and unanimously voted to adopt results',
-          'Board invests ≥50% of total public meeting minutes monthly into effectively monitoring its goals',
-          'Only Board work was discussed and/or acted on during Board-authorized public meetings',
-          'Board unanimously agreed that all members adhered to all governing policies and honored all ethical boundaries',
-          'Board approves annual budget only after determining goals are the first priority for resource allocation',
+          'The Board has adopted an Ethics & Conflicts of Interest Statement requiring that: (a) Board Members do not give operational advice or instructions to staff members; (b) Board Members are responsible for the outcomes of all students, not just students in their region of the school system; (c) Board Members fully recuse themselves from matters involving individuals or organizations who made campaign contributions to them or who appointed them; (d) All Board Members have signed the Ethics & Conflicts of Interest Statement during their current term of office.',
+          'The Board has adopted a policy or procedure requiring that information provided by the Superintendent to one Board Member is provided to all Board Members.',
+          'The Board has not allowed the Superintendent to serve for more than twelve months without an evaluation.',
+          'The Board conducted a quarterly self-evaluation — or just annually if the most recent score was 80 or higher — and unanimously voted to adopt the results.',
         ]
       },
       {
         name: 'Highly Effective', pts: 20,
         criteria: [
-          'All Effective criteria met',
-          'Board has conducted a policy diet; Board reviews all remaining Board policies at least once per Board Member term length',
-          'Resource alignment process is documented and institutional — survives Board member turnover',
+          'The Board invests no less than 50% of its total Board-authorized public meeting minutes each month into effectively monitoring its goals.',
+          'Only Board work was discussed and/or acted on during Board-authorized public meetings.',
+          'The Board unanimously agreed during the most recent self-evaluation that: (a) all Board Members adhered to all policies related to Board governing/operating procedures; (b) all Board Members have honored the three aforementioned ethical boundaries during the previous evaluation period; (c) none of the Board Members have given operational advice or instructions to staff members.',
+          'If the Board approves an annual budget, it does so only after determining that the Board\'s goals are the first priority for resource allocation.',
+          'The Board has conducted a policy diet and the Board as a whole reviews all remaining Board policies at least once during every length of time equal to a Board Member\'s term of office.',
         ]
       },
     ]
@@ -1204,46 +1202,44 @@ const PRACTICES = [
     key: 'communicate',
     name: 'Communicate Results',
     short: 'Communicate',
-    desc: 'The board leads transparently and interacts with stakeholders in honest pursuit of the goals.',
+    desc: 'The Board will lead transparently and interact with stakeholders in the pursuit of the goals.',
     levels: [
       {
         name: 'Ineffective', pts: 0,
         criteria: [
-          'Board has not adopted policies about goals that clarify the community\'s vision',
-          'Board has not consistently distinguished between customer service issues and owner service issues',
-          'Board did not receive final meeting materials at least 3 calendar days before the meeting',
-          'More than 6 Board-authorized public meetings in a single month in the previous 12 months',
-          'Board has not hosted community vision/values listening opportunities in the previous 36 months',
-          'Board does not use a consent agenda',
+          'The Board has not adopted policies about goals that clarify the community\'s vision.',
+          'The Board has not consistently demonstrated the ability to distinguish between customer service/issues and owner service/issues.',
+          'The Board did not receive the final version of materials to be voted on at least three calendar days before the Board-authorized public meeting during which the materials would be considered.',
+          'There were more than six Board-authorized public meetings in a single month (this includes committees) during the previous twelve month period.',
+          'The Board has not hosted opportunities to listen to the vision and values of the community during the previous thirty-six month period.',
+          'The Board does not use a consent agenda.',
         ]
       },
       {
         name: 'Emerging', pts: 1,
         criteria: [
-          'Board received training on listening for community vision/values and community engagement',
-          'Board received training on how to use an agenda diet to make meetings transparent and observable',
-          'Board limits governance policy adoption to matters required by law or appropriate oversight of adopted goals/guardrails',
-          'All consent-eligible items were placed on consent agenda; most voted on via consent agenda',
-          'No more than 5 Board-authorized public meetings per month; none lasting more than 3 hours',
-          'Board schedules no more than 5 topics for discussion during any one meeting',
+          'The Board received training on listening for the community\'s vision and values, and on community engagement and community outreach.',
+          'The Board received training on how to use an agenda diet to make Board meetings transparent and observable.',
+          'The Board limits its adoption of governance policy regarding school system operations to matters that are (1) required by law or (2) an appropriate exercise of the Board\'s oversight authority as defined by the Board\'s adopted goals and/or guardrails.',
+          'All consent-eligible items were placed on the consent agenda and all but a few were voted on using a consent agenda.',
         ]
       },
       {
         name: 'Effective', pts: 3,
         criteria: [
-          'Existing policies not fitting one of the 4 governance policy categories have been removed from the governance policy manual',
-          'Board made no edits to meeting agenda during the meeting or in the 3 business days before (absent emergency)',
-          'No more than 3 Board-authorized public meetings per month; none lasting more than 2 hours',
-          'No more than 3 topics for discussion per meeting',
-          'Board received final meeting materials 7–14 calendar days before the meeting',
+          'There are no more than five Board-authorized public meetings per month and none lasts more than three hours.',
+          'The Board schedules no more than five topics for discussion during any one Board-authorized public meeting.',
+          'Existing policies that do not fit into one of the four categories of governance policy — Goals, Guardrails, Governing, or Delegation — have been removed from the Board\'s governance policy manual (though the Superintendent may retain them as part of administrative policy/regulation).',
+          'The Board made no edits to the Board\'s regularly scheduled meeting agenda during the meeting and during the three business days before the meeting unless a state of emergency was declared.',
         ]
       },
       {
         name: 'Highly Effective', pts: 5,
         criteria: [
-          'All Effective criteria met',
-          'Board used a process that included students, parents, staff, and community members in a way that led them to express ownership of adopted goals and guardrails',
-          'Communication practices are documented and institutional — survive Board member turnover',
+          'There are no more than three Board-authorized public meetings per month and none lasts more than two hours.',
+          'The Board schedules no more than three topics for discussion during any Board-authorized public meeting.',
+          'The Board received the final version of materials to be voted on at least seven to fourteen calendar days before the Board-authorized public meeting during which the materials would be considered.',
+          'The Board used a process that included students, parents, staff, and community members in a way that led them to express ownership of the adopted goals and guardrails.',
         ]
       },
     ]
