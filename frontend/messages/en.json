@@ -3,8 +3,22 @@
     "home": "Home",
     "assessment": "Self-Assessment",
     "dashboard": "Dashboard",
+    "admin": "Admin",
     "signIn": "Sign In",
     "signOut": "Sign Out"
+  },
+  "auth": {
+    "signInPrompt": "Enter your email to receive a sign-in code.",
+    "checkEmail": "Check your email for the code.",
+    "emailLabel": "Email address",
+    "sendCode": "Send code",
+    "sending": "Sending...",
+    "codeLabel": "6-digit code",
+    "codeSentTo": "We sent a code to {email}.",
+    "verify": "Verify",
+    "verifying": "Verifying...",
+    "changeEmail": "Use a different email",
+    "errorGeneric": "Something went wrong. Please try again."
   },
   "practices": {
     "focus_mindset": "Focus Mindset",
@@ -49,7 +63,11 @@
     "title": "The Great on Their Behalf Index",
     "subtitle": "Free Self-Assessment",
     "disclaimer": "This is an indicative, self-scored assessment. It has not been validated or benchmarked. Results reflect your board's own perceptions and should be interpreted accordingly.",
-    "cta": "Learn more about a Certified Assessment"
+    "cta": "Learn more about a Certified Assessment",
+    "selfAssessmentTitle": "The Great on Their Behalf Index — Self-Assessment",
+    "selfAssessmentDescription": "Rate your board on each of the five practices. This assessment is indicative and self-scored.",
+    "indicativeLabel": "Indicative Assessment",
+    "indicativeDisclaimer": "This is a self-scored, indicative assessment. It has not been validated or benchmarked by ESB. Results reflect your board's own perceptions only."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

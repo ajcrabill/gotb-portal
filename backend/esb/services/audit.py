@@ -78,7 +78,7 @@ async def record(
         resource_type=resource_type,
         resource_id=resource_id,
         payload_hash=payload_hash,
-        metadata={"context": payload.get("context")} if payload and "context" in payload else {},
+        event_meta={"context": payload.get("context")} if payload and "context" in payload else {},
         pipeline_verdict=pipeline_verdict,
         ruleset_version=ruleset_version,
         prev_hash=prev_hash,

@@ -8,6 +8,7 @@ from esb.core.config import settings
 from esb.core.database import init_db
 from esb.core.logging import configure_logging
 from esb.routers import health
+from esb.routers import auth as auth_router
 
 configure_logging()
 log = structlog.get_logger()
@@ -17,6 +18,11 @@ log = structlog.get_logger()
 async def lifespan(app: FastAPI):
     log.info("esb_portal.startup", environment=settings.environment)
     await init_db()
+    from esb.core.database import AsyncSessionLocal
+    from esb.services.scoring import seed_initial_config
+    async with AsyncSessionLocal() as db:
+        await seed_initial_config(db)
+        await db.commit()
     yield
     log.info("esb_portal.shutdown")
 
@@ -38,3 +44,4 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(auth_router.router)

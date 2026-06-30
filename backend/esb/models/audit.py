@@ -38,7 +38,7 @@ class AuditLog(UUIDMixin, Base):
 
     # Payload stored as hash only — never raw PII
     payload_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    metadata: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    event_meta: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, default=dict)
 
     # Pipeline verdict if this entry is content-pipeline-related
     pipeline_verdict: Mapped[str | None] = mapped_column(String(50), nullable=True)

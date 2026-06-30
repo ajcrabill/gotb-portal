@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --esb-blue: #1a4f8a;
+  --esb-blue-dark: #0f2d52;
+  --esb-gold: #c8972a;
+  --esb-slate: #475569;
+  --esb-slate-light: #94a3b8;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+/* Smooth focus rings everywhere — accessibility-first */
+*:focus-visible {
+  outline: 2px solid var(--esb-blue);
+  outline-offset: 2px;
+}
