@@ -19,7 +19,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from esb.core.config import settings
-from esb.models.user import RoleMembership, RoleType, UserSession
+from esb.models.user import RoleMembership, UserSession
 
 log = structlog.get_logger()
 

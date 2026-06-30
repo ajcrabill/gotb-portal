@@ -1,13 +1,12 @@
-import enum
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from esb.core.database import Base
-from esb.models.base import TimestampMixin, UUIDMixin, content_hash
+from esb.models.base import UUIDMixin, content_hash
 
 # ── Canonical scoring model (§2a of architecture v3.2) ───────────────────────
 #

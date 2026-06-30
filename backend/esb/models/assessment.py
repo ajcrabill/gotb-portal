@@ -6,15 +6,19 @@ from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import (
-    Boolean, DateTime, Enum as SAEnum, ForeignKey, Integer,
-    String, Text, UniqueConstraint,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Text,
+)
+from sqlalchemy import (
+    Enum as SAEnum,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from esb.core.database import Base
-from esb.models.base import UUIDMixin, TimestampMixin
-from esb.models.scoring import PRACTICE_KEYS
+from esb.models.base import TimestampMixin, UUIDMixin
 
 
 class AssessmentTier(str, enum.Enum):

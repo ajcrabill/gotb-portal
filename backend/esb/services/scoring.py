@@ -1,23 +1,21 @@
 """Scoring config service — seed, retrieve, and version active config."""
 from __future__ import annotations
 
-import json
-from datetime import datetime, timezone
 from uuid import UUID
 
 import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from esb.models.base import content_hash
 from esb.models.scoring import (
-    PRACTICE_CEILINGS,
-    PRACTICE_BAND_SCORES,
     BAND_LABELS,
+    PRACTICE_BAND_SCORES,
+    PRACTICE_CEILINGS,
     PRACTICE_KEYS,
     TOTAL_CEILING,
     ScoringConfig,
 )
-from esb.models.base import content_hash
 
 log = structlog.get_logger()
 
@@ -45,7 +43,7 @@ def _build_phase0_config() -> dict:
 
 async def get_active_config(db: AsyncSession) -> ScoringConfig | None:
     return await db.scalar(
-        select(ScoringConfig).where(ScoringConfig.is_active == True)
+        select(ScoringConfig).where(ScoringConfig.is_active)
     )
 
 
@@ -57,7 +55,6 @@ async def seed_initial_config(db: AsyncSession) -> ScoringConfig:
         return existing
 
     config_data = _build_phase0_config()
-    config_json = json.dumps(config_data, sort_keys=True)
     config_hash = content_hash(config_data)
 
     cfg = ScoringConfig(

@@ -15,11 +15,11 @@ mutating audit rows (which are immutable by DB trigger).
 """
 from __future__ import annotations
 
-import structlog
 from datetime import datetime, timezone
 from uuid import UUID
 
-from sqlalchemy import select, func
+import structlog
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from esb.models.audit import AuditLog

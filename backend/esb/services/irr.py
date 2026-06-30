@@ -21,9 +21,7 @@ from __future__ import annotations
 import hashlib
 import random
 import secrets
-from datetime import datetime, date, timedelta, timezone
-from typing import Any
-from uuid import UUID
+from datetime import date, datetime, timedelta, timezone
 
 import structlog
 from sqlalchemy import select
@@ -216,16 +214,25 @@ def system_score_scenario(scenario_data: dict) -> dict:
 
         if item.get("inverse"):
             # operational minutiae: more = worse
-            if pct < 5:      score = 0
-            elif pct < 15:   score = 2
-            elif pct < 30:   score = 3
-            else:             score = 4
+            if pct < 5:
+                score = 0
+            elif pct < 15:
+                score = 2
+            elif pct < 30:
+                score = 3
+            else:
+                score = 4
         else:
-            if pct == 0:     score = 0
-            elif pct < 10:   score = 1
-            elif pct < 25:   score = 2
-            elif pct < 50:   score = 3
-            else:             score = 4
+            if pct == 0:
+                score = 0
+            elif pct < 10:
+                score = 1
+            elif pct < 25:
+                score = 2
+            elif pct < 50:
+                score = 3
+            else:
+                score = 4
 
         scores[iid] = {
             "score": score,

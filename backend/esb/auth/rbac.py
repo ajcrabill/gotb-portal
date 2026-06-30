@@ -7,15 +7,17 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from esb.core.database import get_db
-from esb.models.user import RoleMembership, RoleType, UserSession
+from esb.models.user import Person, RoleMembership, RoleType, UserSession
 
 
 class AuthContext:
-    def __init__(self, person_id: UUID, roles: set[RoleType], session_id: UUID, is_step_up: bool):
+    def __init__(self, person_id: UUID, roles: set[RoleType], session_id: UUID, is_step_up: bool, email: str = "", name: str = ""):
         self.person_id = person_id
         self.roles = roles
         self.session_id = session_id
         self.is_step_up = is_step_up
+        self.email = email
+        self.name = name
 
     def has_role(self, *roles: RoleType) -> bool:
         return bool(self.roles & set(roles))
@@ -85,11 +87,14 @@ async def get_auth_context(
             detail="Session invalidated due to role change. Please log in again.",
         )
 
+    person = await db.scalar(select(Person).where(Person.id == session.person_id))
     return AuthContext(
         person_id=session.person_id,
         roles=current_role_set,
         session_id=session.id,
         is_step_up=session.is_step_up,
+        email=person.email if person else "",
+        name=person.name if person else "",
     )
 
 

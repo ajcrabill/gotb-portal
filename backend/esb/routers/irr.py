@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import secrets
-from datetime import datetime, timezone
 from typing import Annotated
 from uuid import UUID
 
@@ -15,12 +14,13 @@ from esb.auth.rbac import AuthContext, get_auth_context
 from esb.core.database import get_db
 from esb.models.irr import IRRAttempt, IRRAttemptStatus, IRRProgress, IRRScenario, IRRScenarioType
 from esb.models.user import RoleType
-from esb.services import audit as audit_svc
 from esb.services.irr import (
+    KAPPA_PASS_THRESHOLD,
     generate_scenario,
     system_score_scenario,
+)
+from esb.services.irr import (
     submit_attempt as svc_submit_attempt,
-    KAPPA_PASS_THRESHOLD,
 )
 
 router = APIRouter(prefix="/api/irr", tags=["irr"])

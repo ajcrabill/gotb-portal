@@ -1,14 +1,12 @@
 """Billing router — Stripe subscriptions, Stripe Connect, Dropbox Sign contracts."""
 from __future__ import annotations
 
-import hashlib
-import hmac
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,9 +15,11 @@ from esb.auth.rbac import AuthContext, get_auth_context
 from esb.core.config import settings
 from esb.core.database import get_db
 from esb.models.billing import (
-    Certification, CertificationStatus,
-    Membership, MembershipStatus, MembershipTier,
-    Invoice, InvoiceStatus,
+    Certification,
+    CertificationStatus,
+    Membership,
+    MembershipStatus,
+    MembershipTier,
 )
 from esb.models.user import RoleType
 from esb.services import audit as audit_svc
@@ -246,7 +246,7 @@ async def send_certification_agreement(
         db.add(cert)
         await db.flush()
 
-    dropbox_sign = _dropbox_sign()
+    _dropbox_sign()  # validate API key is configured
 
     # Send agreement via Dropbox Sign
     # Template ID stored in settings — the Practitioner Agreement template
@@ -254,7 +254,10 @@ async def send_certification_agreement(
         raise HTTPException(status_code=503, detail="Dropbox Sign template not configured.")
 
     from dropbox_sign import ApiClient, Configuration, SignatureRequestApi
-    from dropbox_sign.models import SignatureRequestSendWithTemplateRequest, SubSignatureRequestTemplateSigner
+    from dropbox_sign.models import (
+        SignatureRequestSendWithTemplateRequest,
+        SubSignatureRequestTemplateSigner,
+    )
 
     configuration = Configuration(username=settings.dropbox_sign_api_key)
     with ApiClient(configuration) as api_client:

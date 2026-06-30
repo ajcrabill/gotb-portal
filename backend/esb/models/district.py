@@ -4,7 +4,7 @@ from uuid import UUID
 
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from esb.core.database import Base
 from esb.models.base import TimestampMixin, UUIDMixin

@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from esb.core.database import Base
+from esb.core.database import Base  # noqa: F401 — re-exported for model modules
 
 
 def utcnow() -> datetime:

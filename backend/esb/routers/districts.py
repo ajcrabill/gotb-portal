@@ -6,13 +6,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select, or_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from esb.auth.cgcs import enforce_not_cgcs
 from esb.auth.rbac import AuthContext, get_auth_context
 from esb.core.database import get_db
-from esb.models.district import District, DistrictMatch, DistrictMatchStatus
+from esb.models.district import District
 from esb.models.user import RoleType
 from esb.services import audit as audit_svc
 
@@ -39,7 +39,7 @@ class DistrictOut(BaseModel):
 async def search_districts(
     q: str,
     state: str | None = None,
-    auth: Annotated[AuthContext, Depends(get_auth_context)] = None,
+    auth: Annotated[AuthContext | None, Depends(get_auth_context)] = None,
     db: AsyncSession = Depends(get_db),
 ) -> list[DistrictOut]:
     stmt = select(District).where(District.name.ilike(f"%{q}%"))

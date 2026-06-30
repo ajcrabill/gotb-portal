@@ -1,3 +1,5 @@
+from collections.abc import AsyncGenerator
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -18,11 +20,11 @@ class Base(DeclarativeBase):
 
 
 async def init_db() -> None:
-    async with engine.begin() as conn:
+    async with engine.begin() as _:
         pass  # schema managed by Alembic; this just verifies connectivity
 
 
-async def get_db() -> AsyncSession:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
             yield session

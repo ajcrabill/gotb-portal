@@ -19,7 +19,6 @@ from esb.auth.rbac import AuthContext, get_auth_context
 from esb.auth.sessions import create_session, revoke_session
 from esb.core.config import settings
 from esb.core.database import get_db
-from esb.models.user import RoleType
 from esb.services import audit as audit_svc
 from esb.services.people import get_or_create
 
@@ -118,9 +117,11 @@ async def verify_otp(
     await db.commit()
 
     # Re-read roles from the session we just created (they're snapshotted there)
-    from sqlalchemy import select
-    from esb.models.user import UserSession, RoleMembership
     from datetime import datetime, timezone
+
+    from sqlalchemy import select
+
+    from esb.models.user import RoleMembership
     now = datetime.now(timezone.utc)
     roles_q = await db.scalars(
         select(RoleMembership.role).where(

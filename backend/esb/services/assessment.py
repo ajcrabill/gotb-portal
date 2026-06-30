@@ -21,7 +21,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from esb.models.assessment import AssessmentSession, AssessmentStatus, AssessmentTier
 from esb.models.scoring import (
-    PRACTICE_KEYS, PRACTICE_CEILINGS, PRACTICE_BAND_SCORES, BAND_LABELS, TOTAL_CEILING,
+    PRACTICE_CEILINGS,
+    PRACTICE_KEYS,
     ScoringConfig,
 )
 from esb.services.scoring import get_active_config

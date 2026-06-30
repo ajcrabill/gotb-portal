@@ -23,11 +23,11 @@ from dataclasses import dataclass, field
 
 import structlog
 
-from esb.pipeline.antislop import scan, clean
+from esb.pipeline.antislop import clean
 from esb.pipeline.quality import (
     ContentClass,
-    Verdict,
     Stage2UnavailableError,
+    Verdict,
     review_content,
 )
 
