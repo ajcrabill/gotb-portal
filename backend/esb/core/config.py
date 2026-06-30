@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     # Dropbox Sign
     dropbox_sign_api_key: str = ""
     dropbox_sign_webhook_secret: str = ""
+    dropbox_sign_template_id: str = ""   # Practitioner Agreement template ID
 
     # AI providers
     anthropic_api_key: str = ""

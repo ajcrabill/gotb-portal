@@ -59,8 +59,24 @@ const NAV_ITEMS: NavItem[] = [
 
 const PORTAL_NAV: NavItem[] = [
   { label: "Dashboard", href: "/portal/dashboard" },
-  { label: "Assessment", href: "/portal/assessment" },
+  {
+    label: "Assessments",
+    href: "#",
+    dropdown: [
+      { label: "Self-Assessment (Indicative)", href: "/portal/assessment" },
+      { label: "Certified Assessment", href: "/portal/assessments/certified" },
+    ],
+  },
   { label: "IRR Simulator", href: "/portal/irr-simulator" },
+  {
+    label: "My Work",
+    href: "#",
+    dropdown: [
+      { label: "My Clients", href: "/portal/clients" },
+      { label: "Referrals", href: "/portal/referrals" },
+      { label: "Membership & Certification", href: "/portal/membership" },
+    ],
+  },
 ];
 
 export default function Header() {

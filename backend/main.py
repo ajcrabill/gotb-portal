@@ -14,6 +14,8 @@ from esb.routers import assessment as assessment_router
 from esb.routers import districts as districts_router
 from esb.routers import clients as clients_router
 from esb.routers import admin as admin_router
+from esb.routers import billing as billing_router
+from esb.routers import certified_assessment as certified_router
 
 configure_logging()
 log = structlog.get_logger()
@@ -55,3 +57,5 @@ app.include_router(assessment_router.router)
 app.include_router(districts_router.router)
 app.include_router(clients_router.router)
 app.include_router(admin_router.router)
+app.include_router(billing_router.router)
+app.include_router(certified_router.router)
