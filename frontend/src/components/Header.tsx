@@ -10,7 +10,7 @@ type NavItem = {
   label: string;
   href: string;
   external?: boolean;
-  dropdown?: { label: string; href: string; external?: boolean }[];
+  dropdown?: { label: string; href: string; external?: boolean; portalOnly?: boolean }[];
   portalOnly?: boolean;
 };
 

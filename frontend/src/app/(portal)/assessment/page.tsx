@@ -331,7 +331,7 @@ export default function AssessmentPage() {
           <div>
             {/* Score summary */}
             <div className="esb-card" style={{ marginBottom: "28px", textAlign: "center" }}>
-              <div style={{ display: "inline-block", width: "120px", height: "120px", borderRadius: "50%", border: "6px solid var(--esb-primary)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", flexDirection: "column" }}>
+              <div style={{ display: "flex", width: "120px", height: "120px", borderRadius: "50%", border: "6px solid var(--esb-primary)", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", flexDirection: "column" }}>
                 <div style={{ fontSize: "40px", fontWeight: 700, fontFamily: "var(--font-heading)", color: "var(--esb-primary)", lineHeight: 1 }}>
                   {result.total_score}
                 </div>
