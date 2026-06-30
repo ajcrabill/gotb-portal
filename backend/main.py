@@ -9,6 +9,8 @@ from esb.core.database import init_db
 from esb.core.logging import configure_logging
 from esb.routers import health
 from esb.routers import auth as auth_router
+from esb.routers import irr as irr_router
+from esb.routers import assessment as assessment_router
 
 configure_logging()
 log = structlog.get_logger()
@@ -45,3 +47,5 @@ app.add_middleware(
 
 app.include_router(health.router)
 app.include_router(auth_router.router)
+app.include_router(irr_router.router)
+app.include_router(assessment_router.router)

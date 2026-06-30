@@ -2,71 +2,53 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { auth, clearToken, type MeResponse } from "@/lib/api";
+import { auth } from "@/lib/api";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
-export default function PortalLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const t = useTranslations("nav");
-  const [me, setMe] = useState<MeResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     auth
       .me()
-      .then(setMe)
-      .catch(() => router.push("/sign-in"))
-      .finally(() => setLoading(false));
+      .then(() => setReady(true))
+      .catch(() => router.push("/sign-in"));
   }, [router]);
 
-  async function handleLogout() {
-    await auth.logout();
-    clearToken();
-    router.push("/sign-in");
-  }
-
-  if (loading) {
+  if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-esb-blue border-t-transparent" />
+      <div
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "40px",
+            height: "40px",
+            border: "4px solid var(--esb-primary)",
+            borderTopColor: "transparent",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); }}`}</style>
       </div>
     );
   }
 
-  const isAdmin =
-    me?.roles.includes("superuser") ||
-    me?.roles.includes("lead_senior_practitioner");
-
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-gray-200 bg-esb-blue-dark text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <span className="font-semibold tracking-tight">
-            Effective School Boards
-          </span>
-          <nav className="flex items-center gap-4 text-sm">
-            <a href="/portal/dashboard" className="hover:text-esb-gold">
-              {t("dashboard")}
-            </a>
-            {isAdmin && (
-              <a href="/admin/dashboard" className="hover:text-esb-gold">
-                {t("admin")}
-              </a>
-            )}
-            <button
-              onClick={handleLogout}
-              className="hover:text-esb-gold"
-            >
-              {t("signOut")}
-            </button>
-          </nav>
-        </div>
-      </header>
-      <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <Header />
+      <main style={{ flex: 1, paddingTop: "82px" }}>
+        {children}
+      </main>
+      <Footer />
     </div>
   );
 }

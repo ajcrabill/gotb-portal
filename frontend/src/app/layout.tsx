@@ -5,24 +5,20 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "ESB Portal",
+    default: "ESB Portal | Effective School Boards",
     template: "%s | ESB Portal",
   },
-  description: "Effective School Boards practitioner and client portal",
-  robots: { index: false, follow: false }, // not public
+  description: "The Effective School Boards practitioner and client portal — Great on Their Behalf Index, IRR Simulator, certified assessments, and more.",
+  robots: { index: false, follow: false },
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const messages = await getMessages();
 
   return (
     <html lang={locale}>
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">
+      <body>
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>

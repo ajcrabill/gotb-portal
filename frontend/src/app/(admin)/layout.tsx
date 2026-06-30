@@ -3,14 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/api";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const ADMIN_ROLES = ["superuser", "lead_senior_practitioner"];
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [authorized, setAuthorized] = useState(false);
 
@@ -18,34 +16,47 @@ export default function AdminLayout({
     auth
       .me()
       .then((me) => {
-        const ok = me.roles.some((r) => ADMIN_ROLES.includes(r));
-        if (!ok) router.push("/portal/dashboard");
-        else setAuthorized(true);
+        if (me.roles.some((r) => ADMIN_ROLES.includes(r))) setAuthorized(true);
+        else router.push("/portal/dashboard");
       })
       .catch(() => router.push("/sign-in"));
   }, [router]);
 
   if (!authorized) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-esb-blue border-t-transparent" />
+      <div style={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center" }}>
+        <div
+          style={{
+            width: "40px",
+            height: "40px",
+            border: "4px solid var(--esb-primary)",
+            borderTopColor: "transparent",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); }}`}</style>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-gray-200 bg-esb-blue-dark text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <span className="font-semibold tracking-tight">
-            ESB Admin
-          </span>
-          <a href="/portal/dashboard" className="text-sm hover:text-esb-gold">
-            Back to Portal
-          </a>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <Header />
+      <main style={{ flex: 1, paddingTop: "82px" }}>
+        <div
+          className="esb-breadcrumb"
+          style={{ background: "var(--esb-section-dark)", marginTop: "82px", padding: "20px 0" }}
+        >
+          <div className="container mx-auto px-4">
+            <h2 style={{ color: "#fff", fontSize: "22px", fontWeight: 500, margin: 0 }}>
+              Admin
+            </h2>
+          </div>
         </div>
-      </header>
-      <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+        <div className="container mx-auto px-4 py-8">{children}</div>
+      </main>
+      <Footer />
     </div>
   );
 }
