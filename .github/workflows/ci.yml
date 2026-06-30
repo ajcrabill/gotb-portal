@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   backend:
@@ -81,3 +81,24 @@ jobs:
         run: npm install -g @axe-core/cli
       - name: Placeholder (wire up once dev server is runnable in CI)
         run: echo "a11y scan wired in Phase 0 acceptance test"
+
+  security-scan:
+    name: Security scan
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: bandit SAST
+        working-directory: backend
+        run: |
+          pip install bandit[toml] --quiet
+          bandit -r esb/ -ll -q || true
+      - name: pip-audit dependency CVE scan
+        working-directory: backend
+        run: |
+          pip install pip-audit --quiet
+          pip-audit -r requirements.txt || true

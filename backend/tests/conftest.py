@@ -22,7 +22,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.pool import StaticPool
 
 from esb.models.base import Base
-from esb.models import user, scoring, audit, district  # register all models
+from esb.models import user, scoring, audit, district, billing, assessment, irr  # register all models
 
 
 @pytest.fixture(scope="session")

@@ -11,6 +11,9 @@ from esb.routers import health
 from esb.routers import auth as auth_router
 from esb.routers import irr as irr_router
 from esb.routers import assessment as assessment_router
+from esb.routers import districts as districts_router
+from esb.routers import clients as clients_router
+from esb.routers import admin as admin_router
 
 configure_logging()
 log = structlog.get_logger()
@@ -49,3 +52,6 @@ app.include_router(health.router)
 app.include_router(auth_router.router)
 app.include_router(irr_router.router)
 app.include_router(assessment_router.router)
+app.include_router(districts_router.router)
+app.include_router(clients_router.router)
+app.include_router(admin_router.router)
