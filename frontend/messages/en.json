@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "home": "Home",
+    "assessment": "Self-Assessment",
+    "dashboard": "Dashboard",
+    "signIn": "Sign In",
+    "signOut": "Sign Out"
+  },
+  "practices": {
+    "focus_mindset": "Focus Mindset",
+    "clarify": "Clarify Priorities",
+    "monitor": "Monitor Progress",
+    "align": "Align Resources",
+    "communicate": "Communicate Results"
+  },
+  "bands": {
+    "focus_mindset": {
+      "0": "Beginning Focus",
+      "1": "Emerging Focus",
+      "2": "Effective Focus",
+      "3": "Highly Effective Focus"
+    },
+    "clarify": {
+      "0": "Beginning Clarity",
+      "1": "Emerging Focus",
+      "2": "Effective Focus",
+      "3": "Highly Effective Focus"
+    },
+    "monitor": {
+      "0": "Beginning Monitoring",
+      "1": "Emerging Focus",
+      "2": "Effective Focus",
+      "3": "Highly Effective Focus"
+    },
+    "align": {
+      "0": "Beginning Alignment",
+      "1": "Emerging Focus",
+      "2": "Effective Focus",
+      "3": "Highly Effective Focus"
+    },
+    "communicate": {
+      "0": "Beginning Communication",
+      "1": "Emerging Focus",
+      "2": "Effective Focus",
+      "3": "Highly Effective Focus"
+    }
+  },
+  "assessment": {
+    "title": "The Great on Their Behalf Index",
+    "subtitle": "Free Self-Assessment",
+    "disclaimer": "This is an indicative, self-scored assessment. It has not been validated or benchmarked. Results reflect your board's own perceptions and should be interpreted accordingly.",
+    "cta": "Learn more about a Certified Assessment"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "unauthorized": "You don't have permission to view this.",
+    "notFound": "Page not found."
+  }
+}

@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: esb_test
+          POSTGRES_USER: esb
+          POSTGRES_PASSWORD: testpass
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+        working-directory: .
+      - name: Lint
+        run: ruff check backend/
+      - name: Type check
+        run: mypy backend/esb/
+      - name: Run tests
+        run: pytest backend/tests/ -v --cov=esb --cov-report=term-missing
+        env:
+          DATABASE_URL: postgresql+asyncpg://esb:testpass@localhost:5432/esb_test
+          SECRET_KEY: test-secret-key-not-for-production
+          ENVIRONMENT: test
+
+  frontend:
+    name: Frontend build + a11y
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+      - name: Type check
+        run: npx tsc --noEmit
+        working-directory: frontend
+      - name: Lint
+        run: npm run lint
+        working-directory: frontend
+      - name: Build
+        run: npm run build
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+
+  # Accessibility: automated axe-core scan on key pages
+  # Full WCAG 2.1 AA manual audit required before first state bid (Sys-9)
+  a11y:
+    name: Accessibility scan
+    runs-on: ubuntu-latest
+    needs: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install axe CLI
+        run: npm install -g @axe-core/cli
+      - name: Placeholder (wire up once dev server is runnable in CI)
+        run: echo "a11y scan wired in Phase 0 acceptance test"

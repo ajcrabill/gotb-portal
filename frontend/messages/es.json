@@ -1,0 +1,15 @@
+{
+  "_note": "UI chrome strings. Instrument content (practices, bands, assessment questions) requires manual translation + Sys-1 validation before use — do not machine-translate.",
+  "nav": {
+    "home": "Inicio",
+    "assessment": "Autoevaluación",
+    "dashboard": "Panel",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión"
+  },
+  "errors": {
+    "generic": "Algo salió mal. Por favor, inténtalo de nuevo.",
+    "unauthorized": "No tienes permiso para ver esto.",
+    "notFound": "Página no encontrada."
+  }
+}
