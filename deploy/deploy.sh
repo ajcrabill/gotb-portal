@@ -8,8 +8,12 @@
 set -euo pipefail
 
 APP_DIR="/home/esb/esb-portal"
-COMPOSE="docker compose -f $APP_DIR/deploy/docker-compose.yml --project-directory $APP_DIR"
+DEPLOY_DIR="$APP_DIR/deploy"
+COMPOSE="docker compose -f $DEPLOY_DIR/docker-compose.yml --project-name esb-portal"
 NO_PULL=0
+
+# Run compose from the deploy/ directory so ../backend and ../frontend resolve correctly
+cd "$DEPLOY_DIR"
 
 for arg in "$@"; do
   [[ "$arg" == "--no-pull" ]] && NO_PULL=1
