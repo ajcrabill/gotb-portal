@@ -387,10 +387,54 @@ async def stripe_webhook(
                 payload={"stripe_subscription_id": sub_id, "tail_until": mem.tail_until.isoformat()},
             )
 
-    # ── dropbox_sign.signature_request.signed ─────────────────────────────────
-    elif event_type == "dropbox_sign.signature_request.signed":
-        # Dropbox Sign sends its own webhook separately; this handles Stripe Connect
-        pass
+    # ── invoice.payment_succeeded → extend membership period_end on renewal ─────
+    elif event_type == "invoice.payment_succeeded":
+        sub_id = data.get("subscription")
+        if sub_id:
+            mem = await db.scalar(
+                select(Membership).where(Membership.stripe_subscription_id == sub_id)
+            )
+            if mem and mem.status == MembershipStatus.active:
+                # Stripe sends period_end as a Unix timestamp
+                period_end_ts = data.get("lines", {}).get("data", [{}])[0].get("period", {}).get("end")
+                if period_end_ts:
+                    mem.period_end = datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
+                else:
+                    mem.period_end = datetime.now(timezone.utc) + timedelta(days=365)
+                mem.tail_until = None  # clear any lapse tail on successful renewal
+                await audit_svc.record(
+                    db, action="billing.membership.renewed", resource_type="membership",
+                    resource_id=mem.id, actor_id=mem.person_id,
+                    payload={"period_end": mem.period_end.isoformat(), "invoice_id": data.get("id")},
+                )
+
+    # ── invoice.payment_failed → flag membership for follow-up ───────────────
+    elif event_type == "invoice.payment_failed":
+        sub_id = data.get("subscription")
+        attempt_count = data.get("attempt_count", 1)
+        if sub_id:
+            mem = await db.scalar(
+                select(Membership).where(Membership.stripe_subscription_id == sub_id)
+            )
+            if mem:
+                # Stripe will retry; we record it. After 3 failures Stripe cancels
+                # the subscription and fires customer.subscription.deleted, which lapses us.
+                await audit_svc.record(
+                    db, action="billing.membership.payment_failed", resource_type="membership",
+                    resource_id=mem.id, actor_id=mem.person_id,
+                    payload={"attempt": attempt_count, "invoice_id": data.get("id")},
+                )
+
+    # ── account.updated → Stripe Connect onboarding complete ─────────────────
+    elif event_type == "account.updated":
+        # charges_enabled flips to True when Connect onboarding is complete
+        if data.get("charges_enabled") and data.get("metadata", {}).get("person_id"):
+            person_id = UUID(data["metadata"]["person_id"])
+            await audit_svc.record(
+                db, action="billing.connect.onboarding_complete", resource_type="person",
+                resource_id=person_id, actor_id=person_id,
+                payload={"stripe_account_id": data.get("id")},
+            )
 
     await db.commit()
     return {"status": "ok", "event": event_type}
