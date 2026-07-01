@@ -341,6 +341,8 @@ async def _update_progress(db: AsyncSession, attempt: IRRAttempt) -> None:
         progress = IRRProgress(
             practitioner_id=attempt.practitioner_id,
             scenario_type=scenario.scenario_type if scenario else IRRScenarioType.time_use_eval,
+            attempts_total=0,
+            attempts_passed=0,
         )
         db.add(progress)
 
