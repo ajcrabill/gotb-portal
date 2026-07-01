@@ -481,6 +481,13 @@ async def dropbox_sign_webhook(
         hashlib.sha256,
     ).hexdigest()
     if not hmac.compare_digest(expected_hash, event_hash):
+        log.warning(
+            "dropbox_sign_webhook.signature_mismatch "
+            f"event_time={event_time!r} event_type={event_type!r} "
+            f"received_hash={event_hash!r} expected_hash={expected_hash!r} "
+            f"api_key_prefix={settings.dropbox_sign_api_key[:8]!r} "
+            f"raw_json_data={form.get('json_data', '')[:2000]!r}"
+        )
         raise HTTPException(status_code=401, detail="Invalid webhook signature.")
 
     sr = payload.get("signature_request", {})
