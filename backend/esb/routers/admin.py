@@ -109,7 +109,7 @@ async def grant_role(
     return {"granted": body.role, "to": body.person_id}
 
 
-@router.delete("/people/{person_id}/roles/{role}", status_code=204)
+@router.delete("/people/{person_id}/roles/{role}", status_code=204, response_model=None)
 async def revoke_role(
     person_id: UUID,
     role: str,

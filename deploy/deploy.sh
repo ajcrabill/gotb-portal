@@ -54,7 +54,7 @@ $COMPOSE run --rm migrate
 
 # ── 6. Restart services ───────────────────────────────────────────────────────
 echo "==> Starting services"
-$COMPOSE up -d --remove-orphans backend frontend
+$COMPOSE up -d --remove-orphans backend
 
 # ── 7. Health check ──────────────────────────────────────────────────────────
 echo "==> Waiting for health checks"
