@@ -1,8 +1,9 @@
 """Auth router — OTP request/verify, step-up, logout, /me.
 
-Email delivery: in development (ENVIRONMENT=development), the OTP is also
-returned in the response JSON so the developer doesn't need a mail server.
-In production that field is always null.
+Email delivery: the OTP is sent via Postmark (esb.services.email). In
+development (ENVIRONMENT=development), the OTP is also returned in the
+response JSON so the developer doesn't need a mail server. In production
+that field is always null.
 """
 from __future__ import annotations
 
@@ -20,6 +21,7 @@ from esb.auth.sessions import create_session, revoke_session
 from esb.core.config import settings
 from esb.core.database import get_db
 from esb.services import audit as audit_svc
+from esb.services.email import send_otp_email
 from esb.services.people import get_or_create
 
 log = structlog.get_logger()
@@ -68,8 +70,8 @@ async def request_otp(
     await audit_svc.record_auth(db, action="otp_requested", person_id=person.id, ip=ip)
     await db.commit()
 
-    # TODO: send code via email (Google Workspace / Postmark)
-    log.info("auth.otp_requested", person_id=str(person.id), created=created)
+    email_sent = await send_otp_email(body.email, code)
+    log.info("auth.otp_requested", person_id=str(person.id), created=created, email_sent=email_sent)
 
     dev_otp = code if settings.environment == "development" else None
     return OTPResponse(sent=True, dev_otp=dev_otp)

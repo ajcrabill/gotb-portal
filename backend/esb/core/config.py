@@ -45,6 +45,7 @@ class Settings(BaseSettings):
 
     # Email
     postmark_server_token: str = ""
+    email_from: str = "portal@gotb.effectiveschoolboards.com"
     bcc_inbound_address: str = "log@gotbindex.com"
 
     # Backup
