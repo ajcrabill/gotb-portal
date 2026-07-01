@@ -38,7 +38,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://esb:${POSTGRES_PASSWORD}@db:5432/esb_portal
       ENVIRONMENT: production
-      FRONTEND_URL: https://${DOMAIN:-gotb.effectiveschoolboards.com}
+      FRONTEND_URL: https://gotb.effectiveschoolboards.com
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -49,33 +49,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=esb-portal_default"
-      - "traefik.http.routers.esb-api.rule=Host(`${DOMAIN:-gotb.effectiveschoolboards.com}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.esb-api.rule=Host(`api.gotb.effectiveschoolboards.com`)"
       - "traefik.http.routers.esb-api.entrypoints=websecure"
       - "traefik.http.routers.esb-api.tls=true"
       - "traefik.http.routers.esb-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.esb-api.loadbalancer.server.port=8000"
-
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile.frontend
-      args:
-        NEXT_PUBLIC_API_URL: https://${DOMAIN:-gotb.effectiveschoolboards.com}
-    restart: unless-stopped
-    environment:
-      NODE_ENV: production
-    depends_on:
-      - backend
-    networks:
-      - default
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=esb-portal_default"
-      - "traefik.http.routers.esb-portal.rule=Host(`${DOMAIN:-gotb.effectiveschoolboards.com}`)"
-      - "traefik.http.routers.esb-portal.entrypoints=websecure"
-      - "traefik.http.routers.esb-portal.tls=true"
-      - "traefik.http.routers.esb-portal.tls.certresolver=letsencrypt"
-      - "traefik.http.services.esb-portal.loadbalancer.server.port=3000"
 
 networks:
   default:
