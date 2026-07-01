@@ -96,8 +96,11 @@ export default function Header() {
     auth.me().then(setMe).catch(() => {});
   }, []);
 
-  const isPortal = pathname?.startsWith("/portal") || pathname?.startsWith("/admin");
+  const isPortal = pathname?.startsWith("/portal") || pathname?.startsWith("/admin") || pathname?.startsWith("/tracker");
   const isAdmin = me?.roles.some((r) => ["superuser", "lead_senior_practitioner"].includes(r));
+  const hasTrackerAccess = me?.roles.some((r) =>
+    ["superuser", "lead_senior_practitioner", "facilitation_manager"].includes(r)
+  );
 
   async function handleLogout() {
     await auth.logout();
@@ -221,6 +224,23 @@ export default function Header() {
           {/* Portal-specific right side */}
           {isPortal && me ? (
             <div className="flex items-center gap-2 ml-8">
+              {hasTrackerAccess && (
+                <a
+                  href="/tracker"
+                  style={{
+                    fontFamily: "var(--font-heading)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#444",
+                    textDecoration: "none",
+                    padding: "6px 16px",
+                    border: "1px solid var(--esb-border)",
+                    borderRadius: "4px",
+                  }}
+                >
+                  Tracker
+                </a>
+              )}
               {isAdmin && (
                 <a
                   href="/admin/dashboard"

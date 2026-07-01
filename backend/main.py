@@ -16,6 +16,7 @@ from esb.routers import clients as clients_router
 from esb.routers import admin as admin_router
 from esb.routers import billing as billing_router
 from esb.routers import certified_assessment as certified_router
+from esb.routers import tracker as tracker_router
 
 configure_logging()
 log = structlog.get_logger()
@@ -59,3 +60,4 @@ app.include_router(clients_router.router)
 app.include_router(admin_router.router)
 app.include_router(billing_router.router)
 app.include_router(certified_router.router)
+app.include_router(tracker_router.router)
