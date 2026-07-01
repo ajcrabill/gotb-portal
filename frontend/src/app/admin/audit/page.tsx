@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 
 type AuditEntry = {
@@ -31,7 +33,7 @@ export default function AuditLogPage() {
     const params = new URLSearchParams({ limit: "200" });
     if (actionFilter) params.set("action_prefix", actionFilter);
     if (typeFilter)   params.set("resource_type", typeFilter);
-    const res = await fetch(`/api/admin/audit?${params}`, {
+    const res = await fetch(`${API_BASE}/api/admin/audit?${params}`, {
       headers: { Authorization: `Bearer ${token()}` },
     });
     setEntries(await res.json());

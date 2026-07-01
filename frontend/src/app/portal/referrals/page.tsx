@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 
 type Referral = {
@@ -25,7 +27,7 @@ export default function ReferralsPage() {
 
   useEffect(() => {
     const token = sessionStorage.getItem("esb_token");
-    fetch("/api/clients/referrals", {
+    fetch(`${API_BASE}/api/clients/referrals`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then((r) => r.json())

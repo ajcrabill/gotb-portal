@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 
 type Client = {
@@ -19,7 +21,7 @@ export default function ClientsPage() {
 
   useEffect(() => {
     const token = sessionStorage.getItem("esb_token");
-    fetch("/api/clients/", {
+    fetch(`${API_BASE}/api/clients/`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then((r) => r.json())

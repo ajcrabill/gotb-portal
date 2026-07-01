@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 
 type BillingStatus = {
@@ -19,7 +21,7 @@ export default function MembershipPage() {
   function token() { return sessionStorage.getItem("esb_token") ?? ""; }
 
   useEffect(() => {
-    fetch("/api/billing/status", { headers: { Authorization: `Bearer ${token()}` } })
+    fetch(`${API_BASE}/api/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => r.json())
       .then(setStatus)
       .finally(() => setLoading(false));
@@ -28,7 +30,7 @@ export default function MembershipPage() {
   async function startCheckout(product: "membership" | "certification") {
     setActionLoading(product);
     try {
-      const res = await fetch(`/api/billing/${product}/checkout`, {
+      const res = await fetch(`${API_BASE}/api/billing/${product}/checkout`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token()}` },
       });
@@ -45,7 +47,7 @@ export default function MembershipPage() {
   async function startConnect() {
     setActionLoading("connect");
     try {
-      const res = await fetch("/api/billing/connect/onboard", {
+      const res = await fetch(`${API_BASE}/api/billing/connect/onboard`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token()}` },
       });

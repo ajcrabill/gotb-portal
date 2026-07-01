@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE } from "@/lib/api";
+
 /**
  * The Great on Their Behalf Index — Self-Assessment
  *
@@ -149,7 +151,7 @@ export default function AssessmentPage() {
     setError("");
     try {
       const token = getToken();
-      const res = await fetch("/api/assessments/indicative", {
+      const res = await fetch(`${API_BASE}/api/assessments/indicative`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

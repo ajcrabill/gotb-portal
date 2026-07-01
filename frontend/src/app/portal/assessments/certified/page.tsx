@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE } from "@/lib/api";
+
 /**
  * Certified Assessment — practitioner-administered, validated tier.
  * NEVER show "indicative" disclaimer here. Show the certified disclaimer instead.
@@ -112,7 +114,7 @@ export default function CertifiedAssessmentPage() {
 
   async function searchDistricts(q: string) {
     if (q.length < 2) { setDistrictResults([]); return; }
-    const res = await fetch(`/api/districts/search?q=${encodeURIComponent(q)}`, {
+    const res = await fetch(`${API_BASE}/api/districts/search?q=${encodeURIComponent(q)}`, {
       headers: { Authorization: `Bearer ${token()}` },
     });
     const data = await res.json();
@@ -132,7 +134,7 @@ export default function CertifiedAssessmentPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/assessments/certified/", {
+      const res = await fetch(`${API_BASE}/api/assessments/certified/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
         body: JSON.stringify({

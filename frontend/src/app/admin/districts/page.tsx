@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE } from "@/lib/api";
+
 import { useState } from "react";
 
 type District = {
@@ -29,14 +31,14 @@ export default function AdminDistrictsPage() {
     setLoading(true);
     const params = new URLSearchParams({ q });
     if (state) params.set("state", state);
-    const res = await fetch(`/api/districts/search?${params}`, { headers: { Authorization: `Bearer ${token()}` } });
+    const res = await fetch(`${API_BASE}/api/districts/search?${params}`, { headers: { Authorization: `Bearer ${token()}` } });
     setResults(await res.json());
     setLoading(false);
   }
 
   async function createDistrict() {
     if (!newName || !newState) { setMsg("Name and state are required."); return; }
-    const res = await fetch("/api/districts/", {
+    const res = await fetch(`${API_BASE}/api/districts/`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
       body: JSON.stringify({ name: newName, state: newState, nces_lea_id: newNces || null }),
@@ -54,7 +56,7 @@ export default function AdminDistrictsPage() {
 
   async function toggleCgcs(district: District) {
     setCgcsLoading(district.id);
-    const res = await fetch(`/api/districts/${district.id}/cgcs?is_cgcs=${!district.is_cgcs_member}`, {
+    const res = await fetch(`${API_BASE}/api/districts/${district.id}/cgcs?is_cgcs=${!district.is_cgcs_member}`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token()}` },
     });

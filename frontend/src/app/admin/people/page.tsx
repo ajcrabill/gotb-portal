@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_BASE } from "@/lib/api";
 
 type Person = {
   id: string;
@@ -29,7 +30,7 @@ export default function AdminPeoplePage() {
   async function load(query = "") {
     setLoading(true);
     const params = query ? `?q=${encodeURIComponent(query)}` : "";
-    const res = await fetch(`/api/admin/people${params}`, {
+    const res = await fetch(`${API_BASE}/api/admin/people${params}`, {
       headers: { Authorization: `Bearer ${token()}` },
     });
     setPeople(await res.json());
@@ -40,7 +41,7 @@ export default function AdminPeoplePage() {
 
   async function grantRole() {
     if (!grantTarget || !selectedRole) return;
-    const res = await fetch("/api/admin/people/roles", {
+    const res = await fetch(`${API_BASE}/api/admin/people/roles`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
       body: JSON.stringify({ person_id: grantTarget.id, role: selectedRole }),
@@ -56,7 +57,7 @@ export default function AdminPeoplePage() {
   }
 
   async function revokeRole(person: Person, role: string) {
-    const res = await fetch(`/api/admin/people/${person.id}/roles/${role}`, {
+    const res = await fetch(`${API_BASE}/api/admin/people/${person.id}/roles/${role}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token()}` },
     });

@@ -9,7 +9,7 @@
  *   3. Results — kappa, per-item feedback, system vs. practitioner comparison
  */
 import { useState, useEffect } from "react";
-import { auth as apiAuth } from "@/lib/api";
+import { auth as apiAuth, API_BASE } from "@/lib/api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -136,7 +136,7 @@ function getToken() {
 
 async function apiRequest<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const token = getToken();
-  const res = await fetch(path, {
+  const res = await fetch(`${API_BASE}${path}`, {
     ...opts,
     headers: {
       "Content-Type": "application/json",

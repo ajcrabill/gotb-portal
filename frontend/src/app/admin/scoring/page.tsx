@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 
 type ScoringConfig = {
@@ -25,7 +27,7 @@ export default function ScoringConfigPage() {
   function token() { return sessionStorage.getItem("esb_token") ?? ""; }
 
   useEffect(() => {
-    fetch("/api/admin/scoring", { headers: { Authorization: `Bearer ${token()}` } })
+    fetch(`${API_BASE}/api/admin/scoring`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => r.json())
       .then((data) => {
         setConfigs(data);
