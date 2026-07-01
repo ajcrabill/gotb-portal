@@ -31,10 +31,6 @@ frontend/.turbo/
 .DS_Store
 Thumbs.db
 
-# Alembic
-backend/alembic/versions/*.py
-!backend/alembic/versions/.gitkeep
-
 # Build artifacts
 dist/
 build/
