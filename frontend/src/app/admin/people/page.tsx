@@ -24,8 +24,56 @@ export default function AdminPeoplePage() {
   const [grantTarget, setGrantTarget] = useState<Person | null>(null);
   const [selectedRole, setSelectedRole] = useState("");
   const [actionMsg, setActionMsg] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newRole, setNewRole] = useState("");
+  const [createError, setCreateError] = useState("");
+  const [editTarget, setEditTarget] = useState<Person | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editError, setEditError] = useState("");
 
   function token() { return sessionStorage.getItem("esb_token") ?? ""; }
+
+  async function createPerson() {
+    setCreateError("");
+    if (!newEmail.trim() || !newName.trim()) {
+      setCreateError("Email and name are required.");
+      return;
+    }
+    const res = await fetch(`${API_BASE}/api/admin/people`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
+      body: JSON.stringify({ email: newEmail.trim(), name: newName.trim(), initial_role: newRole || null }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setActionMsg(`Created ${data.name} (${data.email})`);
+      setCreating(false);
+      setNewEmail(""); setNewName(""); setNewRole("");
+      load(q);
+    } else {
+      setCreateError(data.detail ?? "Failed to create person.");
+    }
+  }
+
+  async function saveEdit() {
+    if (!editTarget) return;
+    setEditError("");
+    const res = await fetch(`${API_BASE}/api/admin/people/${editTarget.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
+      body: JSON.stringify({ name: editName.trim() }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setActionMsg(`Updated ${data.email}`);
+      setEditTarget(null);
+      load(q);
+    } else {
+      setEditError(data.detail ?? "Failed to update person.");
+    }
+  }
 
   async function load(query = "") {
     setLoading(true);
@@ -81,8 +129,53 @@ export default function AdminPeoplePage() {
             style={{ width: "240px" }}
           />
           <button className="btn-primary" onClick={() => load(q)}>Search</button>
+          <button className="btn-primary" onClick={() => setCreating(!creating)}>
+            {creating ? "Cancel" : "+ Add Person"}
+          </button>
         </div>
       </div>
+
+      {creating && (
+        <div className="esb-card" style={{ marginBottom: "24px" }}>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", fontWeight: 700, marginBottom: "16px" }}>Add Person</h2>
+          {createError && (
+            <div style={{ background: "#fff5f5", border: "1px solid #ed3c0d", borderRadius: "4px", padding: "10px 14px", color: "#ed3c0d", marginBottom: "12px", fontSize: "13px" }}>
+              {createError}
+            </div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 2fr 2fr", gap: "12px", marginBottom: "16px" }}>
+            <input className="esb-input" placeholder="Email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+            <input className="esb-input" placeholder="Full name" value={newName} onChange={(e) => setNewName(e.target.value)} />
+            <select className="esb-input" value={newRole} onChange={(e) => setNewRole(e.target.value)}>
+              <option value="">No initial role</option>
+              {ALL_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <button className="btn-primary" onClick={createPerson}>Add Person</button>
+        </div>
+      )}
+
+      {editTarget && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+          <div className="esb-card" style={{ width: "420px" }}>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "20px", fontWeight: 700, marginBottom: "16px" }}>
+              Edit {editTarget.email}
+            </h2>
+            {editError && (
+              <div style={{ background: "#fff5f5", border: "1px solid #ed3c0d", borderRadius: "4px", padding: "10px 14px", color: "#ed3c0d", marginBottom: "12px", fontSize: "13px" }}>
+                {editError}
+              </div>
+            )}
+            <input className="esb-input" style={{ marginBottom: "16px" }} placeholder="Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button className="btn-primary" onClick={saveEdit}>Save</button>
+              <button onClick={() => setEditTarget(null)} style={{ background: "none", border: "2px solid var(--esb-border)", borderRadius: "4px", padding: "10px 20px", cursor: "pointer" }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {actionMsg && (
         <div style={{ background: "#e8f5e9", border: "1px solid #28a745", borderRadius: "4px", padding: "10px 16px", color: "#1b5e20", marginBottom: "20px", fontSize: "14px" }}>
@@ -156,13 +249,22 @@ export default function AdminPeoplePage() {
                     {p.created_at ? new Date(p.created_at).toLocaleDateString() : "—"}
                   </td>
                   <td style={{ padding: "12px 16px" }}>
-                    <button
-                      className="btn-outline"
-                      onClick={() => setGrantTarget(p)}
-                      style={{ fontSize: "13px", padding: "5px 12px" }}
-                    >
-                      + Role
-                    </button>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        className="btn-outline"
+                        onClick={() => { setEditTarget(p); setEditName(p.name); setEditError(""); }}
+                        style={{ fontSize: "13px", padding: "5px 12px" }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn-outline"
+                        onClick={() => setGrantTarget(p)}
+                        style={{ fontSize: "13px", padding: "5px 12px" }}
+                      >
+                        + Role
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

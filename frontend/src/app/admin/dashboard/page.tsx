@@ -27,13 +27,13 @@ export default function AdminDashboardPage() {
           href="/admin/audit"
         />
         <AdminCard
-          title="Pipeline Queue"
+          title="Content Approval"
           description="Review held content awaiting CM approval."
-          href="/admin/pipeline-queue"
+          href="/content"
         />
         <AdminCard
           title="IRR Scenarios"
-          description="Manage IRR simulator scenario templates."
+          description="Review generated IRR simulator scenarios and pass rates."
           href="/admin/irr-scenarios"
         />
       </div>

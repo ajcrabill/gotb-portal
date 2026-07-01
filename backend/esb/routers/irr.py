@@ -7,12 +7,20 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from esb.auth.rbac import AuthContext, get_auth_context
 from esb.core.database import get_db
 from esb.models.irr import IRRAttempt, IRRAttemptStatus, IRRProgress, IRRScenario, IRRScenarioType
+from esb.models.user import RoleType
+
+ADMIN_ROLES = {RoleType.lead_senior_practitioner, RoleType.superuser}
+
+
+def _require_admin(auth: AuthContext) -> None:
+    if not auth.has_role(*ADMIN_ROLES):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required.")
 from esb.models.user import RoleType
 from esb.services.irr import (
     KAPPA_PASS_THRESHOLD,
@@ -194,3 +202,87 @@ async def get_progress(
         certified_at=progress.certified_at.isoformat() if progress.certified_at else None,
         last_attempt_at=progress.last_attempt_at.isoformat() if progress.last_attempt_at else None,
     )
+
+
+# ── Admin: scenario review ────────────────────────────────────────────────────
+
+class AdminScenarioOut(BaseModel):
+    id: str
+    scenario_type: str
+    template_version: str
+    difficulty: str
+    is_active: bool
+    focus_areas: list[str]
+    attempts: int
+    attempts_passed: int
+    avg_kappa: float | None
+    created_at: str
+
+
+class AdminScenarioStats(BaseModel):
+    total_scenarios: int
+    total_attempts: int
+    total_passed: int
+    overall_pass_rate: float | None
+    avg_kappa: float | None
+
+
+@router.get("/admin/scenarios/stats", response_model=AdminScenarioStats)
+async def admin_scenario_stats(
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+    db: AsyncSession = Depends(get_db),
+) -> AdminScenarioStats:
+    _require_admin(auth)
+
+    total_scenarios = await db.scalar(select(func.count()).select_from(IRRScenario))
+    total_attempts = await db.scalar(
+        select(func.count()).select_from(IRRAttempt).where(IRRAttempt.status == IRRAttemptStatus.scored)
+    )
+    total_passed = await db.scalar(
+        select(func.count()).select_from(IRRAttempt).where(IRRAttempt.passed.is_(True))
+    )
+    avg_kappa = await db.scalar(
+        select(func.avg(IRRAttempt.kappa)).where(IRRAttempt.kappa.is_not(None))
+    )
+
+    return AdminScenarioStats(
+        total_scenarios=total_scenarios or 0,
+        total_attempts=total_attempts or 0,
+        total_passed=total_passed or 0,
+        overall_pass_rate=(total_passed / total_attempts) if total_attempts else None,
+        avg_kappa=round(avg_kappa, 4) if avg_kappa is not None else None,
+    )
+
+
+@router.get("/admin/scenarios", response_model=list[AdminScenarioOut])
+async def admin_list_scenarios(
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+    db: AsyncSession = Depends(get_db),
+    limit: int = 50,
+) -> list[AdminScenarioOut]:
+    _require_admin(auth)
+    limit = max(1, min(limit, 200))
+
+    scenarios = (await db.scalars(
+        select(IRRScenario).order_by(IRRScenario.created_at.desc()).limit(limit)
+    )).all()
+
+    out = []
+    for s in scenarios:
+        attempts = (await db.scalars(
+            select(IRRAttempt).where(IRRAttempt.scenario_id == s.id, IRRAttempt.status == IRRAttemptStatus.scored)
+        )).all()
+        kappas = [a.kappa for a in attempts if a.kappa is not None]
+        out.append(AdminScenarioOut(
+            id=str(s.id),
+            scenario_type=s.scenario_type.value,
+            template_version=s.template_version,
+            difficulty=s.difficulty,
+            is_active=s.is_active,
+            focus_areas=s.focus_areas or [],
+            attempts=len(attempts),
+            attempts_passed=sum(1 for a in attempts if a.passed),
+            avg_kappa=round(sum(kappas) / len(kappas), 4) if kappas else None,
+            created_at=s.created_at.isoformat(),
+        ))
+    return out

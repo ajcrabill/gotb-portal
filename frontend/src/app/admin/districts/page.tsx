@@ -23,8 +23,34 @@ export default function AdminDistrictsPage() {
   const [newNces, setNewNces] = useState("");
   const [msg, setMsg] = useState("");
   const [cgcsLoading, setCgcsLoading] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{
+    total_cgcs_names: number; crm_matched: number; crm_unmatched: string[];
+    portal_matched: number; portal_unmatched: string[]; applied: boolean;
+  } | null>(null);
 
   function token() { return sessionStorage.getItem("esb_token") ?? ""; }
+
+  async function syncCgcs(apply: boolean) {
+    setSyncing(true);
+    setMsg("");
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/cgcs/sync?apply=${apply}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token()}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail ?? "CGCS sync failed.");
+      setSyncResult(data);
+      setMsg(apply
+        ? `Synced: ${data.crm_matched}/${data.total_cgcs_names} CGCS districts matched in CRM, ${data.portal_matched} matched in portal.`
+        : `Dry run: would match ${data.crm_matched}/${data.total_cgcs_names} in CRM, ${data.portal_matched} in portal.`);
+    } catch (e: unknown) {
+      setMsg(e instanceof Error ? e.message : "CGCS sync failed.");
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   async function search() {
     if (!q.trim()) return;
@@ -84,6 +110,33 @@ export default function AdminDistrictsPage() {
           {msg}
         </div>
       )}
+
+      {/* CGCS sync */}
+      <div className="esb-card" style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>CGCS Membership Sync</h2>
+        <p style={{ fontSize: "13px", color: "var(--esb-muted)", marginBottom: "12px" }}>
+          Pulls the current member list from cgcs.org and flags matching districts as CGCS members
+          (hard-blocked from ESB engagement) in both the CRM prospecting set and the portal&apos;s client districts.
+          Unmatched names are reported, never guessed.
+        </p>
+        <div style={{ display: "flex", gap: "10px", marginBottom: syncResult ? "16px" : 0 }}>
+          <button className="btn-outline" onClick={() => syncCgcs(false)} disabled={syncing}>
+            {syncing ? "Working…" : "Preview (dry run)"}
+          </button>
+          <button className="btn-primary" onClick={() => syncCgcs(true)} disabled={syncing}>
+            {syncing ? "Working…" : "Sync Now"}
+          </button>
+        </div>
+        {syncResult && (syncResult.crm_unmatched.length > 0 || syncResult.portal_unmatched.length > 0) && (
+          <div style={{ fontSize: "13px", color: "var(--esb-muted)" }}>
+            {syncResult.crm_unmatched.length > 0 && (
+              <p style={{ margin: "4px 0" }}>
+                Unmatched in CRM ({syncResult.crm_unmatched.length}): {syncResult.crm_unmatched.join(", ")}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Create form */}
       {creating && (

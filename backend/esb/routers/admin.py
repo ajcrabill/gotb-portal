@@ -43,6 +43,18 @@ class RoleGrantRequest(BaseModel):
     scoped_district_id: str | None = None
 
 
+class PersonCreateRequest(BaseModel):
+    email: str
+    name: str
+    phone: str | None = None
+    initial_role: str | None = None
+
+
+class PersonUpdateRequest(BaseModel):
+    name: str | None = None
+    phone: str | None = None
+
+
 @router.get("/people", response_model=list[PersonOut])
 async def list_people(
     auth: Annotated[AuthContext, Depends(get_auth_context)],
@@ -74,6 +86,100 @@ async def list_people(
             created_at=p.created_at.isoformat() if p.created_at else "",
         ))
     return results
+
+
+@router.post("/people", response_model=PersonOut, status_code=201)
+async def create_person(
+    body: PersonCreateRequest,
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+    db: AsyncSession = Depends(get_db),
+) -> PersonOut:
+    """Create a person directly (admin invite). Normally people are created on
+    first OTP sign-in — this covers pre-provisioning someone before they've
+    ever signed in (e.g. granting a new practitioner access ahead of time)."""
+    require_admin(auth)
+    auth.require_step_up()
+
+    email = body.email.strip().lower()
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="A valid email is required.")
+    if not body.name.strip():
+        raise HTTPException(status_code=400, detail="Name is required.")
+
+    existing = await db.scalar(select(Person).where(Person.email == email))
+    if existing:
+        raise HTTPException(status_code=409, detail="A person with this email already exists.")
+
+    role = None
+    if body.initial_role:
+        try:
+            role = RoleType(body.initial_role)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Unknown role: {body.initial_role}")
+
+    person = Person(email=email, name=body.name.strip(), phone=body.phone)
+    db.add(person)
+    await db.flush()
+
+    if role:
+        db.add(RoleMembership(person_id=person.id, role=role, effective_from=datetime.now(timezone.utc)))
+        await audit_svc.record_role_change(
+            db, actor_id=auth.person_id, target_person_id=person.id, role=role.value, change="granted",
+        )
+
+    await audit_svc.record(
+        db, actor_id=auth.person_id, action="admin.person.created",
+        resource_type="person", resource_id=person.id,
+    )
+    await db.commit()
+
+    return PersonOut(
+        id=str(person.id), email=person.email, name=person.name,
+        roles=[role.value] if role else [],
+        created_at=person.created_at.isoformat() if person.created_at else "",
+    )
+
+
+@router.patch("/people/{person_id}", response_model=PersonOut)
+async def update_person(
+    person_id: UUID,
+    body: PersonUpdateRequest,
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+    db: AsyncSession = Depends(get_db),
+) -> PersonOut:
+    require_admin(auth)
+    auth.require_step_up()
+
+    person = await db.get(Person, person_id)
+    if not person:
+        raise HTTPException(status_code=404, detail="Person not found.")
+
+    if body.name is not None:
+        if not body.name.strip():
+            raise HTTPException(status_code=400, detail="Name cannot be empty.")
+        person.name = body.name.strip()
+    if body.phone is not None:
+        person.phone = body.phone.strip() or None
+
+    await audit_svc.record(
+        db, actor_id=auth.person_id, action="admin.person.updated",
+        resource_type="person", resource_id=person.id,
+    )
+    await db.commit()
+
+    now = datetime.now(timezone.utc)
+    roles_q = await db.scalars(
+        select(RoleMembership.role).where(
+            RoleMembership.person_id == person.id,
+            RoleMembership.effective_from <= now,
+            RoleMembership.effective_until.is_(None),
+        )
+    )
+    return PersonOut(
+        id=str(person.id), email=person.email, name=person.name,
+        roles=[r.value for r in roles_q.all()],
+        created_at=person.created_at.isoformat() if person.created_at else "",
+    )
 
 
 @router.post("/people/roles", status_code=201)
@@ -234,3 +340,56 @@ async def list_scoring_configs(
         )
         for c in configs.all()
     ]
+
+
+# ── CGCS membership sync ──────────────────────────────────────────────────────
+
+class CgcsSyncOut(BaseModel):
+    total_cgcs_names: int
+    crm_matched: int
+    crm_unmatched: list[str]
+    portal_matched: int
+    portal_unmatched: list[str]
+    applied: bool
+
+
+@router.post("/cgcs/sync", response_model=CgcsSyncOut)
+async def sync_cgcs(
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+    db: AsyncSession = Depends(get_db),
+    apply: bool = Query(True, description="If false, matches without writing (dry run)."),
+) -> CgcsSyncOut:
+    """Pull the current CGCS member districts list from cgcs.org and flag
+    matches in both crm_districts and districts as CGCS members.
+
+    CGCS membership is a hard block on ESB engagement, so mismatches lean
+    toward under-flagging (unmatched names are reported, not guessed)."""
+    require_admin(auth)
+
+    from esb.crm.cgcs_sync import sync_cgcs_membership
+
+    try:
+        result = await sync_cgcs_membership(db, apply=apply)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch or sync CGCS list: {exc}") from exc
+
+    await audit_svc.record(
+        db, actor_id=auth.person_id, action="admin.cgcs.synced",
+        resource_type="cgcs_sync",
+        payload={
+            "total": result.total_cgcs_names,
+            "crm_matched": len(result.crm_matched),
+            "portal_matched": len(result.portal_matched),
+            "applied": apply,
+        },
+    )
+    await db.commit()
+
+    return CgcsSyncOut(
+        total_cgcs_names=result.total_cgcs_names,
+        crm_matched=len(result.crm_matched),
+        crm_unmatched=result.crm_unmatched,
+        portal_matched=len(result.portal_matched),
+        portal_unmatched=result.portal_unmatched,
+        applied=apply,
+    )

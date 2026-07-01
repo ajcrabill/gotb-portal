@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Annotated, Any, AsyncGenerator
 
 import httpx
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -29,6 +30,8 @@ from esb.core.config import settings
 from esb.core.database import get_db
 from esb.models.billing import DistrictEngagement
 from esb.models.user import RoleType
+
+log = structlog.get_logger()
 
 router = APIRouter(prefix="/api/plan", tags=["plan"])
 
@@ -327,7 +330,7 @@ async def _llm_json(system: str, user: str, client: httpx.AsyncClient | None = N
 
     if client:
         return await _call(client)
-    async with httpx.AsyncClient(timeout=90.0) as c:
+    async with httpx.AsyncClient(timeout=150.0) as c:
         return await _call(c)
 
 
@@ -460,7 +463,7 @@ async def _gather_research_and_ideation(
         "outcome improvements."
     )
 
-    async with httpx.AsyncClient(timeout=45.0) as client:
+    async with httpx.AsyncClient(timeout=60.0) as client:
         results = await asyncio.gather(
             _web_search(client, search_q1),
             _web_search(client, search_q2),
@@ -563,7 +566,7 @@ async def _research_all_interims(skeleton: dict, population: str) -> list[dict]:
     if not items:
         return []
 
-    async with httpx.AsyncClient(timeout=45.0) as client:
+    async with httpx.AsyncClient(timeout=60.0) as client:
         results = await asyncio.gather(
             *[_research_interim(client, it["label"], it["statement"]) for it in items],
             return_exceptions=True,
@@ -794,59 +797,76 @@ async def generate_plan(
     )
 
     async def event_stream() -> AsyncGenerator[str, None]:
-        yield 'data: {"phase":"started"}\n\n'
-
-        r_task = asyncio.create_task(_gather_research_and_ideation(outcome, payload.answers))
-        s_task = asyncio.create_task(_llm_json(_SKELETON_SYSTEM, skeleton_msg))
-        pending: set = {r_task, s_task}
-        while pending:
-            _, pending = await asyncio.wait(pending, timeout=4.0)
-            if pending:
-                yield ": keepalive\n\n"
-
+        # Every branch below is wrapped by the outer try/except so that ANY
+        # unexpected exception — not just the ones we anticipate — still
+        # closes the stream with a proper SSE error event instead of an
+        # abrupt connection drop (which browsers surface as a raw network
+        # error rather than a readable message).
         try:
-            research_ctx: str = r_task.result()
-        except Exception:
-            research_ctx = ""
-        try:
-            skeleton: dict = s_task.result()
-        except Exception:
-            yield f'data: {json.dumps({"error": "Failed to generate plan structure. Please try again."})}\n\n'
-            return
+            yield 'data: {"phase":"started"}\n\n'
 
-        yield 'data: {"phase":"skeleton"}\n\n'
+            r_task = asyncio.create_task(_gather_research_and_ideation(outcome, payload.answers))
+            s_task = asyncio.create_task(_llm_json(_SKELETON_SYSTEM, skeleton_msg))
+            pending: set = {r_task, s_task}
+            while pending:
+                _, pending = await asyncio.wait(pending, timeout=4.0)
+                if pending:
+                    yield ": keepalive\n\n"
 
-        c_task = asyncio.create_task(_research_all_interims(skeleton, population))
-        pending = {c_task}
-        while pending:
-            _, pending = await asyncio.wait(pending, timeout=4.0)
-            if pending:
-                yield ": keepalive\n\n"
+            try:
+                research_ctx: str = r_task.result()
+            except Exception:
+                research_ctx = ""
+            try:
+                skeleton: dict = s_task.result()
+            except Exception:
+                yield f'data: {json.dumps({"error": "Failed to generate plan structure. Please try again."})}\n\n'
+                return
 
-        try:
-            interim_research: list = c_task.result()
-        except Exception:
-            interim_research = []
+            yield 'data: {"phase":"skeleton"}\n\n'
 
-        yield 'data: {"phase":"research"}\n\n'
+            c_task = asyncio.create_task(_research_all_interims(skeleton, population))
+            pending = {c_task}
+            while pending:
+                _, pending = await asyncio.wait(pending, timeout=4.0)
+                if pending:
+                    yield ": keepalive\n\n"
 
-        synthesis_msg = _build_synthesis_user_msg(
-            skeleton, outcome, answers_block, research_ctx, interim_research
-        )
-        d_task = asyncio.create_task(_llm_json(_SYNTHESIS_SYSTEM, synthesis_msg))
-        pending = {d_task}
-        while pending:
-            _, pending = await asyncio.wait(pending, timeout=4.0)
-            if pending:
-                yield ": keepalive\n\n"
+            try:
+                interim_research: list = c_task.result()
+            except Exception:
+                interim_research = []
 
-        try:
-            plan: dict = d_task.result()
-        except Exception:
-            yield f'data: {json.dumps({"error": "Plan synthesis failed. Please try again."})}\n\n'
-            return
+            yield 'data: {"phase":"research"}\n\n'
 
-        yield f'data: {json.dumps({"done": True, "plan": plan})}\n\n'
+            try:
+                synthesis_msg = _build_synthesis_user_msg(
+                    skeleton, outcome, answers_block, research_ctx, interim_research
+                )
+            except Exception:
+                yield f'data: {json.dumps({"error": "Failed to assemble plan synthesis. Please try again."})}\n\n'
+                return
+
+            d_task = asyncio.create_task(_llm_json(_SYNTHESIS_SYSTEM, synthesis_msg))
+            pending = {d_task}
+            while pending:
+                _, pending = await asyncio.wait(pending, timeout=4.0)
+                if pending:
+                    yield ": keepalive\n\n"
+
+            try:
+                plan: dict = d_task.result()
+            except Exception:
+                yield f'data: {json.dumps({"error": "Plan synthesis failed. Please try again."})}\n\n'
+                return
+
+            yield f'data: {json.dumps({"done": True, "plan": plan})}\n\n'
+        except Exception as exc:
+            log.warning("plan.generate.stream_failed", error=str(exc))
+            try:
+                yield f'data: {json.dumps({"error": "Something went wrong generating your plan. Please try again."})}\n\n'
+            except Exception:
+                pass
 
     return StreamingResponse(
         event_stream(),
