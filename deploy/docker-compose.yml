@@ -41,6 +41,7 @@ services:
       FRONTEND_URL: https://gotb.effectiveschoolboards.com
     volumes:
       - eval_docs:/app/data/eval-docs
+      - plan_data:/app/data/plan
       - ../.ssh/whisper_remotes:/app/.ssh/whisper_remotes:ro
     depends_on:
       migrate:
@@ -65,3 +66,4 @@ networks:
 volumes:
   pg_data:
   eval_docs:
+  plan_data:

@@ -47,6 +47,12 @@ yt-dlp==2025.6.9
 faster-whisper==1.2.1
 youtube-transcript-api==0.6.2
 
+# CRM — Verifier, Dossier, Newsworthy, Presentation Creator, Lead Generator
+dnspython==2.7.0
+beautifulsoup4==4.12.3
+python-pptx==1.0.2
+itsdangerous==2.2.0
+
 # Testing
 pytest==8.3.4
 pytest-asyncio==0.24.0

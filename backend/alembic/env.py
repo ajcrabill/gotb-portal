@@ -10,7 +10,7 @@ from esb.core.config import settings
 from esb.core.database import Base
 
 # Import all models so Alembic sees them for autogenerate
-from esb.models import audit, billing, district, scoring, tracker, user  # noqa: F401
+from esb.models import audit, billing, crm, district, scoring, tracker, user  # noqa: F401
 from esb.models import eval as eval_models  # noqa: F401
 
 config = context.config

@@ -33,6 +33,19 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     openai_api_key: str = ""
     openrouter_api_key: str = ""
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    llm_model: str = "deepseek/deepseek-v4-flash"
+
+    # Strategic Plan Generator — feedback storage
+    plan_feedback_dir: str = "/app/data/plan"
+
+    # CRM — Email Verifier
+    respect_robots: bool = False
+
+    # CRM — Lead Generator (CAN-SPAM)
+    esb_postal_address: str = ""
+    send_from_name: str = "AJ Crabill"
+    unsubscribe_base_url: str = "https://gotb.effectiveschoolboards.com"
     groq_api_key: str = ""
 
     # Time Use Evaluation — transcription pipeline

@@ -19,6 +19,13 @@ from esb.routers import certified_assessment as certified_router
 from esb.routers import tracker as tracker_router
 from esb.routers import content as content_router
 from esb.routers import eval as eval_router
+from esb.routers import crm as crm_router
+from esb.routers import verifier as verifier_router
+from esb.routers import dossier as dossier_router
+from esb.routers import newsworthy as newsworthy_router
+from esb.routers import studio as studio_router
+from esb.routers import leadgen as leadgen_router
+from esb.routers import plan as plan_router
 
 configure_logging()
 log = structlog.get_logger()
@@ -65,3 +72,11 @@ app.include_router(certified_router.router)
 app.include_router(tracker_router.router)
 app.include_router(content_router.router)
 app.include_router(eval_router.router)
+app.include_router(crm_router.router)
+app.include_router(verifier_router.router)
+app.include_router(dossier_router.router)
+app.include_router(newsworthy_router.router)
+app.include_router(studio_router.router)
+app.include_router(leadgen_router.router)
+app.include_router(leadgen_router.public_router)
+app.include_router(plan_router.router)
