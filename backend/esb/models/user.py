@@ -47,7 +47,8 @@ class Person(UUIDMixin, TimestampMixin, Base):
     stripe_account_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     role_memberships: Mapped[list["RoleMembership"]] = relationship(
-        back_populates="person", cascade="all, delete-orphan"
+        back_populates="person", cascade="all, delete-orphan",
+        foreign_keys="RoleMembership.person_id",
     )
     consent_grants: Mapped[list["ConsentGrant"]] = relationship(
         back_populates="person", cascade="all, delete-orphan"
