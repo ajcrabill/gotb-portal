@@ -39,6 +39,9 @@ services:
       DATABASE_URL: postgresql+asyncpg://esb:${POSTGRES_PASSWORD}@db:5432/esb_portal
       ENVIRONMENT: production
       FRONTEND_URL: https://gotb.effectiveschoolboards.com
+    volumes:
+      - eval_docs:/app/data/eval-docs
+      - ../.ssh/whisper_remotes:/app/.ssh/whisper_remotes:ro
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -61,3 +64,4 @@ networks:
 
 volumes:
   pg_data:
+  eval_docs:

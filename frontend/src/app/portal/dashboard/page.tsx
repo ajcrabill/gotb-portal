@@ -30,6 +30,12 @@ const PRACTITIONER_CARDS: DashCard[] = [
     href: "/portal/referrals",
     tag: "Referrals",
   },
+  {
+    title: "Time Use Evaluation",
+    description: "Submit a board meeting video for automated time-use classification and a coaching report.",
+    href: "/portal/time-use-eval",
+    tag: "Evaluation",
+  },
 ];
 
 const CLIENT_CARDS: DashCard[] = [

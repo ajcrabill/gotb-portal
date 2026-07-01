@@ -41,6 +41,12 @@ sentry-sdk[fastapi]==2.19.2
 # Content pipeline
 regex==2024.11.6
 
+# Time Use Evaluation — transcription + report generation
+python-docx==1.1.2
+yt-dlp==2025.6.9
+faster-whisper==1.2.1
+youtube-transcript-api==0.6.2
+
 # Testing
 pytest==8.3.4
 pytest-asyncio==0.24.0

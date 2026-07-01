@@ -32,6 +32,22 @@ class Settings(BaseSettings):
     # AI providers
     anthropic_api_key: str = ""
     openai_api_key: str = ""
+    openrouter_api_key: str = ""
+    groq_api_key: str = ""
+
+    # Time Use Evaluation — transcription pipeline
+    yt_dlp_path: str = "yt-dlp"
+    eval_docs_dir: str = "/app/data/eval-docs"
+    eval_tmp_dir: str = "/app/data/eval-tmp"
+    # SSH fallback chain for YouTube bot-detection bypass — matches esby-portal's
+    # existing production setup (same key, same two machines). Empty host = tier skipped.
+    whisper_ssh_key_path: str = ""
+    whisper_remote1_host: str = "esblaptop-m4.taild49f53.ts.net"
+    whisper_remote1_user: str = "ajc"
+    whisper_remote1_venv: str = "/Users/ajc/whisper-venv"
+    whisper_remote2_host: str = "nimo-blk-chicago.tail58fc0.ts.net"
+    whisper_remote2_user: str = "ajc"
+    whisper_remote2_venv: str = "/home/ajc/whisper-venv"
 
     # Content pipeline
     pipeline_stage2_timeout_seconds: int = 30

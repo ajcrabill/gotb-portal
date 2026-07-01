@@ -68,6 +68,7 @@ const PORTAL_NAV: NavItem[] = [
     ],
   },
   { label: "IRR Simulator", href: "/portal/irr-simulator" },
+  { label: "Time Use Evaluation", href: "/portal/time-use-eval" },
   {
     label: "My Work",
     href: "#",
