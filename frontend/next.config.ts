@@ -1,7 +1,4 @@
 import type { NextConfig } from "next";
-import createNextIntlPlugin from "next-intl/plugin";
-
-const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   output: "export",
@@ -23,15 +20,14 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Assessment embed: allow framing ONLY from the registered allowlist
       {
         source: "/embed/(.*)",
         headers: [
-          { key: "X-Frame-Options", value: "ALLOWALL" }, // overridden per-origin in middleware
+          { key: "X-Frame-Options", value: "ALLOWALL" },
         ],
       },
     ];
   },
 };
 
-export default withNextIntl(nextConfig);
+export default nextConfig;
