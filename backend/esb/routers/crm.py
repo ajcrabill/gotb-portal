@@ -83,6 +83,16 @@ class DistrictListItem(BaseModel):
     people_count: int
 
 
+_SORT_COLUMNS = {
+    "name": CrmDistrict.name,
+    "state": CrmDistrict.state,
+    "city": CrmDistrict.city,
+    "enrollment": CrmDistrict.enrollment,
+    "band": CrmDistrict.enrollment_band,
+    "cgcs_member": CrmDistrict.cgcs_member,
+}
+
+
 @router.get("/districts")
 async def list_districts(
     auth: Annotated[AuthContext, Depends(get_auth_context)],
@@ -93,6 +103,8 @@ async def list_districts(
     cgcs: bool | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
+    sort: str = Query("enrollment"),
+    dir: str = Query("desc"),
 ) -> dict:
     _require_crm_access(auth)
 
@@ -108,8 +120,11 @@ async def list_districts(
         stmt = stmt.where(CrmDistrict.cgcs_member.is_(cgcs))
 
     total = await db.scalar(select(func.count()).select_from(stmt.subquery()))
+
+    sort_col = _SORT_COLUMNS.get(sort, CrmDistrict.enrollment)
+    ordered = sort_col.desc().nullslast() if dir == "desc" else sort_col.asc().nullsfirst()
     rows = (await db.scalars(
-        stmt.order_by(CrmDistrict.enrollment.desc().nullslast(), CrmDistrict.name)
+        stmt.order_by(ordered, CrmDistrict.name)
         .offset((page - 1) * page_size).limit(page_size)
     )).all()
 

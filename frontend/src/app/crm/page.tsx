@@ -275,6 +275,18 @@ function DistrictsTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<DistrictDetail | null>(null);
+  const [sort, setSort] = useState("enrollment");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  function toggleSort(col: string) {
+    if (sort === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSort(col);
+      setSortDir("desc");
+    }
+    setPage(1);
+  }
 
   async function load() {
     setLoading(true);
@@ -287,6 +299,8 @@ function DistrictsTab() {
       if (cgcs) params.set("cgcs", cgcs);
       params.set("page", String(page));
       params.set("page_size", String(pageSize));
+      params.set("sort", sort);
+      params.set("dir", sortDir);
       const res = await fetch(`${API_BASE}/api/crm/districts?${params.toString()}`, { headers: authHeaders() });
       if (!res.ok) throw new Error((await res.json()).detail ?? "Failed to load districts.");
       const data = await res.json();
@@ -299,7 +313,7 @@ function DistrictsTab() {
     }
   }
 
-  useEffect(() => { load(); }, [page]);
+  useEffect(() => { load(); }, [page, sort, sortDir]);
 
   async function openDistrict(id: string) {
     try {
@@ -388,8 +402,28 @@ function DistrictsTab() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "var(--esb-light-bg)", borderBottom: "2px solid var(--esb-border)" }}>
-                  {["Name", "State", "City", "Enrollment", "Band", "CGCS", "People", ""].map((h) => (
-                    <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontFamily: "var(--font-heading)", fontSize: "13px", fontWeight: 700 }}>{h}</th>
+                  {[
+                    { label: "Name", key: "name" },
+                    { label: "State", key: "state" },
+                    { label: "City", key: "city" },
+                    { label: "Enrollment", key: "enrollment" },
+                    { label: "Band", key: "band" },
+                    { label: "CGCS", key: "cgcs_member" },
+                    { label: "People", key: null },
+                    { label: "", key: null },
+                  ].map((h) => (
+                    <th
+                      key={h.label || "actions"}
+                      onClick={h.key ? () => toggleSort(h.key as string) : undefined}
+                      style={{
+                        padding: "12px 16px", textAlign: "left", fontFamily: "var(--font-heading)",
+                        fontSize: "13px", fontWeight: 700, cursor: h.key ? "pointer" : "default",
+                        userSelect: "none", whiteSpace: "nowrap",
+                      }}
+                    >
+                      {h.label}
+                      {h.key && sort === h.key && (sortDir === "asc" ? " ▲" : " ▼")}
+                    </th>
                   ))}
                 </tr>
               </thead>
