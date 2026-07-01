@@ -456,8 +456,13 @@ async def dropbox_sign_webhook(
     Dropbox Sign sends form-encoded JSON (json_data field) and requires the
     literal response body "Hello API Event Received" (not JSON) to mark the
     callback as successfully received.
+
+    Verified via HMAC-SHA256 of (event_time + event_type) using the account
+    API key — Dropbox Sign does not issue a separate webhook signing secret.
     """
     form = await request.form()
+    import hashlib
+    import hmac
     import json as _json
 
     try:
@@ -465,7 +470,19 @@ async def dropbox_sign_webhook(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid webhook payload.")
 
-    event_type = payload.get("event", {}).get("event_type")
+    event = payload.get("event", {})
+    event_time = event.get("event_time", "")
+    event_type = event.get("event_type")
+    event_hash = event.get("event_hash", "")
+
+    expected_hash = hmac.new(
+        settings.dropbox_sign_api_key.encode(),
+        f"{event_time}{event_type}".encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    if not hmac.compare_digest(expected_hash, event_hash):
+        raise HTTPException(status_code=401, detail="Invalid webhook signature.")
+
     sr = payload.get("signature_request", {})
     metadata = sr.get("metadata", {})
 

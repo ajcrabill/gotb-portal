@@ -25,9 +25,8 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str = ""
     stripe_connect_client_id: str = ""
 
-    # Dropbox Sign
+    # Dropbox Sign — webhook verification uses dropbox_sign_api_key (HMAC), no separate secret
     dropbox_sign_api_key: str = ""
-    dropbox_sign_webhook_secret: str = ""
     dropbox_sign_template_id: str = ""   # Practitioner Agreement template ID
 
     # AI providers
