@@ -44,6 +44,9 @@ _STOPWORDS = {
     "unified", "city", "county", "community", "consolidated", "department",
     "education", "of", "the", "and", "parish", "metropolitan", "area",
     "local", "state", "board",
+    # common school-district abbreviations — equivalent to the generic
+    # "school district" phrase, not a distinctive (city/region) token
+    "sd", "isd", "usd", "csd", "cusd", "ssd", "hsd",
 }
 
 _JACCARD_THRESHOLD = 0.6
