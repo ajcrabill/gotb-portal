@@ -7,6 +7,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -445,14 +446,16 @@ async def stripe_webhook(
 
 # ── Dropbox Sign webhook ───────────────────────────────────────────────────────
 
-@router.post("/dropbox-sign/webhook", status_code=200)
+@router.post("/dropbox-sign/webhook")
 async def dropbox_sign_webhook(
     request: Request,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> PlainTextResponse:
     """
     Handle Dropbox Sign webhook: signature_request_signed → activate Certification.
-    Dropbox Sign sends form-encoded JSON (json_data field).
+    Dropbox Sign sends form-encoded JSON (json_data field) and requires the
+    literal response body "Hello API Event Received" (not JSON) to mark the
+    callback as successfully received.
     """
     form = await request.form()
     import json as _json
@@ -470,7 +473,7 @@ async def dropbox_sign_webhook(
         person_id_str = metadata.get("person_id")
         cert_id_str = metadata.get("cert_id")
         if not person_id_str:
-            return {"status": "skipped"}
+            return PlainTextResponse("Hello API Event Received")
 
         person_id = UUID(person_id_str)
         now = datetime.now(timezone.utc)
@@ -495,7 +498,7 @@ async def dropbox_sign_webhook(
             )
 
     await db.commit()
-    return {"status": "ok"}
+    return PlainTextResponse("Hello API Event Received")
 
 
 # ── Status endpoint ────────────────────────────────────────────────────────────
