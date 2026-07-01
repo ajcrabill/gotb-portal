@@ -41,11 +41,11 @@ const NAV_ITEMS: NavItem[] = [
     label: "Resources",
     href: "#",
     dropdown: [
-      { label: "Time Use Evaluation", href: "/portal/assessment#time-use" },
+      { label: "Time Use Evaluation", href: "/portal/time-use-eval" },
       { label: "Board Self Evaluation", href: `${ESB_SITE}/resources/board-self-eval/`, external: true },
       { label: "Superintendent Evaluation", href: `${ESB_SITE}/resources/supt-eval/`, external: true },
       { label: "Goal & Guardrail Examples", href: `${ESB_SITE}/resources/goals/`, external: true },
-      { label: "Implementation Plan", href: "/plan", external: true },
+      { label: "Implementation Plan", href: "/plan" },
       { label: "Glossary", href: `${ESB_SITE}/resources/glossary/`, external: true },
       { label: "Community Discussion", href: `${ESB_SITE}/community/`, external: true },
     ],

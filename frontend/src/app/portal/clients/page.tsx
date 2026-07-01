@@ -57,7 +57,7 @@ export default function ClientsPage() {
             <p style={{ color: "var(--esb-muted)", marginBottom: "24px" }}>
               When Effective School Boards refers a district to you or you add a self-sourced client, they will appear here.
             </p>
-            <a href="/referrals" className="btn-primary">View Referrals</a>
+            <a href="/portal/referrals" className="btn-primary">View Referrals</a>
           </div>
         )}
 

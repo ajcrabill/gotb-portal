@@ -129,14 +129,70 @@ export default function AssessmentPage() {
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [districtId] = useState("00000000-0000-0000-0000-000000000001"); // TODO: district picker
+  const [districtId, setDistrictId] = useState("");
+  const [districtLabel, setDistrictLabel] = useState("");
+  const [districtQuery, setDistrictQuery] = useState("");
+  const [districtResults, setDistrictResults] = useState<{ id: string; name: string; state: string }[]>([]);
+  const [districtSearching, setDistrictSearching] = useState(false);
+  const [creatingDistrict, setCreatingDistrict] = useState(false);
+  const [newDistrictState, setNewDistrictState] = useState("");
 
   function getToken() {
     if (typeof window === "undefined") return null;
     return sessionStorage.getItem("esb_token");
   }
 
+  async function searchDistricts(q: string) {
+    setDistrictQuery(q);
+    if (q.trim().length < 2) {
+      setDistrictResults([]);
+      return;
+    }
+    setDistrictSearching(true);
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/api/districts/search?q=${encodeURIComponent(q)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) setDistrictResults(await res.json());
+    } catch {
+      // best-effort search; leave results as-is
+    } finally {
+      setDistrictSearching(false);
+    }
+  }
+
+  async function createDistrict() {
+    if (!districtQuery.trim() || !newDistrictState.trim()) return;
+    setCreatingDistrict(true);
+    setError("");
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/api/districts/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ name: districtQuery.trim(), state: newDistrictState.trim().toUpperCase() }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail ?? "Failed to create district.");
+      const d = await res.json();
+      setDistrictId(d.id);
+      setDistrictLabel(`${d.name}, ${d.state}`);
+      setDistrictResults([]);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to create district.");
+    } finally {
+      setCreatingDistrict(false);
+    }
+  }
+
   async function handleSubmit() {
+    if (!districtId) {
+      setError("Please select or add your district before submitting.");
+      return;
+    }
     const missing = PRACTICES.filter((p) => {
       if (p.conjunctive) {
         return scores["clarify_goals"] === undefined || scores["clarify_guardrails"] === undefined;
@@ -237,7 +293,73 @@ export default function AssessmentPage() {
                 </div>
               ))}
             </div>
-            <button onClick={() => setStage("scoring")} className="btn-primary" style={{ fontSize: "16px", padding: "12px 40px" }}>
+            <div style={{ marginBottom: "24px", borderTop: "1px solid var(--esb-border)", paddingTop: "20px" }}>
+              <label style={{ display: "block", fontWeight: 600, marginBottom: "8px" }}>District</label>
+              {districtId ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <span style={{ fontSize: "14px" }}>{districtLabel}</span>
+                  <button
+                    onClick={() => { setDistrictId(""); setDistrictLabel(""); setDistrictQuery(""); }}
+                    style={{ background: "none", border: "1px solid var(--esb-border)", borderRadius: "4px", padding: "4px 10px", cursor: "pointer", fontSize: "13px" }}
+                  >
+                    Change
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    className="esb-input"
+                    placeholder="Search for your district by name…"
+                    value={districtQuery}
+                    onChange={(e) => searchDistricts(e.target.value)}
+                    style={{ width: "100%", marginBottom: "8px" }}
+                  />
+                  {districtSearching && <div style={{ fontSize: "13px", color: "var(--esb-muted)" }}>Searching…</div>}
+                  {districtResults.length > 0 && (
+                    <div style={{ border: "1px solid var(--esb-border)", borderRadius: "4px", marginBottom: "8px" }}>
+                      {districtResults.map((d) => (
+                        <div
+                          key={d.id}
+                          onClick={() => { setDistrictId(d.id); setDistrictLabel(`${d.name}, ${d.state}`); setDistrictResults([]); }}
+                          style={{ padding: "8px 12px", cursor: "pointer", borderBottom: "1px solid var(--esb-border)", fontSize: "14px" }}
+                        >
+                          {d.name}, {d.state}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {districtQuery.trim().length >= 2 && !districtSearching && districtResults.length === 0 && (
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <span style={{ fontSize: "13px", color: "var(--esb-muted)" }}>No match — add it:</span>
+                      <input
+                        type="text"
+                        className="esb-input"
+                        placeholder="State (e.g. TX)"
+                        maxLength={2}
+                        value={newDistrictState}
+                        onChange={(e) => setNewDistrictState(e.target.value)}
+                        style={{ width: "70px" }}
+                      />
+                      <button
+                        onClick={createDistrict}
+                        disabled={creatingDistrict || newDistrictState.trim().length !== 2}
+                        className="btn-outline"
+                        style={{ fontSize: "13px", padding: "6px 14px" }}
+                      >
+                        {creatingDistrict ? "Adding…" : `Add "${districtQuery.trim()}"`}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <button
+              onClick={() => setStage("scoring")}
+              className="btn-primary"
+              disabled={!districtId}
+              style={{ fontSize: "16px", padding: "12px 40px", opacity: districtId ? 1 : 0.5, cursor: districtId ? "pointer" : "not-allowed" }}
+            >
               Begin Assessment
             </button>
           </div>
