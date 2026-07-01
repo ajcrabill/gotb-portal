@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     pipeline_stage2_token_ceiling: int = 2000
     pipeline_circuit_breaker_threshold: int = 5
 
+    # Content approval bridge — esby-portal hosts the actual generation/publish
+    # engine (site-pipeline) on esbcloud; the portal proxies to it as a trusted
+    # internal service. Interim architecture — see plan to consolidate later.
+    esby_internal_url: str = "https://esbcloud.taild49f53.ts.net:8443"
+    esby_internal_key: str = ""
+
     # AI-ops cost ceilings (USD/day)
     ai_cost_ceiling_content: float = 50.0
     ai_cost_ceiling_transcription: float = 20.0

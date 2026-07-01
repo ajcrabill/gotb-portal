@@ -96,10 +96,13 @@ export default function Header() {
     auth.me().then(setMe).catch(() => {});
   }, []);
 
-  const isPortal = pathname?.startsWith("/portal") || pathname?.startsWith("/admin") || pathname?.startsWith("/tracker");
+  const isPortal = pathname?.startsWith("/portal") || pathname?.startsWith("/admin") || pathname?.startsWith("/tracker") || pathname?.startsWith("/content");
   const isAdmin = me?.roles.some((r) => ["superuser", "lead_senior_practitioner"].includes(r));
   const hasTrackerAccess = me?.roles.some((r) =>
     ["superuser", "lead_senior_practitioner", "facilitation_manager"].includes(r)
+  );
+  const hasContentAccess = me?.roles.some((r) =>
+    ["superuser", "lead_senior_practitioner", "content_manager"].includes(r)
   );
 
   async function handleLogout() {
@@ -239,6 +242,23 @@ export default function Header() {
                   }}
                 >
                   Tracker
+                </a>
+              )}
+              {hasContentAccess && (
+                <a
+                  href="/content"
+                  style={{
+                    fontFamily: "var(--font-heading)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#444",
+                    textDecoration: "none",
+                    padding: "6px 16px",
+                    border: "1px solid var(--esb-border)",
+                    borderRadius: "4px",
+                  }}
+                >
+                  Content
                 </a>
               )}
               {isAdmin && (
