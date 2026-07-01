@@ -38,7 +38,7 @@ def _dossier_dict(session, dossier: CrmDossier) -> dict:
     searches = session.query(CrmSearch).filter(CrmSearch.dossier_id == dossier.id).all()
     return {
         "id": str(dossier.id), "subject": dossier.subject_name, "status": dossier.status,
-        "summary": dossier.summary,
+        "summary": dossier.summary, "voice_flags": dossier.voice_flags or [],
         "claims": [
             {"field": c.field, "value": c.value, "confidence": c.confidence,
              "source_url": c.source_url, "source_tier": c.source_tier, "verdict": c.verdict}

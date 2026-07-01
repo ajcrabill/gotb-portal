@@ -135,6 +135,8 @@ def summarize(session: Session, dossier: CrmDossier) -> None:
     try:
         out = llm.complete_json_sync(SUMMARIZE_SYS, f"subject: {dossier.subject_name}\nconfirmed facts:\n{facts}")
         dossier.summary = out.get("summary", "")[:4000]
+        from esb.crm.studio import voice_lint
+        dossier.voice_flags = voice_lint(dossier.summary)
     except Exception:
         pass
     session.commit()

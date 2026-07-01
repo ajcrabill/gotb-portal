@@ -83,8 +83,30 @@ OUTLINE_SYS = (
 )
 
 
+def lint_outline(outline: dict) -> list[dict]:
+    """Voice-lint every text field in a presentation outline before it's
+    allowed into a deck — title, subtitle, and every slide title/bullet."""
+    flags: list[dict] = []
+
+    def _tag(location: str, text: str) -> None:
+        for f in voice_lint(text):
+            flags.append({**f, "location": location})
+
+    if outline.get("title"):
+        _tag("title", outline["title"])
+    if outline.get("subtitle"):
+        _tag("subtitle", outline["subtitle"])
+    for i, slide in enumerate(outline.get("slides", []), 1):
+        if slide.get("title"):
+            _tag(f"slide {i} title", slide["title"])
+        for j, bullet in enumerate(slide.get("bullets", []), 1):
+            _tag(f"slide {i} bullet {j}", str(bullet))
+    return flags
+
+
 async def generate_outline(topic: str) -> dict:
-    return await llm.complete_json(OUTLINE_SYS, f"topic: {topic}")
+    outline = await llm.complete_json(OUTLINE_SYS, f"topic: {topic}")
+    return {**outline, "voice_flags": lint_outline(outline)}
 
 
 def _bar(slide, prs, color, height_in):

@@ -186,17 +186,25 @@ async def send(
     )).all()
 
     sent = 0
+    skipped_alignment = 0
     for m in queued:
         suppressed = await db.scalar(select(CrmSuppression).where(CrmSuppression.email == m.email))
         if suppressed:
             m.status = "skipped_suppressed"
+            continue
+        if m.voice_flags:
+            skipped_alignment += 1
             continue
         ok = await send_email(m.email, m.subject, m.body)
         if ok:
             m.status, m.sent_at = "sent", datetime.now(timezone.utc)
             sent += 1
     await db.commit()
-    return {"sent": sent, "blocked": False, "daily_budget": budget, "gates": gates}
+    return {
+        "sent": sent, "blocked": False, "daily_budget": budget, "gates": gates,
+        "skipped_alignment": skipped_alignment,
+        "note": f"{skipped_alignment} message(s) held for alignment review — approve individually with force=true from the queue." if skipped_alignment else None,
+    }
 
 
 @router.get("/suppression")
@@ -233,6 +241,7 @@ async def queue(
             "district": d.name if d else "", "state": d.state if d else "",
             "subject": m.subject, "body": m.body, "rationale": m.rationale,
             "touch": m.touch_number, "sequence_id": str(m.sequence_id) if m.sequence_id else None,
+            "voice_flags": m.voice_flags or [],
         })
     return {
         "pending": pending, "drafts": out,
@@ -246,11 +255,18 @@ async def approve(
     mid: UUID,
     auth: Annotated[AuthContext, Depends(get_auth_context)],
     db: AsyncSession = Depends(get_db),
+    force: bool = False,
 ) -> dict:
+    """Every draft is voice-linted at generation time; approve is blocked on
+    unresolved alignment flags unless force=true (a human has reviewed and
+    is sending anyway)."""
     _require_crm_access(auth)
     m = await db.get(CrmMessage, mid)
     if not m or m.status != "draft":
         raise HTTPException(status_code=404, detail="No such draft.")
+
+    if m.voice_flags and not force:
+        return {"sent": False, "blocked": True, "reason": "Alignment check found issues.", "voice_flags": m.voice_flags}
 
     if not settings.esb_postal_address:
         return {"sent": False, "blocked": True, "reason": "Set ESB_POSTAL_ADDRESS first (legally required in every email)."}

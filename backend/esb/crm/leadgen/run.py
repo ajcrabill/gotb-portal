@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from esb.crm.leadgen import cadence, compose
+from esb.crm.studio import voice_lint
 from esb.models.crm import CrmCampaign, CrmDistrict, CrmMessage, CrmPerson, CrmSequence, CrmSuppression
 
 
@@ -49,6 +50,7 @@ def build_campaign(session: Session, campaign: CrmCampaign) -> dict:
             campaign_id=campaign.id, person_id=person.id, email=email,
             subject=subject, body=body, status="queued",
             unsubscribe_token=compose.unsubscribe_token(email),
+            voice_flags=voice_lint(subject) + voice_lint(body),
         ))
         counts["queued"] += 1
     campaign.status = "built"
@@ -78,6 +80,7 @@ def _draft_touch(session: Session, camp: CrmCampaign, seq: CrmSequence, touch_n:
         campaign_id=camp.id, sequence_id=seq.id, touch_number=touch_n,
         person_id=seq.person_id, email=seq.email, subject=subject, body=body,
         status="draft", unsubscribe_token=compose.unsubscribe_token(seq.email),
+        voice_flags=voice_lint(subject) + voice_lint(body),
     ))
     session.commit()
 

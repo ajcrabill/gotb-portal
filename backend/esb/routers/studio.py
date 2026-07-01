@@ -77,6 +77,7 @@ class DeckSpec(BaseModel):
     title: str
     subtitle: str = ""
     slides: list[dict] = []
+    force: bool = False  # bypass the alignment gate after a human has reviewed the flags
 
 
 @router.post("/presentation/build")
@@ -84,8 +85,17 @@ async def presentation_build(
     body: DeckSpec,
     auth: Annotated[AuthContext, Depends(get_auth_context)],
 ) -> Response:
+    """Every slide's text is voice-linted before it's allowed into a deck —
+    this runs even if the outline was hand-edited after /outline (or never
+    went through /outline at all). Set force=true only after a human has
+    reviewed the flags returned in the 422 response."""
     _require_crm_access(auth)
-    pptx_bytes = studio.build_deck(body.model_dump())
+    spec = body.model_dump()
+    flags = studio.lint_outline(spec)
+    if flags and not body.force:
+        raise HTTPException(status_code=422, detail={"message": "Alignment check found issues.", "voice_flags": flags})
+
+    pptx_bytes = studio.build_deck(spec)
     return Response(
         content=pptx_bytes,
         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",

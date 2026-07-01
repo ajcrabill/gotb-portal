@@ -553,7 +553,7 @@ function VerifierTab() {
 
 type Claim = { field: string; value: string; confidence: number | string; source_url: string; source_tier: string; verdict: string };
 type SearchRow = { method: string; source: string; query: string; url: string; found: boolean };
-type Dossier = { id: string; subject: string; status: string; summary: string; claims: Claim[]; searches: SearchRow[] };
+type Dossier = { id: string; subject: string; status: string; summary: string; claims: Claim[]; searches: SearchRow[]; voice_flags?: VoiceFlag[] };
 
 function DossierTab() {
   const [status, setStatus] = useState<{ llm_configured: boolean; model: string } | null>(null);
@@ -667,7 +667,10 @@ function DossierTab() {
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}>{dossier.subject}</h3>
           <p style={{ fontSize: "12px", color: "var(--esb-muted)", marginBottom: "16px" }}>Status: {dossier.status}</p>
           {dossier.summary && (
-            <p style={{ fontSize: "14px", lineHeight: "1.6", marginBottom: "20px", whiteSpace: "pre-wrap" }}>{dossier.summary}</p>
+            <>
+              {voiceFlagsBox(dossier.voice_flags ?? [])}
+              <p style={{ fontSize: "14px", lineHeight: "1.6", marginBottom: "20px", whiteSpace: "pre-wrap" }}>{dossier.summary}</p>
+            </>
           )}
 
           <h4 style={{ fontFamily: "var(--font-heading)", fontSize: "15px", fontWeight: 700, marginBottom: "10px" }}>Claims ({dossier.claims.length})</h4>
@@ -932,11 +935,31 @@ function GovernanceWriter() {
   );
 }
 
+type VoiceFlag = { type: string; issue: string; location?: string };
+
+function voiceFlagsBox(flags: VoiceFlag[]) {
+  if (!flags.length) return null;
+  return (
+    <div style={{ background: "#fff8e1", border: "1px solid #ffc107", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
+      <p style={{ margin: "0 0 8px", fontSize: "13px", fontWeight: 700, color: "#5d4037" }}>
+        ESB/AJ alignment check found {flags.length} issue{flags.length === 1 ? "" : "s"}:
+      </p>
+      <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "13px", color: "#5d4037" }}>
+        {flags.map((f, i) => (
+          <li key={i}>{f.location ? `[${f.location}] ` : ""}{f.issue}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function PresentationCreator() {
   const [topic, setTopic] = useState("");
   const [outlining, setOutlining] = useState(false);
   const [outline, setOutline] = useState<{ title?: string; subtitle?: string; slides?: unknown[] } | null>(null);
   const [outlineText, setOutlineText] = useState("");
+  const [outlineFlags, setOutlineFlags] = useState<VoiceFlag[]>([]);
+  const [buildFlags, setBuildFlags] = useState<VoiceFlag[]>([]);
   const [building, setBuilding] = useState(false);
   const [error, setError] = useState("");
 
@@ -944,6 +967,8 @@ function PresentationCreator() {
     setOutlining(true);
     setError("");
     setOutline(null);
+    setOutlineFlags([]);
+    setBuildFlags([]);
     try {
       const res = await fetch(`${API_BASE}/api/crm/studio/presentation/outline`, {
         method: "POST", headers: authHeaders({ "Content-Type": "application/json" }),
@@ -952,6 +977,7 @@ function PresentationCreator() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail ?? "Outline failed.");
       setOutline(data);
+      setOutlineFlags(data.voice_flags ?? []);
       setOutlineText(JSON.stringify(data, null, 2));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Outline failed.");
@@ -960,22 +986,30 @@ function PresentationCreator() {
     }
   }
 
-  async function buildDeck() {
+  async function buildDeck(force = false) {
     setBuilding(true);
     setError("");
+    if (!force) setBuildFlags([]);
     try {
-      let spec: { title: string; subtitle?: string; slides?: unknown[] };
+      let spec: { title: string; subtitle?: string; slides?: unknown[]; voice_flags?: unknown; force?: boolean };
       try {
         spec = JSON.parse(outlineText);
       } catch {
         throw new Error("Outline JSON is invalid — fix it before building.");
       }
       if (!spec.title) spec.title = topic || "ESB Deck";
+      delete spec.voice_flags; // server recomputes this — an editable outline can drift from the last check
+      spec.force = force;
 
       const res = await fetch(`${API_BASE}/api/crm/studio/presentation/build`, {
         method: "POST", headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(spec),
       });
+      if (res.status === 422) {
+        const data = await res.json();
+        setBuildFlags(data.detail?.voice_flags ?? []);
+        throw new Error("Alignment check found issues — review below, then Build Anyway if you want to proceed.");
+      }
       if (!res.ok) {
         let msg = "Build failed.";
         try { msg = (await res.json()).detail ?? msg; } catch {}
@@ -990,6 +1024,7 @@ function PresentationCreator() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      setBuildFlags([]);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Build failed.");
     } finally {
@@ -1008,8 +1043,9 @@ function PresentationCreator() {
 
       {outline != null && (
         <div style={{ marginBottom: "16px" }}>
+          {voiceFlagsBox(outlineFlags)}
           <label style={{ fontSize: "13px", fontWeight: 600, display: "block", marginBottom: "6px" }}>
-            Outline (editable — must be {"{title, subtitle, slides}"} shape before building)
+            Outline (editable — must be {"{title, subtitle, slides}"} shape before building; alignment is re-checked on build)
           </label>
           <textarea
             className="esb-input"
@@ -1020,7 +1056,14 @@ function PresentationCreator() {
         </div>
       )}
 
-      <button className="btn-primary" disabled={building || !outlineText} onClick={buildDeck} style={{ fontSize: "13px", padding: "8px 20px" }}>
+      {voiceFlagsBox(buildFlags)}
+      {buildFlags.length > 0 && (
+        <button className="btn-outline" disabled={building} onClick={() => buildDeck(true)} style={{ fontSize: "13px", padding: "8px 20px", marginBottom: "16px", borderColor: "#c62828", color: "#c62828" }}>
+          Build Anyway (override alignment check)
+        </button>
+      )}
+
+      <button className="btn-primary" disabled={building || !outlineText} onClick={() => buildDeck(false)} style={{ fontSize: "13px", padding: "8px 20px" }}>
         {building ? "Building deck…" : "Build Deck"}
       </button>
     </div>
@@ -1033,6 +1076,7 @@ type Campaign = { id: string; name: string; status: string; messages: number; da
 type QueueDraft = {
   id: string; to: string; name: string; role: string; district: string; state: string;
   subject: string; body: string; rationale: string; touch: number; sequence_id: string | null;
+  voice_flags?: VoiceFlag[];
 };
 
 function LeadgenTab() {
@@ -1106,10 +1150,10 @@ function LeadgenTab() {
     }
   }
 
-  async function approve(mid: string) {
+  async function approve(mid: string, force = false) {
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/api/crm/leadgen/${mid}/approve`, { method: "POST", headers: authHeaders() });
+      const res = await fetch(`${API_BASE}/api/crm/leadgen/${mid}/approve?force=${force}`, { method: "POST", headers: authHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail ?? "Approve failed.");
       if (data.blocked) setError(data.reason ?? "Blocked.");
@@ -1212,18 +1256,27 @@ function LeadgenTab() {
           {queue?.postal_address_set ? "Send-ready (postal address configured)." : "NOT send-ready — ESB_POSTAL_ADDRESS is not configured server-side. Approvals will be blocked until it is."}
         </p>
 
-        {queue?.drafts.map((d) => (
-          <div key={d.id} style={{ border: "1px solid var(--esb-border)", borderRadius: "4px", padding: "16px", marginBottom: "12px" }}>
+        {queue?.drafts.map((d) => {
+          const flags = d.voice_flags ?? [];
+          return (
+          <div key={d.id} style={{ border: `1px solid ${flags.length ? "#ffc107" : "var(--esb-border)"}`, borderRadius: "4px", padding: "16px", marginBottom: "12px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
               <div>
                 <strong>{d.name || d.to}</strong> {d.role && `— ${d.role}`}
                 <div style={{ fontSize: "12px", color: "var(--esb-muted)" }}>{d.district} {d.state && `(${d.state})`} · touch {d.touch}</div>
               </div>
               <div style={{ display: "flex", gap: "8px" }}>
-                <button className="btn-primary" onClick={() => approve(d.id)} style={{ fontSize: "12px", padding: "6px 14px" }}>Approve</button>
+                {flags.length > 0 ? (
+                  <button className="btn-outline" onClick={() => approve(d.id, true)} style={{ fontSize: "12px", padding: "6px 14px", borderColor: "#c62828", color: "#c62828" }}>
+                    Approve Anyway
+                  </button>
+                ) : (
+                  <button className="btn-primary" onClick={() => approve(d.id)} style={{ fontSize: "12px", padding: "6px 14px" }}>Approve</button>
+                )}
                 <button onClick={() => startDecline(d)} style={{ background: "#ed3c0d", color: "#fff", border: "none", borderRadius: "4px", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Decline</button>
               </div>
             </div>
+            {voiceFlagsBox(flags)}
             <p style={{ fontSize: "13px", marginBottom: "4px" }}><strong>To:</strong> {d.to}</p>
             <p style={{ fontSize: "13px", marginBottom: "4px" }}><strong>Subject:</strong> {d.subject}</p>
             <p style={{ fontSize: "13px", whiteSpace: "pre-wrap", background: "var(--esb-light-bg)", padding: "10px", borderRadius: "4px", marginBottom: "6px" }}>{d.body}</p>
@@ -1255,7 +1308,8 @@ function LeadgenTab() {
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
         {queue && queue.drafts.length === 0 && (
           <p style={{ color: "var(--esb-muted)", fontSize: "13px" }}>No drafts pending approval.</p>
         )}
