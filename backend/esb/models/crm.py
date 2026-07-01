@@ -136,6 +136,21 @@ class CrmSearch(UUIDMixin, Base):
     dossier: Mapped["CrmDossier"] = relationship(back_populates="searches")
 
 
+class CrmVerifyJob(UUIDMixin, TimestampMixin, Base):
+    """Background job record for a district email-verification crawl.
+
+    Crawling a district's website + verifying every discovered email is
+    unbounded (observed 2+ minutes for a real district) — too long for a
+    synchronous request/response, so it runs in the background and the
+    frontend polls this row for status/result."""
+    __tablename__ = "crm_verify_jobs"
+
+    district_id: Mapped[UUID] = mapped_column(ForeignKey("crm_districts.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="running")  # running|complete|failed
+    result: Mapped[dict] = mapped_column(JSON, default=dict)
+    error: Mapped[str] = mapped_column(String(500), default="")
+
+
 class CrmSignal(UUIDMixin, Base):
     __tablename__ = "crm_signals"
     __table_args__ = (UniqueConstraint("district_id", "url", name="uq_crm_signal_url"),)

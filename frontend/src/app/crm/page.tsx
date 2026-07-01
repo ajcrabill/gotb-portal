@@ -477,6 +477,17 @@ function VerifierTab() {
 
   useEffect(() => { loadStats(); }, []);
 
+  async function pollVerifyJob(jobId: string): Promise<{ status: string; result: unknown; error: string }> {
+    for (let i = 0; i < 80; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const res = await fetch(`${API_BASE}/api/crm/verifier/jobs/${jobId}`, { headers: authHeaders() });
+      if (!res.ok) throw new Error((await res.json()).detail ?? "Failed to check verification status.");
+      const data = await res.json();
+      if (data.status === "complete" || data.status === "failed") return data;
+    }
+    throw new Error("Verification is taking longer than expected — check back on this tab in a bit.");
+  }
+
   async function runVerify() {
     if (!picked) return;
     setRunning(true);
@@ -485,8 +496,10 @@ function VerifierTab() {
     try {
       const res = await fetch(`${API_BASE}/api/crm/verifier/district/${picked.id}`, { method: "POST", headers: authHeaders() });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail ?? "Verify failed.");
-      setResult(data);
+      if (!res.ok) throw new Error(data.detail ?? "Failed to start verification.");
+      const job = await pollVerifyJob(data.id);
+      if (job.status === "failed") throw new Error(job.error || "Verification failed.");
+      setResult(job.result);
       loadStats();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Verify failed.");
