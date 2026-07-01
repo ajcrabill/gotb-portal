@@ -8,11 +8,24 @@ must be kept current.
 
 robots.txt for www.cgcs.org allows crawling this page for User-agent: *
 (Crawl-delay: 5, respected below via a single fetch — no multi-page crawl).
+
+Matching is token-based, not character-based. District names are dominated
+by a handful of generic template words ("Public Schools", "Independent
+School District", "Unified School District"), so a naive character
+similarity ratio (difflib.SequenceMatcher) scores completely unrelated
+districts as near-identical whenever they share that template — e.g.
+"Arlington Independent School District" vs "Marion Independent School
+District" scored 0.93 under the old approach. Stripping those generic
+words down to the distinctive (city/region) tokens and comparing THOSE
+sets fixes it: {"arlington"} vs {"marion"} has zero overlap.
+
+Because CGCS membership is a hard block on engagement, false positives
+(wrongly flagging a real prospect) are worse than false negatives — an
+unmatched name is reported for manual review rather than guessed.
 """
 from __future__ import annotations
 
 import re
-from difflib import SequenceMatcher
 
 import httpx
 from sqlalchemy import select
@@ -25,7 +38,15 @@ CGCS_URL = "https://www.cgcs.org/member-services/member-districts-list"
 _USER_AGENT = "ESB-Portal-Sync/1.0 (+https://effectiveschoolboards.com; contact: aj@effectiveschoolboards.com)"
 
 _LI_RE = re.compile(r'<li id="siteshortcut-\d+"><a[^>]*>([^<]+)</a></li>')
-_FUZZY_THRESHOLD = 0.90
+
+_STOPWORDS = {
+    "school", "schools", "district", "districts", "public", "independent",
+    "unified", "city", "county", "community", "consolidated", "department",
+    "education", "of", "the", "and", "parish", "metropolitan", "area",
+    "local", "state", "board",
+}
+
+_JACCARD_THRESHOLD = 0.6
 
 
 def normalize_name(name: str) -> str:
@@ -33,6 +54,11 @@ def normalize_name(name: str) -> str:
     n = re.sub(r"[^a-z0-9 ]", " ", n)
     n = re.sub(r"\s+", " ", n).strip()
     return n
+
+
+def _distinctive_tokens(normalized: str) -> frozenset[str]:
+    tokens = frozenset(normalized.split()) - _STOPWORDS
+    return tokens or frozenset(normalized.split())  # fall back if everything was a stopword
 
 
 async def fetch_cgcs_member_names() -> list[str]:
@@ -43,7 +69,6 @@ async def fetch_cgcs_member_names() -> list[str]:
         html = resp.text
 
     names = _LI_RE.findall(html)
-    # de-dup while preserving order
     seen: set[str] = set()
     out: list[str] = []
     for n in names:
@@ -56,14 +81,22 @@ async def fetch_cgcs_member_names() -> list[str]:
 
 def _best_match(target_norm: str, candidates: list[tuple[str, str]]) -> tuple[str, float] | None:
     """candidates: list of (id, normalized_name). Returns (id, score) for the best match above threshold."""
+    target_tokens = _distinctive_tokens(target_norm)
+
     best_id, best_score = None, 0.0
     for cid, cnorm in candidates:
         if cnorm == target_norm:
             return cid, 1.0
-        score = SequenceMatcher(None, target_norm, cnorm).ratio()
+
+        cand_tokens = _distinctive_tokens(cnorm)
+        union = target_tokens | cand_tokens
+        if not union:
+            continue
+        score = len(target_tokens & cand_tokens) / len(union)
         if score > best_score:
             best_id, best_score = cid, score
-    if best_id is not None and best_score >= _FUZZY_THRESHOLD:
+
+    if best_id is not None and best_score >= _JACCARD_THRESHOLD:
         return best_id, best_score
     return None
 
@@ -80,7 +113,9 @@ class SyncResult:
 async def sync_cgcs_membership(db: AsyncSession, apply: bool = True) -> SyncResult:
     """Fetch the CGCS list and match+flag against crm_districts and districts.
 
-    apply=False runs a dry-run (match only, no writes) — useful for preview.
+    Self-correcting: every run clears cgcs_member on rows not in the fresh
+    match set, so a previous bad match (or a district that's since left
+    CGCS) doesn't linger. apply=False runs a dry-run (match only, no writes).
     """
     result = SyncResult()
     names = await fetch_cgcs_member_names()
@@ -113,12 +148,21 @@ async def sync_cgcs_membership(db: AsyncSession, apply: bool = True) -> SyncResu
             result.portal_unmatched.append(raw_name)
 
     if apply:
+        clear_crm = CrmDistrict.__table__.update().values(cgcs_member=False)
+        if crm_matched_ids:
+            clear_crm = clear_crm.where(CrmDistrict.id.not_in(crm_matched_ids))
+        await db.execute(clear_crm)
         if crm_matched_ids:
             await db.execute(
                 CrmDistrict.__table__.update()
                 .where(CrmDistrict.id.in_(crm_matched_ids))
                 .values(cgcs_member=True)
             )
+
+        clear_portal = District.__table__.update().values(is_cgcs_member=False)
+        if portal_matched_ids:
+            clear_portal = clear_portal.where(District.id.not_in(portal_matched_ids))
+        await db.execute(clear_portal)
         if portal_matched_ids:
             await db.execute(
                 District.__table__.update()
