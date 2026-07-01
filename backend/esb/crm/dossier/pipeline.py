@@ -140,7 +140,10 @@ def summarize(session: Session, dossier: CrmDossier) -> None:
     session.commit()
 
 
-def build(session: Session, subject: str, person: CrmPerson | None, district: CrmDistrict | None, role: str = "") -> CrmDossier:
+def create_dossier(
+    session: Session, subject: str, person: CrmPerson | None, district: CrmDistrict | None,
+) -> CrmDossier:
+    """Fast, synchronous — just the initial row so callers get a pollable id back immediately."""
     dossier = CrmDossier(
         subject_name=subject,
         person_id=person.id if person else None,
@@ -149,7 +152,15 @@ def build(session: Session, subject: str, person: CrmPerson | None, district: Cr
     )
     session.add(dossier)
     session.commit()
+    return dossier
 
+
+def run_pipeline(
+    session: Session, dossier: CrmDossier, subject: str, person: CrmPerson | None,
+    district: CrmDistrict | None, role: str = "",
+) -> CrmDossier:
+    """The actual research pass — can take well over a minute. Call this from
+    a background task against an already-created dossier row (see create_dossier)."""
     docs = gather(session, dossier, subject, district, role)
 
     if not llm.configured():
@@ -164,3 +175,11 @@ def build(session: Session, subject: str, person: CrmPerson | None, district: Cr
     dossier.status = "complete"
     session.commit()
     return dossier
+
+
+def build(session: Session, subject: str, person: CrmPerson | None, district: CrmDistrict | None, role: str = "") -> CrmDossier:
+    """Synchronous end-to-end build — kept for direct/scripted use. Routers
+    should use create_dossier + run_pipeline separately so they can return
+    a pollable id before the (potentially minutes-long) research pass runs."""
+    dossier = create_dossier(session, subject, person, district)
+    return run_pipeline(session, dossier, subject, person, district, role)

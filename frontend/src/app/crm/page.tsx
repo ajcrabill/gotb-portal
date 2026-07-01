@@ -568,6 +568,20 @@ function DossierTab() {
     }
   }
 
+  async function pollDossier(id: string) {
+    for (let i = 0; i < 60; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const res = await fetch(`${API_BASE}/api/crm/dossier/${id}`, { headers: authHeaders() });
+      if (!res.ok) throw new Error((await res.json()).detail ?? "Failed to check dossier status.");
+      const data = await res.json();
+      setDossier(data);
+      if (data.status === "complete" || data.status === "needs_llm" || data.status === "failed") {
+        return data;
+      }
+    }
+    throw new Error("Dossier build is taking longer than expected — check back on this tab in a bit.");
+  }
+
   async function build() {
     setBuilding(true);
     setError("");
@@ -583,8 +597,12 @@ function DossierTab() {
         method: "POST", headers: authHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail ?? "Build failed.");
-      setDossier(data);
+      if (!res.ok) throw new Error(data.detail ?? "Build failed to start.");
+      setDossier({ id: data.id, subject: subjectName || "…", status: data.status, summary: "", claims: [], searches: [] });
+      const finalDossier = await pollDossier(data.id);
+      if (finalDossier.status === "failed") {
+        setError("Dossier build failed — check server logs, or try again.");
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Build failed.");
     } finally {

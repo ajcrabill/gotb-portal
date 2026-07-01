@@ -10,15 +10,18 @@ import asyncio
 from typing import Annotated
 from uuid import UUID
 
+import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from esb.auth.rbac import AuthContext, get_auth_context
 from esb.crm import llm
-from esb.crm.dossier.pipeline import build as build_dossier
+from esb.crm.dossier.pipeline import create_dossier, run_pipeline
 from esb.crm.sync_db import sync_session
 from esb.models.crm import CrmClaim, CrmDistrict, CrmDossier, CrmPerson, CrmSearch
 from esb.models.user import RoleType
+
+log = structlog.get_logger()
 
 router = APIRouter(prefix="/api/crm/dossier", tags=["crm-dossier"])
 
@@ -60,7 +63,9 @@ class BuildRequest(BaseModel):
     subject_name: str | None = None
 
 
-def _run_build(person_id: str | None, district_id: str | None, subject_name: str | None) -> dict:
+def _create(person_id: str | None, district_id: str | None, subject_name: str | None) -> dict:
+    """Fast, synchronous — resolves the target and inserts the initial
+    "gathering" row so the caller gets a pollable id back immediately."""
     session = sync_session()
     try:
         person = None
@@ -76,28 +81,66 @@ def _run_build(person_id: str | None, district_id: str | None, subject_name: str
         subject = subject_name or (person.name if person else "") or (district.name if district else "")
         if not subject:
             return {"error": "provide person_id, district_id, or subject_name"}
-        role = person.role if person else ""
-        dossier = build_dossier(session, subject, person, district, role)
-        return _dossier_dict(session, dossier)
+
+        dossier = create_dossier(session, subject, person, district)
+        return {"id": str(dossier.id), "status": dossier.status}
     finally:
         session.close()
 
 
-@router.post("/build")
+def _run_pipeline_bg(dossier_id: str, person_id: str | None, district_id: str | None) -> None:
+    """Runs in the background — a full research pass can take well over a
+    minute (multiple web searches + page fetches, sequential), too long for
+    a synchronous request/response with no way to keep the connection alive.
+    The frontend polls GET /{dossier_id} for status, same pattern already
+    used for Time Use Eval jobs."""
+    session = sync_session()
+    try:
+        dossier = session.get(CrmDossier, UUID(dossier_id))
+        if not dossier:
+            return
+        person = session.get(CrmPerson, UUID(person_id)) if person_id else None
+        district = session.get(CrmDistrict, UUID(district_id)) if district_id else None
+        role = person.role if person else ""
+        run_pipeline(session, dossier, dossier.subject_name, person, district, role)
+    except Exception:
+        log.exception("dossier.build_failed", dossier_id=dossier_id, person_id=person_id, district_id=district_id)
+        try:
+            dossier = session.get(CrmDossier, UUID(dossier_id))
+            if dossier:
+                dossier.status = "failed"
+                session.commit()
+        except Exception:
+            pass
+    finally:
+        session.close()
+
+
+@router.post("/build", status_code=202)
 async def build(
     body: BuildRequest,
     auth: Annotated[AuthContext, Depends(get_auth_context)],
 ) -> dict:
+    """Kicks off a dossier build in the background and returns immediately.
+
+    Poll GET /api/crm/dossier/{dossier_id} — status starts at "gathering" and
+    becomes "complete", "needs_llm" (no OpenRouter key configured), or
+    "failed" when done.
+    """
     _require_crm_access(auth)
     if not (body.person_id or body.district_id or body.subject_name):
         raise HTTPException(status_code=400, detail="Provide person_id, district_id, or subject_name.")
 
-    result = await asyncio.to_thread(_run_build, body.person_id, body.district_id, body.subject_name)
-    if "error" in result:
-        if "not found" in result["error"]:
-            raise HTTPException(status_code=404, detail=result["error"])
-        raise HTTPException(status_code=400, detail=result["error"])
-    return result
+    created = await asyncio.to_thread(_create, body.person_id, body.district_id, body.subject_name)
+    if "error" in created:
+        if "not found" in created["error"]:
+            raise HTTPException(status_code=404, detail=created["error"])
+        raise HTTPException(status_code=400, detail=created["error"])
+
+    asyncio.get_event_loop().create_task(
+        asyncio.to_thread(_run_pipeline_bg, created["id"], body.person_id, body.district_id)
+    )
+    return created
 
 
 def _run_get(dossier_id: str) -> dict | None:
