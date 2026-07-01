@@ -16,45 +16,52 @@ down_revision = "0008"
 branch_labels = None
 depends_on = None
 
-# (enum type name, values, table, column)
+# (enum type name, values, table, column, server_default or None)
 _ENUMS = [
     ("assessmenttier",       ["indicative", "certified"],
-     "assessment_session", "tier"),
+     "assessment_session", "tier", None),
     ("assessmentstatus",     ["draft", "submitted", "scored", "archived"],
-     "assessment_session", "status"),
+     "assessment_session", "status", "draft"),
     ("irrscenariotype",      ["time_use_eval", "gotb_index"],
-     "irr_scenario", "scenario_type"),
+     "irr_scenario", "scenario_type", "time_use_eval"),
     ("irrscenariotype",      ["time_use_eval", "gotb_index"],
-     "irr_progress", "scenario_type"),
+     "irr_progress", "scenario_type", "time_use_eval"),
     ("irrattemptstatus",     ["in_progress", "submitted", "scored"],
-     "irr_attempt", "status"),
+     "irr_attempt", "status", "in_progress"),
     ("membershiptier",       ["annual", "founding_free", "founding_paid"],
-     "membership", "tier"),
+     "membership", "tier", None),
     ("membershipstatus",     ["active", "lapsed", "canceled", "founding"],
-     "membership", "status"),
+     "membership", "status", "active"),
     ("certificationstatus",  ["active", "expired", "revoked", "pending"],
-     "certification", "status"),
+     "certification", "status", "pending"),
     ("referralstatus",       ["pending", "accepted", "declined", "assigned", "completed", "rerouted"],
-     "district_referral", "status"),
+     "district_referral", "status", "pending"),
     ("invoicestatus",        ["draft", "sent", "paid", "void", "refunded"],
-     "invoice", "status"),
+     "invoice", "status", "draft"),
 ]
+
 
 def upgrade() -> None:
     created_types: set[str] = set()
-    for type_name, values, table, column in _ENUMS:
+    for type_name, values, table, column, default in _ENUMS:
         if type_name not in created_types:
             values_sql = ", ".join(f"'{v}'" for v in values)
             op.execute(f"CREATE TYPE {type_name} AS ENUM ({values_sql})")
             created_types.add(type_name)
+        op.execute(f"ALTER TABLE {table} ALTER COLUMN {column} DROP DEFAULT")
         op.execute(
             f"ALTER TABLE {table} ALTER COLUMN {column} TYPE {type_name} "
             f"USING {column}::text::{type_name}"
         )
+        if default is not None:
+            op.execute(f"ALTER TABLE {table} ALTER COLUMN {column} SET DEFAULT '{default}'::{type_name}")
 
 
 def downgrade() -> None:
-    for type_name, _values, table, column in _ENUMS:
+    for type_name, _values, table, column, default in _ENUMS:
+        op.execute(f"ALTER TABLE {table} ALTER COLUMN {column} DROP DEFAULT")
         op.execute(f"ALTER TABLE {table} ALTER COLUMN {column} TYPE VARCHAR(50) USING {column}::text")
+        if default is not None:
+            op.execute(f"ALTER TABLE {table} ALTER COLUMN {column} SET DEFAULT '{default}'")
     for type_name in {t for t, *_ in _ENUMS}:
         op.execute(f"DROP TYPE IF EXISTS {type_name}")
