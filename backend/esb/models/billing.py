@@ -132,7 +132,7 @@ class DistrictReferral(UUIDMixin, TimestampMixin, Base):
     """
     Inbound district referral routing.
 
-    Facilitation Manager reviews system recommendation and presses the final button.
+    Practitioner Manager reviews system recommendation and presses the final button.
     Once assigned, engagement record is created.
     """
     __tablename__ = "district_referral"

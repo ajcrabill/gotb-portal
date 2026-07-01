@@ -28,7 +28,7 @@ router = APIRouter(prefix="/api/eval", tags=["eval"])
 PRACTITIONER_ROLES = {
     RoleType.certified_practitioner,
     RoleType.senior_practitioner,
-    RoleType.facilitation_manager,
+    RoleType.practitioner_manager,
     RoleType.lead_senior_practitioner,
     RoleType.practitioner_in_training,
     RoleType.superuser,

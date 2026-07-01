@@ -1,7 +1,7 @@
 """Coach Progress Tracker router — practitioner certification competency checklist.
 
 Ported natively from coach-devon's standalone /tracker/* module. Access:
-lead_senior_practitioner and facilitation_manager only.
+lead_senior_practitioner and practitioner_manager only.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/tracker", tags=["tracker"])
 
 TRACKER_ROLES = {
     RoleType.lead_senior_practitioner,
-    RoleType.facilitation_manager,
+    RoleType.practitioner_manager,
     RoleType.superuser,
 }
 

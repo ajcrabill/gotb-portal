@@ -13,7 +13,7 @@ type Person = {
 
 const ALL_ROLES = [
   "client", "investor", "practitioner_in_training",
-  "certified_practitioner", "senior_practitioner", "facilitation_manager",
+  "certified_practitioner", "senior_practitioner", "practitioner_manager",
   "business_manager", "content_manager", "lead_senior_practitioner", "superuser",
 ];
 

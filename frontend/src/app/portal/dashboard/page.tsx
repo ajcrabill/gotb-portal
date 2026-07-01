@@ -67,7 +67,7 @@ export default function DashboardPage() {
   }, []);
 
   const isPractitioner = me?.roles.some((r) =>
-    ["certified_practitioner", "senior_practitioner", "facilitation_manager",
+    ["certified_practitioner", "senior_practitioner", "practitioner_manager",
      "lead_senior_practitioner", "superuser"].includes(r)
   );
   const isClient = me?.roles.includes("client");

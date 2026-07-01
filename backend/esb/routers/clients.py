@@ -19,7 +19,7 @@ router = APIRouter(prefix="/api/clients", tags=["clients"])
 PRACTITIONER_ROLES = {
     RoleType.certified_practitioner,
     RoleType.senior_practitioner,
-    RoleType.facilitation_manager,
+    RoleType.practitioner_manager,
     RoleType.lead_senior_practitioner,
     RoleType.superuser,
 }

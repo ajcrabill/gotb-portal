@@ -19,7 +19,7 @@ class RoleType(str, enum.Enum):
     superuser = "superuser"
     lead_senior_practitioner = "lead_senior_practitioner"  # LSP (AJ)
     senior_practitioner = "senior_practitioner"
-    facilitation_manager = "facilitation_manager"
+    practitioner_manager = "practitioner_manager"
     business_manager = "business_manager"
     content_manager = "content_manager"
     certified_practitioner = "certified_practitioner"

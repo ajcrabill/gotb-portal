@@ -50,11 +50,11 @@ class TestRBAC:
         from esb.models.user import RoleType
         ctx = AuthContext(
             person_id=uuid4(),
-            roles={RoleType.facilitation_manager},
+            roles={RoleType.practitioner_manager},
             session_id=uuid4(),
             is_step_up=False,
         )
-        assert ctx.has_role(RoleType.facilitation_manager) is True
+        assert ctx.has_role(RoleType.practitioner_manager) is True
         assert ctx.has_role(RoleType.superuser) is False
 
     def test_step_up_required_raises(self):

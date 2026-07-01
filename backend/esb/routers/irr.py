@@ -28,7 +28,7 @@ router = APIRouter(prefix="/api/irr", tags=["irr"])
 PRACTITIONER_ROLES = {
     RoleType.certified_practitioner,
     RoleType.senior_practitioner,
-    RoleType.facilitation_manager,
+    RoleType.practitioner_manager,
     RoleType.lead_senior_practitioner,
     RoleType.superuser,
     RoleType.practitioner_in_training,

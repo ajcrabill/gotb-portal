@@ -176,7 +176,7 @@ async def create_connect_onboarding(
     if not auth.has_role(
         RoleType.certified_practitioner,
         RoleType.senior_practitioner,
-        RoleType.facilitation_manager,
+        RoleType.practitioner_manager,
         RoleType.lead_senior_practitioner,
         RoleType.superuser,
     ):

@@ -100,7 +100,7 @@ export default function Header() {
   const isPortal = pathname?.startsWith("/portal") || pathname?.startsWith("/admin") || pathname?.startsWith("/tracker") || pathname?.startsWith("/content");
   const isAdmin = me?.roles.some((r) => ["superuser", "lead_senior_practitioner"].includes(r));
   const hasTrackerAccess = me?.roles.some((r) =>
-    ["superuser", "lead_senior_practitioner", "facilitation_manager"].includes(r)
+    ["superuser", "lead_senior_practitioner", "practitioner_manager"].includes(r)
   );
   const hasContentAccess = me?.roles.some((r) =>
     ["superuser", "lead_senior_practitioner", "content_manager"].includes(r)

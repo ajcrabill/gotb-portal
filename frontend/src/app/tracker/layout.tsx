@@ -6,7 +6,7 @@ import { auth } from "@/lib/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const TRACKER_ROLES = ["superuser", "lead_senior_practitioner", "facilitation_manager"];
+const TRACKER_ROLES = ["superuser", "lead_senior_practitioner", "practitioner_manager"];
 
 export default function TrackerLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();

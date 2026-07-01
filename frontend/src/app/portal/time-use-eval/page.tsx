@@ -40,7 +40,7 @@ function authHeaders(extra?: Record<string, string>): Record<string, string> {
 }
 
 const PRACTITIONER_ROLES = [
-  "certified_practitioner", "senior_practitioner", "facilitation_manager",
+  "certified_practitioner", "senior_practitioner", "practitioner_manager",
   "lead_senior_practitioner", "practitioner_in_training", "superuser",
 ];
 
