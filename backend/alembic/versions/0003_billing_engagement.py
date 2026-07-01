@@ -53,7 +53,7 @@ def upgrade() -> None:
     op.create_table(
         "district_engagement",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("district_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("district.id"), nullable=False),
+        sa.Column("district_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("districts.id"), nullable=False),
         sa.Column("facilitator_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("is_esb_referral", sa.Boolean, nullable=False, server_default="true"),
         sa.Column("esb_pct", sa.Integer, nullable=False, server_default="15"),
@@ -69,7 +69,7 @@ def upgrade() -> None:
     op.create_table(
         "district_referral",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("district_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("district.id"), nullable=False),
+        sa.Column("district_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("districts.id"), nullable=False),
         sa.Column("recommended_to_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("assigned_to_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("assigned_by_id", postgresql.UUID(as_uuid=True), nullable=True),

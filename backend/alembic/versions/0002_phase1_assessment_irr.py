@@ -17,11 +17,11 @@ def upgrade() -> None:
     op.create_table(
         "assessment_session",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("district_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("district.id"), nullable=False),
+        sa.Column("district_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("districts.id"), nullable=False),
         sa.Column("scored_by_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("tier", sa.String(50), nullable=False),
         sa.Column("status", sa.String(50), nullable=False, server_default="draft"),
-        sa.Column("scoring_config_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("scoring_config.id"), nullable=False),
+        sa.Column("scoring_config_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("scoring_configs.id"), nullable=False),
         sa.Column("period_start", sa.DateTime(timezone=True), nullable=True),
         sa.Column("period_end", sa.DateTime(timezone=True), nullable=True),
         sa.Column("total_score", sa.Integer, nullable=True),
