@@ -465,6 +465,13 @@ async def dropbox_sign_webhook(
     import hmac
     import json as _json
 
+    log.warning(
+        "dropbox_sign_webhook.raw_request "
+        f"content_type={request.headers.get('content-type')!r} "
+        f"form_keys={list(form.keys())!r} "
+        f"form_dump={ {k: str(v)[:500] for k, v in form.items()} !r}"
+    )
+
     try:
         payload = _json.loads(form.get("json_data", "{}"))
     except Exception:
