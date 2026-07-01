@@ -231,7 +231,8 @@ def upgrade() -> None:
             RAISE EXCEPTION 'audit_log rows are immutable';
         END;
         $$ LANGUAGE plpgsql;
-
+    """)
+    op.execute("""
         CREATE TRIGGER audit_log_no_update
             BEFORE UPDATE OR DELETE ON audit_log
             FOR EACH ROW EXECUTE FUNCTION audit_log_immutable();
