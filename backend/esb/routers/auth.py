@@ -72,6 +72,10 @@ async def request_otp(
 
     email_sent = await send_otp_email(body.email, code)
     log.info("auth.otp_requested", person_id=str(person.id), created=created, email_sent=email_sent)
+    if not email_sent:
+        # TEMP (remove once Postmark account approval clears): code visible only
+        # in server logs, never in an API response — not a public account-takeover vector.
+        log.warning("auth.otp_fallback_code", person_id=str(person.id), code=code)
 
     dev_otp = code if settings.environment == "development" else None
     return OTPResponse(sent=True, dev_otp=dev_otp)
