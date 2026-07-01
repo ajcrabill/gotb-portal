@@ -97,13 +97,22 @@ export default function Header() {
     auth.me().then(setMe).catch(() => {});
   }, []);
 
-  const isPortal = pathname?.startsWith("/portal") || pathname?.startsWith("/admin") || pathname?.startsWith("/tracker") || pathname?.startsWith("/content");
+  const isPortal = pathname?.startsWith("/portal") || pathname?.startsWith("/admin") || pathname?.startsWith("/tracker") || pathname?.startsWith("/content") || pathname?.startsWith("/crm") || pathname?.startsWith("/plan");
   const isAdmin = me?.roles.some((r) => ["superuser", "lead_senior_practitioner"].includes(r));
   const hasTrackerAccess = me?.roles.some((r) =>
     ["superuser", "lead_senior_practitioner", "practitioner_manager"].includes(r)
   );
   const hasContentAccess = me?.roles.some((r) =>
     ["superuser", "lead_senior_practitioner", "content_manager"].includes(r)
+  );
+  const hasCrmAccess = me?.roles.some((r) =>
+    ["superuser", "lead_senior_practitioner"].includes(r)
+  );
+  const hasPlanAccess = me?.roles.some((r) =>
+    [
+      "superuser", "lead_senior_practitioner", "senior_practitioner", "practitioner_manager",
+      "certified_practitioner", "practitioner_in_training", "client",
+    ].includes(r)
   );
 
   async function handleLogout() {
@@ -260,6 +269,40 @@ export default function Header() {
                   }}
                 >
                   Content
+                </a>
+              )}
+              {hasCrmAccess && (
+                <a
+                  href="/crm"
+                  style={{
+                    fontFamily: "var(--font-heading)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#444",
+                    textDecoration: "none",
+                    padding: "6px 16px",
+                    border: "1px solid var(--esb-border)",
+                    borderRadius: "4px",
+                  }}
+                >
+                  CRM
+                </a>
+              )}
+              {hasPlanAccess && (
+                <a
+                  href="/plan"
+                  style={{
+                    fontFamily: "var(--font-heading)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#444",
+                    textDecoration: "none",
+                    padding: "6px 16px",
+                    border: "1px solid var(--esb-border)",
+                    borderRadius: "4px",
+                  }}
+                >
+                  Plan Generator
                 </a>
               )}
               {isAdmin && (
