@@ -19,7 +19,7 @@ from esb.services import audit as audit_svc
 router = APIRouter(prefix="/api/districts", tags=["districts"])
 
 STAFF_ROLES = {
-    RoleType.coaching_manager,
+    RoleType.facilitation_manager,
     RoleType.lead_senior_practitioner,
     RoleType.superuser,
 }

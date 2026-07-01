@@ -24,9 +24,9 @@ from esb.services.scoring import get_active_config
 router = APIRouter(prefix="/api/assessments/certified", tags=["assessment"])
 
 CERTIFIED_ROLES = {
-    RoleType.certified_facilitator,
-    RoleType.senior_facilitator,
-    RoleType.coaching_manager,
+    RoleType.certified_practitioner,
+    RoleType.senior_practitioner,
+    RoleType.facilitation_manager,
     RoleType.lead_senior_practitioner,
     RoleType.superuser,
 }
@@ -91,7 +91,7 @@ async def create_certified_session(
     Administer a Certified Assessment.
 
     Requires:
-    - Practitioner role (certified_facilitator or above)
+    - Practitioner role (certified_practitioner or above)
     - Active Certification record for the practitioner
     - District must not be a CGCS member
     """

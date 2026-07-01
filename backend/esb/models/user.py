@@ -11,13 +11,19 @@ from esb.models.base import TimestampMixin, UUIDMixin
 
 
 class RoleType(str, enum.Enum):
+    """
+    "Practitioner" is the correct term throughout — a Certified Great on Their
+    Behalf Practitioner. Never "facilitator" or "coach" ("coach" is the retired
+    prior-generation ESB certification, not this one).
+    """
     superuser = "superuser"
     lead_senior_practitioner = "lead_senior_practitioner"  # LSP (AJ)
-    senior_facilitator = "senior_facilitator"
-    coaching_manager = "coaching_manager"
+    senior_practitioner = "senior_practitioner"
+    facilitation_manager = "facilitation_manager"
     business_manager = "business_manager"
-    certified_facilitator = "certified_facilitator"
-    facilitator_in_training = "facilitator_in_training"
+    content_manager = "content_manager"
+    certified_practitioner = "certified_practitioner"
+    practitioner_in_training = "practitioner_in_training"
     client = "client"
     investor = "investor"
     public = "public"
@@ -43,7 +49,7 @@ class Person(UUIDMixin, TimestampMixin, Base):
     retention_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     deletion_requested: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    # Stripe Connect (facilitators only; null for clients/public)
+    # Stripe Connect (practitioners only; null for clients/public)
     stripe_account_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     role_memberships: Mapped[list["RoleMembership"]] = relationship(
@@ -76,7 +82,7 @@ class RoleMembership(UUIDMixin, Base):
     effective_from: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     effective_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    # Scoping (e.g., facilitator scoped to a district, client scoped to a district)
+    # Scoping (e.g., practitioner scoped to a district, client scoped to a district)
     scoped_district_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("districts.id"), nullable=True
     )

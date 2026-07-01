@@ -18,7 +18,7 @@ class MembershipStatus(str, enum.Enum):
     active   = "active"
     lapsed   = "lapsed"
     canceled = "canceled"
-    founding = "founding"   # grandfathered Founding Certified Facilitators
+    founding = "founding"   # grandfathered Founding Certified Practitioners
 
 
 class MembershipTier(str, enum.Enum):
@@ -48,7 +48,7 @@ class ReferralStatus(str, enum.Enum):
     declined  = "declined"
     assigned  = "assigned"
     completed = "completed"
-    rerouted  = "rerouted"   # facilitator lost cert; client moved elsewhere
+    rerouted  = "rerouted"   # practitioner lost cert; client moved elsewhere
 
 
 class Membership(UUIDMixin, TimestampMixin, Base):
@@ -107,18 +107,18 @@ class DistrictEngagement(UUIDMixin, TimestampMixin, Base):
     """
     Tracks an ESB client engagement (referral or self-sourced).
 
-    ESB referrals: ESB retains 15%, pays facilitator 85% via Stripe Connect.
-    Self-sourced: facilitator keeps 100%; ESB not in financial relationship.
+    ESB referrals: ESB retains 15%, pays practitioner 85% via Stripe Connect.
+    Self-sourced: practitioner keeps 100%; ESB not in financial relationship.
     """
     __tablename__ = "district_engagement"
 
-    district_id:      Mapped[UUID] = mapped_column(ForeignKey("district.id"), nullable=False)
-    facilitator_id:   Mapped[UUID] = mapped_column(nullable=False)
+    district_id:      Mapped[UUID] = mapped_column(ForeignKey("districts.id"), nullable=False)
+    practitioner_id:  Mapped[UUID] = mapped_column(nullable=False)
     is_esb_referral:  Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     # ESB split (only meaningful for is_esb_referral=True)
-    esb_pct:          Mapped[int] = mapped_column(Integer, nullable=False, default=15)
-    facilitator_pct:  Mapped[int] = mapped_column(Integer, nullable=False, default=85)
+    esb_pct:           Mapped[int] = mapped_column(Integer, nullable=False, default=15)
+    practitioner_pct:  Mapped[int] = mapped_column(Integer, nullable=False, default=85)
 
     # Engagement term
     started_at:       Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -132,7 +132,7 @@ class DistrictReferral(UUIDMixin, TimestampMixin, Base):
     """
     Inbound district referral routing.
 
-    Coaching Manager reviews system recommendation and presses the final button.
+    Facilitation Manager reviews system recommendation and presses the final button.
     Once assigned, engagement record is created.
     """
     __tablename__ = "district_referral"
@@ -170,7 +170,7 @@ class Invoice(UUIDMixin, TimestampMixin, Base):
     paid_at:              Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Disbursement (for referral revenue splits)
-    esb_amount_cents:            Mapped[int | None] = mapped_column(Integer, nullable=True)
-    facilitator_amount_cents:    Mapped[int | None] = mapped_column(Integer, nullable=True)
-    facilitator_stripe_account:  Mapped[str | None] = mapped_column(String(200), nullable=True)
-    disbursed_at:                Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    esb_amount_cents:             Mapped[int | None] = mapped_column(Integer, nullable=True)
+    practitioner_amount_cents:    Mapped[int | None] = mapped_column(Integer, nullable=True)
+    practitioner_stripe_account:  Mapped[str | None] = mapped_column(String(200), nullable=True)
+    disbursed_at:                 Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

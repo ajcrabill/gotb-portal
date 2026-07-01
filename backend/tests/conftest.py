@@ -65,19 +65,19 @@ async def test_person(db):
 
 
 @pytest.fixture
-async def facilitator_person(db):
+async def practitioner_person(db):
     from esb.models.user import Person, RoleMembership, RoleType
     person = Person(
         id=uuid4(),
-        email=f"facilitator-{uuid4().hex[:8]}@example.com",
-        name="Test Facilitator",
+        email=f"practitioner-{uuid4().hex[:8]}@example.com",
+        name="Test Practitioner",
     )
     db.add(person)
     await db.flush()
 
     role = RoleMembership(
         person_id=person.id,
-        role=RoleType.certified_facilitator,
+        role=RoleType.certified_practitioner,
         effective_from=datetime.now(timezone.utc),
     )
     db.add(role)

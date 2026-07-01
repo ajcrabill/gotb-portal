@@ -17,9 +17,9 @@ from esb.models.user import RoleType
 router = APIRouter(prefix="/api/clients", tags=["clients"])
 
 PRACTITIONER_ROLES = {
-    RoleType.certified_facilitator,
-    RoleType.senior_facilitator,
-    RoleType.coaching_manager,
+    RoleType.certified_practitioner,
+    RoleType.senior_practitioner,
+    RoleType.facilitation_manager,
     RoleType.lead_senior_practitioner,
     RoleType.superuser,
 }
@@ -54,7 +54,7 @@ async def list_clients(
 
     engagements = await db.scalars(
         select(DistrictEngagement).where(
-            DistrictEngagement.facilitator_id == auth.person_id,
+            DistrictEngagement.practitioner_id == auth.person_id,
             DistrictEngagement.ended_at.is_(None),
         ).order_by(DistrictEngagement.created_at.desc())
     )

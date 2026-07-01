@@ -26,12 +26,12 @@ from esb.services.irr import (
 router = APIRouter(prefix="/api/irr", tags=["irr"])
 
 PRACTITIONER_ROLES = {
-    RoleType.certified_facilitator,
-    RoleType.senior_facilitator,
-    RoleType.coaching_manager,
+    RoleType.certified_practitioner,
+    RoleType.senior_practitioner,
+    RoleType.facilitation_manager,
     RoleType.lead_senior_practitioner,
     RoleType.superuser,
-    RoleType.facilitator_in_training,
+    RoleType.practitioner_in_training,
 }
 
 

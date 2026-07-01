@@ -5,11 +5,11 @@ Ported from Coach Libra's quality.py and adapted for ESB governance content.
 Independence is the point: this reviewer runs on a DIFFERENT model than the one
 that generated the content (Sys-11 independence rule). It doesn't share the
 writer's blind spots. On a confident failure it does NOT allow the content through:
-it holds the content and escalates to the Coaching Manager's hold queue.
+it holds the content and escalates to the Facilitation Manager's hold queue.
 
 Key differences from the Coach Libra port:
   - review_content() replaces review_email() — works on any ESB-generated string
-  - Hold queue goes to Coaching Manager (not LSP) with tiered SLA
+  - Hold queue goes to Facilitation Manager (not LSP) with tiered SLA
   - The "Coach" client-facing check uses the antislop layer, not this reviewer
   - Verdict cache: content-addressed (same text + context → same verdict, no re-run)
   - Degraded mode: hard fail-closed for IP/legal/validation strings; fail-open-with-flag
@@ -28,9 +28,9 @@ class ContentClass(str, Enum):
     validation_status = "validation_status"  # anything touching validated/indicative
     # Fail-open-with-flag if Stage 2 unavailable
     client_facing = "client_facing"  # reports, client portal copy, emails to districts
-    practitioner_facing = "practitioner_facing"  # portal copy seen by facilitators
+    practitioner_facing = "practitioner_facing"  # portal copy seen by practitioners
     # Low-risk: fail-open-with-flag silently
-    internal = "internal"            # staff-only, never seen by clients or facilitators
+    internal = "internal"            # staff-only, never seen by clients or practitioners
 
 
 # Content classes that hard fail-closed when Stage 2 is unavailable

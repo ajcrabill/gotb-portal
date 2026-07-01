@@ -60,8 +60,8 @@ export default function DashboardPage() {
     auth.me().then(setMe).catch(() => {});
   }, []);
 
-  const isFacilitator = me?.roles.some((r) =>
-    ["certified_facilitator", "senior_facilitator", "coaching_manager",
+  const isPractitioner = me?.roles.some((r) =>
+    ["certified_practitioner", "senior_practitioner", "facilitation_manager",
      "lead_senior_practitioner", "superuser"].includes(r)
   );
   const isClient = me?.roles.includes("client");
@@ -96,7 +96,7 @@ export default function DashboardPage() {
 
       <div className="container mx-auto px-4 py-12">
 
-        {isFacilitator && (
+        {isPractitioner && (
           <section style={{ marginBottom: "48px" }}>
             <div className="section-title" style={{ textAlign: "left", paddingBottom: "20px" }}>
               <h2
@@ -165,7 +165,7 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {!isFacilitator && !isClient && (
+        {!isPractitioner && !isClient && (
           <div
             className="esb-card"
             style={{ textAlign: "center", padding: "60px 30px" }}

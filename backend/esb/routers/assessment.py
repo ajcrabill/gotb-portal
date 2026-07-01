@@ -19,9 +19,9 @@ from esb.services.assessment import create_indicative_session
 router = APIRouter(prefix="/api/assessments", tags=["assessments"])
 
 PRACTITIONER_ROLES = {
-    RoleType.certified_facilitator,
-    RoleType.senior_facilitator,
-    RoleType.coaching_manager,
+    RoleType.certified_practitioner,
+    RoleType.senior_practitioner,
+    RoleType.facilitation_manager,
     RoleType.lead_senior_practitioner,
     RoleType.superuser,
 }

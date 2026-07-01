@@ -3,7 +3,7 @@
 /**
  * Certified Assessment — practitioner-administered, validated tier.
  * NEVER show "indicative" disclaimer here. Show the certified disclaimer instead.
- * Only accessible to certified_facilitator and above.
+ * Only accessible to certified_practitioner and above.
  */
 import { useState } from "react";
 

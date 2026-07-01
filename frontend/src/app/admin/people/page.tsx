@@ -11,9 +11,9 @@ type Person = {
 };
 
 const ALL_ROLES = [
-  "board_member", "district_staff", "associate_facilitator",
-  "certified_facilitator", "senior_facilitator", "coaching_manager",
-  "lead_senior_practitioner", "superuser",
+  "client", "investor", "practitioner_in_training",
+  "certified_practitioner", "senior_practitioner", "facilitation_manager",
+  "business_manager", "content_manager", "lead_senior_practitioner", "superuser",
 ];
 
 export default function AdminPeoplePage() {

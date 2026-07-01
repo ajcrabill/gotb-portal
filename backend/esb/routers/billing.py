@@ -174,9 +174,9 @@ async def create_connect_onboarding(
 ) -> ConnectOnboardingResponse:
     """Initiate Stripe Connect Express onboarding for 85% disbursements."""
     if not auth.has_role(
-        RoleType.certified_facilitator,
-        RoleType.senior_facilitator,
-        RoleType.coaching_manager,
+        RoleType.certified_practitioner,
+        RoleType.senior_practitioner,
+        RoleType.facilitation_manager,
         RoleType.lead_senior_practitioner,
         RoleType.superuser,
     ):
