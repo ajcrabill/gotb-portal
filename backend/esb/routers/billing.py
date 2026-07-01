@@ -453,7 +453,7 @@ async def dropbox_sign_webhook(
 ) -> PlainTextResponse:
     """
     Handle Dropbox Sign webhook: signature_request_signed → activate Certification.
-    Dropbox Sign sends form-encoded JSON (json_data field) and requires the
+    Dropbox Sign sends form-encoded JSON (json field) and requires the
     literal response body "Hello API Event Received" (not JSON) to mark the
     callback as successfully received.
 
@@ -465,15 +465,8 @@ async def dropbox_sign_webhook(
     import hmac
     import json as _json
 
-    log.warning(
-        "dropbox_sign_webhook.raw_request "
-        f"content_type={request.headers.get('content-type')!r} "
-        f"form_keys={list(form.keys())!r} "
-        f"form_dump={ {k: str(v)[:500] for k, v in form.items()} !r}"
-    )
-
     try:
-        payload = _json.loads(form.get("json_data", "{}"))
+        payload = _json.loads(form.get("json", "{}"))
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid webhook payload.")
 
@@ -488,13 +481,6 @@ async def dropbox_sign_webhook(
         hashlib.sha256,
     ).hexdigest()
     if not hmac.compare_digest(expected_hash, event_hash):
-        log.warning(
-            "dropbox_sign_webhook.signature_mismatch "
-            f"event_time={event_time!r} event_type={event_type!r} "
-            f"received_hash={event_hash!r} expected_hash={expected_hash!r} "
-            f"api_key_prefix={settings.dropbox_sign_api_key[:8]!r} "
-            f"raw_json_data={form.get('json_data', '')[:2000]!r}"
-        )
         raise HTTPException(status_code=401, detail="Invalid webhook signature.")
 
     sr = payload.get("signature_request", {})
