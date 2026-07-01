@@ -1,8 +1,9 @@
+import hashlib
 from datetime import datetime, timezone
 from functools import wraps
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,11 +51,15 @@ def require_roles(*allowed: RoleType):
 
 
 async def get_auth_context(
-    # token extracted from Authorization header by middleware
-    token_hash: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> AuthContext:
     now = datetime.now(timezone.utc)
+
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token.")
+    token_hash = hashlib.sha256(auth_header[7:].encode()).hexdigest()
 
     session = await db.scalar(
         select(UserSession).where(
