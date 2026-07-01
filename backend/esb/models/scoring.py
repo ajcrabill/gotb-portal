@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -66,8 +66,8 @@ class ScoringConfig(UUIDMixin, Base):
     config: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    created_by_id: Mapped[UUID] = mapped_column(ForeignKey("people.id"), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("people.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Re-normalization function (if any) for cross-version comparison. Null = refuse comparison.
@@ -92,8 +92,8 @@ class ReferenceDataVersion(UUIDMixin, Base):
     content_hash_value: Mapped[str] = mapped_column(String(64), nullable=False)
     data: Mapped[dict] = mapped_column(JSONB, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    created_by_id: Mapped[UUID] = mapped_column(ForeignKey("people.id"), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("people.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
 
     __table_args__ = (
         UniqueConstraint("data_type", "content_hash_value", name="uq_ref_data_type_hash"),
