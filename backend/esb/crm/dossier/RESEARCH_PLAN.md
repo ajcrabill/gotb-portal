@@ -49,6 +49,40 @@ Wikipedia is treated as Tier 2, not Tier 1 — useful for orientation and
 often correct, but it's crowd-edited, not authoritative; a Wikipedia
 claim should ideally be corroborated before counting toward 0.9 alone.
 
+## 1.5 Headless browsing & staying unblocked
+
+Per AJ (2026-07-01): use headless browsers and other legitimate
+techniques to avoid getting blocked. Scope of "legitimate" here —
+staying inside politeness/identification norms, not defeating a site's
+deliberate anti-bot controls:
+
+- **Headless Chromium via Playwright** for JS-rendered pages (district
+  sites built on modern frameworks that return an empty shell to a
+  plain HTTP fetch). This is already wired into
+  `esb/crm/verifier/crawl.py` as a graceful-no-op fallback — Playwright
+  just isn't installed in the container yet. Installing it (adding
+  Chromium to the Docker image) turns this from a no-op into a real
+  capability everywhere it's already called.
+- **Honest identification**: a real, static User-Agent string that
+  identifies the tool (already the pattern in `connectors.py` /
+  `crawl.py`) — not spoofing a specific end-user's browser fingerprint.
+- **Respect robots.txt and crawl-delay** on every target — same
+  standard already applied to the CGCS scraper.
+- **Backoff + engine fallback, not evasion**: on a 429/blocked
+  response, back off and try the next engine in the rotation rather
+  than retrying the same engine faster or rotating IPs/proxies to
+  disguise the retry. If every engine is blocked on a given query, that
+  query fails visibly (logged as an unmatched/failed source) rather
+  than escalating to more aggressive bypass techniques.
+- **Out of scope, deliberately**: CAPTCHA-solving services, IP/proxy
+  rotation specifically to evade a site's ban of already-identified
+  traffic, and fingerprint spoofing beyond a normal browser UA. These
+  cross from "polite scraping" into "actively defeating a security
+  control," which isn't something to build even for a legitimate
+  research tool — if a specific site hard-blocks us, that source
+  becomes a manual-lookup pointer in the dossier's Sources section
+  rather than something we force through.
+
 ## 2. Search engine strategy
 
 Different engines index meaningfully different portions of the web —
@@ -178,8 +212,84 @@ Executive/due-diligence report structure: [Infortal executive due diligence](htt
 
 School board records / property records: [school board meeting minutes legal requirements](https://www.diligent.com/resources/blog/what-legal-requirements-school-board-meeting-minutes), county assessor examples ([Maricopa](https://mcassessor.maricopa.gov/), [Spartanburg](https://www.spartanburgcounty.gov/288/Assessor-Property-Records-Search))
 
-## 7. Open questions for AJ before implementation
+## 7. State report-card mapping
 
-1. **Brave Search API key** — want me to sign up for the free tier (2,000 queries/month, needs an account), or start with the 4 keyless engines and revisit?
-2. **State report-card site mapping** — there's no single federal database with live test-score data (NCES CCD covers enrollment/finance, not achievement); each state runs its own report-card site. I'll build the mapping for whichever states you actually work in first rather than trying to hardcode all 50 up front — which states should I prioritize?
-3. Templates/rubric above — good to build against, or changes first?
+Full 50-state + DC table pulled directly from
+[ED.gov's official directory](https://www.ed.gov/birth-to-grade-12-education/elementary-and-secondary-education/where-can-i-find-my-state-report-card-website)
+(2026-07-01) — implementing all 50 up front rather than a partial set,
+since ED.gov already maintains the authoritative list and there's no
+meaningful cost difference between hardcoding 10 vs. 50 entries. Query
+order is population-weighted so the highest-value states get crawled
+first when a batch job processes multiple districts:
+
+CA, TX, FL, NY, PA, IL, OH, GA, NC, MI, NJ, VA, WA, AZ, TN, MA, IN, MO,
+MD, WI, CO, MN, SC, AL, LA, KY, OR, OK, CT, UT, IA, NV, AR, MS, KS, NM,
+NE, ID, WV, HI, NH, ME, MT, RI, DE, SD, ND, AK, VT, WY, DC.
+
+| State | Report Card URL |
+|---|---|
+| California | https://www.sarconline.org/ |
+| Texas | https://tea.texas.gov/Student_Testing_and_Accountability/Accountability/State_Accountability/Performance_Reporting/School_Report_Cards |
+| Florida | https://edudata.fldoe.org/ReportCards/Schools.html |
+| New York | https://data.nysed.gov/ |
+| Pennsylvania | https://futurereadypa.org/ |
+| Illinois | https://www.illinoisreportcard.com/Default.aspx |
+| Ohio | https://reportcard.education.ohio.gov/ |
+| Georgia | https://gosa.georgia.gov/report-card-dashboards-data/report-card |
+| North Carolina | https://ncreportcards.ondemand.sas.com/src |
+| Michigan | https://www.mischooldata.org/ |
+| New Jersey | https://rc.doe.state.nj.us/SearchForSchool.aspx |
+| Virginia | https://schoolquality.virginia.gov/ |
+| Washington | https://washingtonstatereportcard.ospi.k12.wa.us/ |
+| Arizona | https://azreportcards.azed.gov/ |
+| Tennessee | https://reportcard.tnk12.gov/ |
+| Massachusetts | http://profiles.doe.mass.edu/ |
+| Indiana | https://inview.doe.in.gov/ |
+| Missouri | https://apps.dese.mo.gov/MCDS/home.aspx |
+| Maryland | https://reportcard.msde.maryland.gov/SchoolsList/Index?l=01 |
+| Wisconsin | https://dpi.wi.gov/accountability/report-cards |
+| Colorado | http://www.cde.state.co.us/schoolview |
+| Minnesota | https://rc.education.state.mn.us/#using |
+| South Carolina | https://screportcards.ed.sc.gov/ |
+| Alabama | http://reportcard.alsde.edu/Alsde/SelectSchool |
+| Louisiana | https://louisianabelieves.com/ |
+| Kentucky | https://www.kyschoolreportcard.com/ |
+| Oregon | https://www.ode.state.or.us/data/reportcard/reports.aspx |
+| Oklahoma | https://oklaschools.com/ |
+| Connecticut | http://edsight.ct.gov/SASStoredProcess/guest?_program=/CTDOE/EdSight/Release/Reporting/Public/Reports/StoredProcesses/ConnecticutReportCard |
+| Utah | https://utahschoolgrades.schools.utah.gov/ |
+| Iowa | https://www.iaschoolperformance.gov/ |
+| Nevada | http://nevadareportcard.nv.gov/DI/nv/2019 |
+| Arkansas | https://myschoolinfo.arkansas.gov/ |
+| Mississippi | http://msrc.mdek12.org/Index |
+| Kansas | https://ksreportcard.ksde.org/home.aspx?org_no=State&rptType=3 |
+| New Mexico | https://nmschoolgrades.com/ |
+| Nebraska | https://nep.education.ne.gov/ |
+| Idaho | https://idahoschools.org/ |
+| West Virginia | https://wveis.k12.wv.us/essa/dashboard.html |
+| Hawaii | http://www.hawaiipublicschools.org/VisionForSuccess/AdvancingEducation/StriveHIPerformanceSystem/Pages/home.aspx |
+| New Hampshire | https://ireport.education.nh.gov/ |
+| Maine | https://www.maine.gov/doe/dashboard |
+| Montana | https://opi.mt.gov/Leadership/Academic-Success/Every-Student-Succeeds-Act-ESSA/Report-Card |
+| Rhode Island | https://reportcard.ride.ri.gov/ |
+| Delaware | https://reportcard.doe.k12.de.us/index.html |
+| South Dakota | https://doestatereporting.sd.gov/Nimble/asp/Main.aspx |
+| North Dakota | https://insights.nd.gov/Education |
+| Alaska | https://education.alaska.gov/compass/ |
+| Vermont | https://education.vermont.gov/data-and-reporting/school-reports |
+| Wyoming | https://edu.wyoming.gov/in-the-classroom/federal-programs/title-i/state-report-card/ |
+| District of Columbia | https://dcschoolreportcard.org/ |
+
+Most of these are dashboards driven by JS/search widgets rather than
+static HTML, which is exactly the case headless-browser rendering
+(§1.5) is for — a plain HTTP fetch of most of these URLs will return an
+empty shell.
+
+## 8. Status
+
+- Brave Search API: needs a human-completed signup (requires a credit
+  card on file for identity verification even on the free tier — not
+  something I can enter). AJ to sign up at
+  `api-dashboard.search.brave.com` and pass me the resulting key.
+- Templates/rubric: approved 2026-07-01, building against them as-is.
+- Headless browser + anti-blocking approach: approved, see §1.5.
