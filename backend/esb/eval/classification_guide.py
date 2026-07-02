@@ -55,3 +55,33 @@ Apply this sequence to EVERY agenda item. Stop at the first match.
 - Do not count transition time as any substantive category
 - Err toward non-Goal-Focused category when uncertain
 """
+
+
+def render_with_rules(rules: list) -> str:
+    """Compile the base guide with practitioner-submitted learning rules
+    appended. `rules` is a list of objects with .activity_id, .note,
+    .context_snapshot, .created_at (TimeUseLearningRule rows) — passed in
+    rather than queried here so this module stays free of DB dependencies.
+    Used both to display the guide (with corrections) in the IRR Simulator
+    and to inform the real Time Use Evaluation tool's classification
+    prompt — the same base-doc-plus-corrections pattern as the Plan
+    Generator's learning loop."""
+    if not rules:
+        return CLASSIFICATION_GUIDE
+
+    lines = [
+        "\n\n## Learning Rules (practitioner-submitted corrections)",
+        "",
+        "These are corrections filed by certified practitioners after reviewing "
+        "system scoring they judged incorrect. Apply them ABOVE the decision tree "
+        "above when they're more specific to the situation at hand — they represent "
+        "real judgment calls that refined the guide over time.",
+        "",
+    ]
+    for r in rules:
+        date_str = r.created_at.strftime("%Y-%m-%d") if getattr(r, "created_at", None) else ""
+        lines.append(f"- **[{r.activity_id}]** ({date_str}) {r.note}")
+        if r.context_snapshot:
+            lines.append(f"  Context: {r.context_snapshot}")
+
+    return CLASSIFICATION_GUIDE + "\n".join(lines)

@@ -12,10 +12,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from esb.auth.rbac import AuthContext, get_auth_context
 from esb.core.database import get_db
-from esb.models.irr import IRRAttempt, IRRAttemptStatus, IRRProgress, IRRScenario, IRRScenarioType
+from esb.eval.classification_guide import render_with_rules
+from esb.models.irr import IRRAttempt, IRRAttemptStatus, IRRProgress, IRRScenario, IRRScenarioType, TimeUseLearningRule
 from esb.models.user import RoleType
 from esb.services.irr import (
     KAPPA_PASS_THRESHOLD,
+    TIME_USE_ITEMS,
     generate_scenario,
     system_score_scenario,
 )
@@ -288,3 +290,98 @@ async def admin_list_scenarios(
             created_at=s.created_at.isoformat(),
         ))
     return out
+
+
+# ── Time Use classification guide + learning rules ────────────────────────────
+
+class LearningRuleOut(BaseModel):
+    id: str
+    activity_id: str
+    context_snapshot: str
+    note: str
+    created_at: str
+
+
+class GuideOut(BaseModel):
+    guide_text: str
+    rules: list[LearningRuleOut]
+
+
+async def _get_rules(db: AsyncSession) -> list[TimeUseLearningRule]:
+    return list((await db.scalars(
+        select(TimeUseLearningRule).order_by(TimeUseLearningRule.created_at)
+    )).all())
+
+
+@router.get("/guide", response_model=GuideOut)
+async def get_guide(
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+    db: AsyncSession = Depends(get_db),
+) -> GuideOut:
+    """The compiled Time Use classification guide (base doc + every
+    practitioner-submitted learning rule) — visible to any practitioner as
+    reference material while training in the simulator."""
+    require_practitioner(auth)
+    rules = await _get_rules(db)
+    return GuideOut(
+        guide_text=render_with_rules(rules),
+        rules=[
+            LearningRuleOut(
+                id=str(r.id), activity_id=r.activity_id,
+                context_snapshot=r.context_snapshot, note=r.note,
+                created_at=r.created_at.isoformat(),
+            )
+            for r in rules
+        ],
+    )
+
+
+class CorrectionSubmit(BaseModel):
+    activity_id: str
+    note: str
+
+
+@router.post("/attempts/{attempt_id}/corrections", status_code=status.HTTP_201_CREATED)
+async def submit_correction(
+    attempt_id: UUID,
+    body: CorrectionSubmit,
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """File a correction against the system's scoring on a specific
+    Activity within a scored IRR attempt. Gated to superuser/lead_senior_practitioner
+    — the same authority that reviews any other AI-assisted output in the
+    portal. The correction is compiled into the classification guide
+    immediately (get_guide reflects it on the next call) and feeds the
+    real Time Use Evaluation tool's classification prompt too."""
+    _require_admin(auth)
+    if not body.note.strip():
+        raise HTTPException(status_code=400, detail="A note explaining the correction is required.")
+
+    item_def = next((i for i in TIME_USE_ITEMS if i["id"] == body.activity_id), None)
+    if not item_def:
+        raise HTTPException(status_code=400, detail=f"Unknown activity_id: {body.activity_id}")
+
+    attempt = await db.get(IRRAttempt, attempt_id)
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found.")
+    scenario = await db.get(IRRScenario, attempt.scenario_id)
+
+    sys_item = (scenario.system_scores or {}).get(body.activity_id, {}) if scenario else {}
+    prac_item = (attempt.practitioner_scores or {}).get(body.activity_id, {})
+    context = (
+        f"System scored {sys_item.get('minutes', 0)} min; practitioner entered "
+        f"{prac_item.get('minutes', 0)} min. Activity: {item_def['label']} ({item_def['framework']})."
+    )
+
+    rule = TimeUseLearningRule(
+        created_by_id=auth.person_id,
+        attempt_id=attempt_id,
+        activity_id=body.activity_id,
+        context_snapshot=context[:2000],
+        note=body.note.strip()[:2000],
+    )
+    db.add(rule)
+    await db.commit()
+
+    return {"id": str(rule.id), "activity_id": rule.activity_id}

@@ -15,7 +15,9 @@
  *   3. Results — kappa, per-item feedback, system vs. practitioner comparison
  */
 import { useState, useEffect } from "react";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, auth } from "@/lib/api";
+
+const CORRECTION_ROLES = ["superuser", "lead_senior_practitioner"];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -170,9 +172,12 @@ export default function IRRSimulatorPage() {
   const [progress, setProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [canCorrect, setCanCorrect] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     apiRequest<Progress>("/api/irr/progress").then(setProgress).catch(() => {});
+    auth.me().then((me) => setCanCorrect(me.roles.some((r) => CORRECTION_ROLES.includes(r)))).catch(() => {});
   }, []);
 
   async function handleGenerateScenario() {
@@ -216,6 +221,14 @@ export default function IRRSimulatorPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function submitCorrection(activityId: string, note: string) {
+    if (!result) return;
+    await apiRequest(`/api/irr/attempts/${result.attempt_id}/corrections`, {
+      method: "POST",
+      body: JSON.stringify({ activity_id: activityId, note }),
+    });
   }
 
   return (
@@ -308,8 +321,18 @@ export default function IRRSimulatorPage() {
             >
               {loading ? "Generating scenario…" : "Start a Practice Scenario"}
             </button>
+            <div style={{ marginTop: "16px" }}>
+              <button
+                onClick={() => setShowGuide(true)}
+                style={{ background: "none", border: "none", color: "var(--esb-primary)", cursor: "pointer", fontSize: "13px", textDecoration: "underline" }}
+              >
+                View the Classification Guide
+              </button>
+            </div>
           </div>
         )}
+
+        {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
 
         {/* Scoring stage */}
         {stage === "scoring" && scenario && (
@@ -510,9 +533,17 @@ export default function IRRSimulatorPage() {
             </div>
 
             {/* Item-by-item breakdown */}
-            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-              Activity Breakdown
-            </h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "22px", fontWeight: 700, margin: 0 }}>
+                Activity Breakdown
+              </h2>
+              <button
+                onClick={() => setShowGuide(true)}
+                style={{ background: "none", border: "none", color: "var(--esb-primary)", cursor: "pointer", fontSize: "13px", textDecoration: "underline" }}
+              >
+                View Classification Guide
+              </button>
+            </div>
             {ACTIVITY_ITEMS.map((item) => {
               const sys = result.system_scores[item.id];
               const yourMinutes = minutes[item.id] ?? 0;
@@ -565,6 +596,7 @@ export default function IRRSimulatorPage() {
                       {feedback}
                     </div>
                   )}
+                  {canCorrect && <CorrectionControl activityId={item.id} onSubmit={submitCorrection} />}
                 </div>
               );
             })}
@@ -618,6 +650,103 @@ function Info({ label, value }: { label: string; value: string }) {
         {label}
       </div>
       <div style={{ color: "var(--esb-dark)", fontWeight: 600 }}>{value}</div>
+    </div>
+  );
+}
+
+function CorrectionControl({ activityId, onSubmit }: { activityId: string; onSubmit: (activityId: string, note: string) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function save() {
+    if (!note.trim()) return;
+    setSaving(true);
+    setErr("");
+    try {
+      await onSubmit(activityId, note.trim());
+      setSaved(true);
+      setOpen(false);
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Failed to save correction.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (saved) {
+    return <p style={{ marginTop: "10px", fontSize: "12px", color: "#18d26e" }}>✓ Correction saved to the classification guide.</p>;
+  }
+
+  return (
+    <div style={{ marginTop: "10px" }}>
+      {!open ? (
+        <button onClick={() => setOpen(true)} style={{ background: "none", border: "1px solid var(--esb-border)", borderRadius: "4px", padding: "4px 12px", fontSize: "12px", cursor: "pointer", color: "var(--esb-muted)" }}>
+          This scoring looks wrong — explain why
+        </button>
+      ) : (
+        <div style={{ background: "var(--esb-light-bg)", borderRadius: "4px", padding: "12px" }}>
+          <textarea
+            className="esb-input"
+            placeholder="Why is the system's scoring on this Activity wrong? This becomes a learning rule appended to the classification guide, used both here and by the real Time Use Evaluation tool."
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            style={{ minHeight: "70px", fontSize: "13px", marginBottom: "8px" }}
+          />
+          {err && <p style={{ color: "#c62828", fontSize: "12px", marginBottom: "8px" }}>{err}</p>}
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={save} disabled={saving || !note.trim()} className="btn-primary" style={{ fontSize: "12px", padding: "6px 14px" }}>
+              {saving ? "Saving…" : "Save Learning Rule"}
+            </button>
+            <button onClick={() => setOpen(false)} style={{ background: "none", border: "1px solid var(--esb-border)", borderRadius: "4px", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type LearningRule = { id: string; activity_id: string; context_snapshot: string; note: string; created_at: string };
+
+function GuideModal({ onClose }: { onClose: () => void }) {
+  const [guideText, setGuideText] = useState("");
+  const [rules, setRules] = useState<LearningRule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    apiRequest<{ guide_text: string; rules: LearningRule[] }>("/api/irr/guide")
+      .then((d) => { setGuideText(d.guide_text); setRules(d.rules); })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : "Failed to load guide."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: "24px" }}>
+      <div style={{ background: "#fff", borderRadius: "8px", maxWidth: "800px", width: "100%", maxHeight: "85vh", overflow: "auto", padding: "28px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "20px", fontWeight: 700, margin: 0 }}>Time Use Classification Guide</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "var(--esb-muted)" }}>×</button>
+        </div>
+        {loading && <p style={{ color: "var(--esb-muted)" }}>Loading…</p>}
+        {error && <p style={{ color: "#c62828" }}>{error}</p>}
+        {!loading && !error && (
+          <>
+            {rules.length > 0 && (
+              <p style={{ fontSize: "13px", color: "var(--esb-muted)", marginBottom: "16px" }}>
+                {rules.length} learning rule{rules.length === 1 ? "" : "s"} from practitioner corrections are included below.
+              </p>
+            )}
+            <pre style={{ whiteSpace: "pre-wrap", fontSize: "13px", lineHeight: "1.6", fontFamily: "inherit", color: "var(--esb-text)" }}>
+              {guideText}
+            </pre>
+          </>
+        )}
+      </div>
     </div>
   );
 }

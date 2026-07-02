@@ -10,6 +10,8 @@ from uuid import UUID
 
 import structlog
 
+from sqlalchemy import select
+
 from esb.core.config import settings
 from esb.core.database import AsyncSessionLocal
 from esb.eval.analyzer import (
@@ -23,11 +25,24 @@ from esb.eval.analyzer import (
     generate_multi_meeting_reflections,
     score_meeting_governance,
 )
+from esb.eval.classification_guide import render_with_rules
 from esb.eval.detector import detect_platform
 from esb.eval.docx_gen import generate_evaluation_docx, generate_multi_meeting_docx
 from esb.eval.extractor import extract_transcript
 from esb.models.eval import EvalJob
+from esb.models.irr import TimeUseLearningRule
 from esb.models.user import Person
+
+
+async def _compiled_guide() -> str:
+    """Base classification guide + every practitioner-submitted learning
+    rule filed from the IRR Simulator — see esb/routers/irr.py's
+    /attempts/{id}/corrections endpoint."""
+    async with AsyncSessionLocal() as db:
+        rules = list((await db.scalars(
+            select(TimeUseLearningRule).order_by(TimeUseLearningRule.created_at)
+        )).all())
+    return render_with_rules(rules)
 
 log = structlog.get_logger()
 
@@ -85,7 +100,8 @@ async def _process_single_meeting(job_id, video_url, district, meeting_date, mee
 
         transcript = await extract_transcript(video_url, str(job_id))
         agenda_items = await extract_agenda_items(transcript, district, meeting_date)
-        classified = await classify_agenda_items(agenda_items)
+        guide_text = await _compiled_guide()
+        classified = await classify_agenda_items(agenda_items, guide_text=guide_text)
         total_minutes = sum(i.get("minutes", 0) for i in classified)
         category_totals = compute_category_totals(classified, total_minutes)
         coaching = await generate_coaching_reflections(

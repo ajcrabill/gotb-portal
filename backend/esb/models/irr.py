@@ -128,3 +128,29 @@ class IRRProgress(UUIDMixin, TimestampMixin, Base):
     window_size:        Mapped[int]         = mapped_column(Integer, nullable=False, default=5)
     certified_at:       Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_attempt_at:    Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class TimeUseLearningRule(UUIDMixin, TimestampMixin, Base):
+    """
+    A practitioner-submitted correction to the Time Use classification
+    guide (esb/eval/classification_guide.py), filed from an IRR Simulator
+    result when the system's scoring was wrong. Compiled onto the base
+    guide (see classification_guide.render_with_rules) and used both to
+    show corrections in the simulator and to inform the real Time Use
+    Evaluation tool's LLM classification prompt — the same feedback-loop
+    pattern already used for the Plan Generator's corrections.
+
+    Gated to superuser/lead_senior_practitioner — same authority that
+    reviews and corrects any other AI-assisted output in the portal.
+    """
+    __tablename__ = "time_use_learning_rules"
+
+    created_by_id: Mapped[UUID] = mapped_column(ForeignKey("people.id", ondelete="SET NULL"), nullable=True, index=True)
+    attempt_id:    Mapped[UUID | None] = mapped_column(ForeignKey("irr_attempt.id", ondelete="SET NULL"), nullable=True, index=True)
+
+    activity_id: Mapped[str] = mapped_column(String(60), nullable=False, index=True)
+    # Auto-captured context (item title/description/system score) at the
+    # moment the correction was filed — so the rule stays interpretable
+    # even if the disputed scenario data changes later.
+    context_snapshot: Mapped[str] = mapped_column(String(2000), nullable=False, default="")
+    note: Mapped[str] = mapped_column(String(2000), nullable=False)

@@ -65,8 +65,14 @@ Respond with a JSON array only, no other text:
     return json.loads(_strip_json_fence(result))
 
 
-async def classify_agenda_items(items: List[Dict]) -> List[Dict]:
-    """Classify each agenda item using the ESB classification guide."""
+async def classify_agenda_items(items: List[Dict], guide_text: str | None = None) -> List[Dict]:
+    """Classify each agenda item using the ESB classification guide.
+
+    guide_text defaults to the static CLASSIFICATION_GUIDE, but callers
+    should pass the compiled guide (base doc + practitioner-submitted
+    learning rules — see classification_guide.render_with_rules) so
+    corrections filed from the IRR Simulator actually inform real
+    evaluations, not just training scenarios."""
     items_text = "\n".join(
         f"{i['item_number']}. {i['title']}: {i['description']} (~{i['estimated_minutes']} min)"
         for i in items
@@ -74,7 +80,7 @@ async def classify_agenda_items(items: List[Dict]) -> List[Dict]:
 
     prompt = f"""You are an ESB framework expert. Classify each agenda item using the classification guide below.
 
-{CLASSIFICATION_GUIDE}
+{guide_text or CLASSIFICATION_GUIDE}
 
 AGENDA ITEMS TO CLASSIFY:
 {items_text}
