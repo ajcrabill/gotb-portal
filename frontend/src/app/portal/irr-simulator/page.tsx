@@ -129,6 +129,12 @@ const FRAMEWORK_ORDER = [
   "Other",
 ];
 
+// Per the source form's own formula: "Total Student Outcomes-focused Minutes"
+// = Goal Setting & Goal Monitoring combined — nothing else counts, even
+// though other Activities (Guardrail Setting, Data Eval, etc.) are also
+// student-outcomes-adjacent work.
+const STUDENT_OUTCOMES_IDS = ["goal_setting", "goal_monitoring"];
+
 // ── API helpers ───────────────────────────────────────────────────────────────
 
 function getToken() {
@@ -380,6 +386,40 @@ export default function IRRSimulatorPage() {
               </div>
             ))}
 
+            {/* Auto-calculated totals — matches the source form's own bottom rows, not editable */}
+            <div className="esb-card" style={{ marginBottom: "20px", background: "var(--esb-light-bg)" }}>
+              {(() => {
+                const studentOutcomesMinutes = STUDENT_OUTCOMES_IDS.reduce((sum, id) => sum + (minutes[id] ?? 0), 0);
+                const publicMeetingMinutesSoFar = ACTIVITY_ITEMS
+                  .filter((a) => !a.excludedFromTotals)
+                  .reduce((sum, a) => sum + (minutes[a.id] ?? 0), 0);
+                const totalMinutes = scenario.scenario_data.total_minutes;
+                const remaining = totalMinutes - publicMeetingMinutesSoFar;
+                return (
+                  <>
+                    <TotalRow
+                      label="Total Student Outcomes-focused Minutes"
+                      sublabel="Goal Setting + Goal Monitoring combined"
+                      value={`${studentOutcomesMinutes}/${totalMinutes}`}
+                    />
+                    <TotalRow
+                      label="Total Public Meeting Minutes"
+                      sublabel="All Activities above except Closed Session"
+                      value={`${publicMeetingMinutesSoFar}/${totalMinutes}`}
+                      last
+                    />
+                    {remaining !== 0 && (
+                      <p style={{ color: remaining > 0 ? "var(--esb-muted)" : "#c62828", fontSize: "13px", margin: "10px 0 0" }}>
+                        {remaining > 0
+                          ? `${remaining} minute${remaining === 1 ? "" : "s"} from the meeting minutes above still unaccounted for.`
+                          : `You've allocated ${Math.abs(remaining)} more minute${Math.abs(remaining) === 1 ? "" : "s"} than the meeting actually ran — check for double-counting.`}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+
             <div style={{ display: "flex", gap: "16px", marginTop: "8px" }}>
               <button
                 onClick={handleSubmit}
@@ -541,6 +581,18 @@ function Stat({ label, value, color }: { label: string; value: string; color?: s
       <div style={{ color: "var(--esb-muted)", fontSize: "13px", fontFamily: "var(--font-heading)" }}>
         {label}
       </div>
+    </div>
+  );
+}
+
+function TotalRow({ label, sublabel, value, last }: { label: string; sublabel: string; value: string; last?: boolean }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: last ? "none" : "1px solid var(--esb-border)" }}>
+      <div>
+        <div style={{ fontWeight: 700, fontSize: "14px" }}>{label}</div>
+        <div style={{ color: "var(--esb-muted)", fontSize: "12px" }}>{sublabel}</div>
+      </div>
+      <div style={{ fontWeight: 700, fontSize: "16px", fontFamily: "var(--font-heading)", color: "var(--esb-primary)" }}>{value}</div>
     </div>
   );
 }
