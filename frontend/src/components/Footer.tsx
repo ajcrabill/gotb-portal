@@ -89,7 +89,7 @@ export default function Footer() {
               </h4>
               <ul style={{ listStyle: "none", padding: 0 }}>
                 {[
-                  ["IRR Simulator", "/portal/irr-simulator"],
+                  ["Time Use Evaluation IRR Simulator", "/portal/irr-simulator"],
                   ["My Clients", "/portal/clients"],
                   ["Become a Practitioner", `${ESB_SITE}/coaches/become/`],
                   ["Certification", `${ESB_SITE}/coaches/senior/`],

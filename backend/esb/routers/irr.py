@@ -1,4 +1,4 @@
-"""IRR Simulator router — M20."""
+"""Time Use Evaluation IRR Simulator router — M20."""
 from __future__ import annotations
 
 import secrets
@@ -14,14 +14,6 @@ from esb.auth.rbac import AuthContext, get_auth_context
 from esb.core.database import get_db
 from esb.models.irr import IRRAttempt, IRRAttemptStatus, IRRProgress, IRRScenario, IRRScenarioType
 from esb.models.user import RoleType
-
-ADMIN_ROLES = {RoleType.lead_senior_practitioner, RoleType.superuser}
-
-
-def _require_admin(auth: AuthContext) -> None:
-    if not auth.has_role(*ADMIN_ROLES):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required.")
-from esb.models.user import RoleType
 from esb.services.irr import (
     KAPPA_PASS_THRESHOLD,
     generate_scenario,
@@ -32,6 +24,13 @@ from esb.services.irr import (
 )
 
 router = APIRouter(prefix="/api/irr", tags=["irr"])
+
+ADMIN_ROLES = {RoleType.lead_senior_practitioner, RoleType.superuser}
+
+
+def _require_admin(auth: AuthContext) -> None:
+    if not auth.has_role(*ADMIN_ROLES):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required.")
 
 PRACTITIONER_ROLES = {
     RoleType.certified_practitioner,
@@ -47,7 +46,7 @@ def require_practitioner(auth: AuthContext) -> None:
     if not auth.has_role(*PRACTITIONER_ROLES):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="IRR Simulator requires a practitioner role.",
+            detail="Time Use Evaluation IRR Simulator requires a practitioner role.",
         )
 
 
@@ -69,13 +68,16 @@ async def generate(
     seed = secrets.token_hex(8)
     scenario_data = generate_scenario(seed=seed)
     system_scores = system_score_scenario(scenario_data)
+    # The ground-truth activity_id per minute-block is the answer key —
+    # never persist or return it alongside the practitioner-facing data.
+    scenario_data.pop("_minute_items_truth", None)
 
     scenario = IRRScenario(
         scenario_type=IRRScenarioType.time_use_eval,
         generation_seed=seed,
         scenario_data=scenario_data,
         system_scores=system_scores,
-        focus_areas=list(system_scores.keys()),
+        focus_areas=[k for k in system_scores if not k.startswith("_")],
         is_active=True,
     )
     db.add(scenario)
@@ -85,7 +87,7 @@ async def generate(
     return ScenarioOut(
         scenario_id=str(scenario.id),
         scenario_data=scenario_data,
-        item_count=len(system_scores),
+        item_count=len(scenario.focus_areas),
     )
 
 
@@ -104,7 +106,7 @@ async def get_scenario(
     return ScenarioOut(
         scenario_id=str(scenario.id),
         scenario_data=scenario.scenario_data,
-        item_count=len(scenario.system_scores),
+        item_count=len(scenario.focus_areas or []),
     )
 
 
@@ -112,7 +114,7 @@ async def get_scenario(
 
 class AttemptSubmit(BaseModel):
     scenario_id: str
-    practitioner_scores: dict  # {"item_id": {"score": int, "notes": str}}
+    practitioner_scores: dict  # {"item_id": {"minutes": int}}
 
 
 class AttemptResult(BaseModel):

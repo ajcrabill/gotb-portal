@@ -7,7 +7,7 @@ type DashCard = { title: string; description: string; href: string; tag?: string
 
 const PRACTITIONER_CARDS: DashCard[] = [
   {
-    title: "IRR Simulator",
+    title: "Time Use Evaluation IRR Simulator",
     description: "Practice inter-rater reliability with dynamically generated board meeting scenarios. Reach κ ≥ 0.70 to certify.",
     href: "/portal/irr-simulator",
     tag: "Practice",

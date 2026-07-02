@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     default: "ESB Portal | Effective School Boards",
     template: "%s | ESB Portal",
   },
-  description: "The Effective School Boards practitioner and client portal — Great on Their Behalf Index, IRR Simulator, certified assessments, and more.",
+  description: "The Effective School Boards practitioner and client portal — Great on Their Behalf Index, Time Use Evaluation IRR Simulator, certified assessments, and more.",
   robots: { index: false, follow: false },
 };
 

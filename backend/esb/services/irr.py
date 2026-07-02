@@ -1,20 +1,33 @@
-"""IRR Simulator service — dynamic scenario generation and scoring (M20).
+"""Time Use Evaluation IRR Simulator service — dynamic scenario generation
+and scoring (M20).
 
-Time Use Evaluation:
-  The system generates synthetic board meeting agendas + time logs.
-  Each scenario has rubric items (time categories) the practitioner must score.
-  System scores first; practitioner scores after; Cohen's kappa is computed.
+Practitioners read a synthetic set of board MEETING MINUTES (not an agenda
+— an agenda can't tell you how long anything took; minutes can, so that's
+what this simulates) and classify each block of time into one of the
+Effective School Boards time-use Activities, entering the number of
+minutes they'd attribute to each Activity. The system already knows the
+"true" minute allocation baked into the scenario; Cohen's-kappa-style
+agreement is computed between the practitioner's minute entries and the
+system's.
+
+The Activity taxonomy below is transcribed verbatim (Framework, Activity,
+Description) from the real ESB Board Monthly Time Use Evaluation form:
+https://docs.google.com/spreadsheets/d/1dpA-RaO_3NyP_5VCcWFeWgphgot3mJjgpfh3PX9o1tY
+(gid=1337581783, "Time Use Eval Form" tab — not the instructions tab).
+Two Activities ("Community Listening", "Data Eval") appear twice with
+identical description text, once under each Clarify Priorities framework
+group (Vision & Goals vs Values & Guardrails) — disambiguated here by a
+_goals / _guardrails suffix on the id, matching the source's own
+structure rather than merging them.
 
 Cohen's kappa formula:
   κ = (Po - Pe) / (1 - Pe)
   where Po = observed agreement, Pe = expected chance agreement.
 
-  For ordinal rubrics we use weighted kappa (linear weights).
-  kappa >= 0.70 = reliable; < 0.40 = poor; 0.40-0.69 = moderate.
-
-Scenario generation uses a lightweight template system. The IRR Simulator
-source documents from Google Drive are ingested into IRRScenario.scenario_data
-as the baseline; this service generates variant data dynamically.
+  This simulator uses a simplified linear per-item agreement (Po only,
+  no chance-correction term) averaged across items, same simplification
+  the prior 0-4-rubric version used — noted here rather than silently
+  changed. kappa >= 0.70 = reliable; < 0.40 = poor; 0.40-0.69 = moderate.
 """
 from __future__ import annotations
 
@@ -35,78 +48,151 @@ KAPPA_PASS_THRESHOLD = 0.70
 KAPPA_POOR_THRESHOLD = 0.40
 ROLLING_WINDOW = 5
 
-# ── Time Use Evaluation item definitions ─────────────────────────────────────
-# Each item is a time category that must be classified and rated.
-# These map to the scoring criteria in the Time Use Eval instrument.
+# ── Time Use Evaluation Activity taxonomy (verbatim from the source form) ────
 
 TIME_USE_ITEMS = [
-    {
-        "id": "student_outcomes",
-        "label": "Student Outcomes Focus",
-        "description": "Time spent directly on student achievement, outcome data, and goal review.",
-        "max_score": 4,
-        "rubric": {
-            0: "No time spent on student outcomes.",
-            1: "Minimal time (<10% of meeting); largely procedural.",
-            2: "Some focus (10-25%); discussed but not deeply analyzed.",
-            3: "Significant focus (25-50%); data reviewed and discussed.",
-            4: "Primary focus (>50%); deep analysis with clear goal connection.",
-        },
-    },
-    {
-        "id": "policy_governance",
-        "label": "Policy and Governance",
-        "description": "Time spent on policy adoption, revision, or governance matters.",
-        "max_score": 4,
-        "rubric": {
-            0: "No policy/governance work.",
-            1: "Perfunctory; rubber-stamp only.",
-            2: "Some deliberation on policy items.",
-            3: "Meaningful policy work with board discussion.",
-            4: "Rigorous policy work with clear rationale and outcome connection.",
-        },
-    },
-    {
-        "id": "superintendent_evaluation",
-        "label": "Superintendent Evaluation / Direction",
-        "description": "Time spent on superintendent performance, direction-setting, or contract.",
-        "max_score": 4,
-        "rubric": {
-            0: "No superintendent-facing work.",
-            1: "Mentioned but no substantive discussion.",
-            2: "Some discussion; lacks criteria or clear expectations.",
-            3: "Substantive discussion with clear expectations.",
-            4: "Rigorous evaluation with data-driven criteria and documented follow-through.",
-        },
-    },
-    {
-        "id": "community_engagement",
-        "label": "Community Engagement",
-        "description": "Time spent on genuine community input, not just public comment periods.",
-        "max_score": 4,
-        "rubric": {
-            0: "No community engagement.",
-            1: "Perfunctory public comment only.",
-            2: "Some engagement; limited two-way exchange.",
-            3: "Meaningful input sought and acknowledged.",
-            4: "Structured, substantive engagement with documented impact on decisions.",
-        },
-    },
-    {
-        "id": "operational_minutiae",
-        "label": "Operational Minutiae (inverse)",
-        "description": "Time spent on operational details that should be delegated to staff.",
-        "max_score": 4,
-        "rubric": {
-            0: "Board appropriately delegated; no operational minutiae.",
-            1: "Minimal (< 5%); isolated slippage.",
-            2: "Moderate (5-15%); noticeable scope creep.",
-            3: "Significant (15-30%); board frequently in staff territory.",
-            4: "Dominant (>30%); board acting as staff.",
-        },
-        "inverse": True,  # higher = worse; flipped in kappa computation
-    },
+    {"id": "board_self_eval", "framework": "Focus Mindset", "label": "Board Self Eval",
+     "description": "Quarterly and/or annual Board self-evaluation using the effective school boards framework instrument."},
+    {"id": "effective_time_use_eval", "framework": "Focus Mindset", "label": "Effective Time Use Eval",
+     "description": "Meeting evaluation using this time use instrument."},
+    {"id": "board_training", "framework": "Focus Mindset", "label": "Board Training",
+     "description": "Training for the Board on the effective school boards framework and related topics."},
+    {"id": "board_led_community_training", "framework": "Focus Mindset", "label": "Board-led Community Training",
+     "description": "Board-hosted and Board Member-led or co-led training on the effective school boards framework and related topics."},
+
+    {"id": "community_listening_goals", "framework": "Clarify Priorities 1: Vision & Goals", "label": "Community Listening",
+     "description": "Two-way communication opportunity where Board Members listen for and discuss the vision/values of their students, families, staff and community members — related to the community's vision, setting Goals, and/or monitoring Goals."},
+    {"id": "data_eval_goals", "framework": "Clarify Priorities 1: Vision & Goals", "label": "Data Eval",
+     "description": "Analyzing student data that speaks to the highest need, highest leverage areas."},
+    {"id": "goal_setting", "framework": "Clarify Priorities 1: Vision & Goals", "label": "Goal Setting",
+     "description": "Learning, data gathering, reviewing, discussing, and/or selecting goals and accepting interim goals."},
+
+    {"id": "community_listening_guardrails", "framework": "Clarify Priorities 2: Values & Guardrails", "label": "Community Listening",
+     "description": "Two-way communication opportunity where Board Members listen for and discuss the vision/values of their students, families, staff and community members — related to setting and/or monitoring Guardrails."},
+    {"id": "data_eval_guardrails", "framework": "Clarify Priorities 2: Values & Guardrails", "label": "Data Eval",
+     "description": "Analyzing system data that speaks to the highest need, highest leverage areas."},
+    {"id": "guardrail_setting", "framework": "Clarify Priorities 2: Values & Guardrails", "label": "Guardrail Setting",
+     "description": "Learning, data gathering, reviewing, discussing, and/or selecting guardrails and accepting interim guardrails."},
+
+    {"id": "goal_monitoring", "framework": "Monitor Progress", "label": "Goal Monitoring",
+     "description": "Learning, data gathering, reviewing, discussing, and/or approving/not approving goal monitoring reports in accordance with the monitoring calendar."},
+    {"id": "guardrail_monitoring", "framework": "Monitor Progress", "label": "Guardrail Monitoring",
+     "description": "Learning, data gathering, reviewing, discussing, and/or approving/not approving guardrail monitoring reports in accordance with the monitoring calendar."},
+    {"id": "superintendent_eval", "framework": "Monitor Progress", "label": "Superintendent Eval",
+     "description": "Annual evaluation of Superintendent/school system performance."},
+
+    {"id": "voting", "framework": "Align Resources", "label": "Voting",
+     "description": "The Board debating and/or voting on any item. Voting on goal/guardrail adoption and/or scheduled monitoring reports & evals are counted elsewhere, not here — all other incidents of debating/voting are never a form of goals/guardrails “monitoring.”"},
+    {"id": "policy_review", "framework": "Align Resources", "label": "Policy Review/Diet",
+     "description": "The Board evaluating whether policies align with the goals, guardrails, or legal requirements."},
+    {"id": "budget_review", "framework": "Align Resources", "label": "Budget Review",
+     "description": "The Board evaluating whether the budget aligns with the goals and guardrails."},
+
+    {"id": "community_engagement", "framework": "Communicate Results", "label": "Community Engagement",
+     "description": "Two-way communication opportunity hosted by Board Members where they listen for and discuss the vision/values of their students, families, staff and community members, related to board work, but that is NOT setting or monitoring goals and guardrails. Must be genuinely two-way and board-hosted — a one-way public comment period where the board listens without dialogue does not meet this definition; that time is “Other.”"},
+    {"id": "community_outreach", "framework": "Communicate Results", "label": "Community Outreach",
+     "description": "Two-way communication opportunity where Board Members go to community-hosted meetings to listen for and discuss the vision/values of their students, families, staff and community members, related to board work, but that is NOT setting or monitoring goals or guardrails. Must be genuinely two-way — the board attending and passively observing a community event does not meet this definition."},
+
+    {"id": "closed_session", "framework": "Other", "label": "Closed Session",
+     "description": "Time spent in non-public meetings, consistent with open meetings laws. Not counted in Total Public Meeting Minutes.",
+     "excluded_from_totals": True},
+    {"id": "other", "framework": "Other", "label": "Other",
+     "description": "Any time spent on an activity that is not one of the above — including one-way public comment periods, procedural items (call to order, roll call, adjournment), and consent-agenda approval that isn't itself a Voting deliberation."},
 ]
+
+_ITEMS_BY_ID = {i["id"]: i for i in TIME_USE_ITEMS}
+_STUDENT_OUTCOMES_IDS = {"goal_setting", "goal_monitoring"}  # per the source form's own formula
+
+
+# ── Narrative minute-block templates ─────────────────────────────────────────
+# Each entry is a list of (text_template, minutes_range) pairs for one
+# activity id. Templates describe WHAT THE BOARD DID, in the style of real
+# meeting minutes — not an agenda item title. Several are written to be
+# genuinely close calls that only resolve correctly against the Activity
+# descriptions above (that's deliberate: reading the description is
+# supposed to matter, not just pattern-matching a label).
+
+_MINUTE_TEMPLATES: dict[str, list[tuple[str, tuple[int, int]]]] = {
+    "other": [
+        ("The board president called the meeting to order at 6:00 PM and the secretary called roll; {quorum} of {board_size} members were present.", (2, 4)),
+        ("The board reviewed and approved the minutes from the previous regular meeting without discussion.", (1, 3)),
+        ("During the public comment period, {n_speakers} community members addressed the board on topics including a proposed bus route change and a maintenance complaint at {school}. Each speaker had three minutes at the podium; board members thanked speakers for their comments but did not respond to or discuss any of the concerns raised, and no board member engaged in dialogue with a speaker.", (8, 22)),
+        ("The board took public comment on the district's dress code policy. Twelve parents signed up; the board chair reminded the room that per policy the board does not respond during public comment, and none did. Comments were read into the record by the clerk.", (10, 18)),
+        ("The board approved the consent agenda in a single motion, covering routine items including field trip approvals, facility use requests, and personnel notifications, with no discussion.", (2, 5)),
+        ("The meeting was adjourned at the board president's motion, seconded and approved unanimously.", (1, 2)),
+    ],
+    "board_self_eval": [
+        ("The board conducted its quarterly self-evaluation using the Effective School Boards framework instrument, with each member independently scoring the board's performance on Focus Mindset and Clarify Priorities before discussing results as a group.", (15, 30)),
+    ],
+    "effective_time_use_eval": [
+        ("The board reviewed last month's time-use evaluation results, comparing the percentage of the prior meeting spent on student-outcomes-focused work against the board's own target.", (5, 12)),
+    ],
+    "board_training": [
+        ("A board development consultant led a training session for board members on distinguishing governance from management, using recent board decisions as case studies.", (20, 45)),
+        ("The board spent time reviewing the Effective School Boards framework's guardrail-monitoring calendar and discussing how upcoming reports would be structured.", (10, 20)),
+    ],
+    "board_led_community_training": [
+        ("Two board members co-led a community workshop, held immediately before the regular meeting, walking attendees through the district's SMART goal framework and how the community can track progress.", (20, 40)),
+    ],
+    "community_listening_goals": [
+        ("Board members broke into small groups with attendees to gather input on what families believe the district's top student-outcome priority should be for next year, with each group reporting themes back to the full board.", (15, 30)),
+        ("The board held a structured listening session, asking attendees direct questions about their vision for the district and taking notes on responses that will inform the upcoming goal-setting cycle; several board members asked follow-up questions of specific speakers.", (15, 25)),
+    ],
+    "data_eval_goals": [
+        ("The board reviewed disaggregated third-grade reading assessment data by subgroup, discussing which student populations showed the largest gaps against the district's literacy goal.", (10, 25)),
+        ("The academic officer presented graduation-rate trend data over the last five years, and board members asked clarifying questions about which cohorts were most at risk of not graduating on time.", (12, 20)),
+    ],
+    "goal_setting": [
+        ("The board discussed and voted to accept an interim goal for third-grade reading proficiency, setting a target of increasing the percentage of students reading on grade level from 45% to 55% by the end of the school year.", (10, 25)),
+        ("Following a first read at the prior meeting, the board formally adopted its five-year student-outcomes goal on graduation rate, setting a target increase from 78% to 90% by 2030.", (8, 18)),
+    ],
+    "community_listening_guardrails": [
+        ("The board asked attendees at a town hall what non-negotiable community values the board should protect when it comes to how the superintendent operates, and discussed the themes that emerged with the room.", (15, 25)),
+    ],
+    "data_eval_guardrails": [
+        ("The board reviewed discipline-incident data broken out by school and by student subgroup, looking for patterns that might indicate a guardrail violation around equitable discipline practices.", (10, 20)),
+    ],
+    "guardrail_setting": [
+        ("The board discussed and adopted a new guardrail prohibiting the superintendent from approving any curriculum change without first engaging classroom teachers, following board discussion of a proposed contract that had already drawn teacher objections.", (10, 20)),
+    ],
+    "goal_monitoring": [
+        ("The superintendent presented the scheduled quarterly goal-monitoring report on the district's math proficiency goal, showing current performance against the interim target; the board discussed the data and voted to accept the report as presented.", (15, 30)),
+        ("Per the monitoring calendar, the board reviewed the semi-annual graduation-rate goal report, asked the superintendent several questions about the plan to close the gap with the target, and voted not to accept the report pending additional data.", (15, 25)),
+    ],
+    "guardrail_monitoring": [
+        ("The board reviewed the scheduled guardrail-monitoring report on student discipline practices, comparing suspension rates by subgroup against the guardrail's non-negotiable language, and voted to accept the report.", (10, 20)),
+        ("As scheduled on the monitoring calendar, the superintendent presented evidence of compliance with the community-engagement guardrail, and the board discussed whether the evidence provided was sufficient before voting to accept it.", (10, 18)),
+    ],
+    "superintendent_eval": [
+        ("The board conducted the superintendent's annual performance evaluation in open session, with each board member sharing scored feedback against the adopted evaluation rubric before reaching consensus on an overall rating.", (25, 50)),
+    ],
+    "voting": [
+        ("The board debated and voted on a proposed change to the district's attendance boundary lines, with several members raising concerns about impact on specific neighborhoods before the motion passed 4-3.", (10, 25)),
+        ("The board voted to approve a new vendor contract for transportation services after brief discussion of the bid comparison.", (5, 12)),
+    ],
+    "policy_review": [
+        ("The board conducted a first reading of a revised student code of conduct policy, discussing whether the proposed language aligned with the district's adopted guardrails on discipline.", (10, 20)),
+        ("Legal counsel walked the board through required updates to the district's open-records policy to remain compliant with a recent state law change, and the board discussed whether the update conflicted with any existing guardrail.", (8, 15)),
+    ],
+    "budget_review": [
+        ("The chief financial officer presented the mid-year budget forecast, and the board discussed whether proposed reallocations toward literacy intervention staffing aligned with the district's adopted goals.", (12, 25)),
+        ("The board reviewed the proposed capital budget for facility repairs, discussing whether the prioritized projects reflected the guardrails around equitable facility conditions across schools.", (15, 25)),
+    ],
+    "community_engagement": [
+        ("The board hosted a structured community forum on the district's proposed rezoning plan, with board members taking questions directly from attendees and engaging in back-and-forth discussion about specific concerns raised, including several instances of a board member following up on a speaker's point.", (20, 40)),
+        ("Board members hosted a “Coffee with the Board” session before the meeting, fielding questions from roughly twenty attendees about the district's strategic priorities and responding directly to each question asked.", (15, 30)),
+    ],
+    "community_outreach": [
+        ("Two board members attended a PTA-hosted meeting at {school}, where they took questions from parents about the district's academic goals and engaged in discussion about specific concerns raised regarding the new reading curriculum.", (15, 30)),
+        ("A board member attended a neighborhood association meeting, invited by the association, and spent the session in dialogue with residents about how the district's guardrails address safety concerns raised at a prior meeting.", (10, 20)),
+    ],
+    "closed_session": [
+        ("The board entered closed session, consistent with open meetings law, to discuss active litigation; the meeting resumed in open session with no action taken.", (15, 40)),
+        ("The board convened in executive session to discuss the superintendent's contract renewal terms before returning to open session to vote.", (20, 45)),
+    ],
+}
+
+_SCHOOLS = ["Jefferson Elementary", "Lincoln Middle School", "Roosevelt High School", "Washington Elementary", "Kennedy Middle School"]
 
 
 def _seed_from_string(s: str) -> int:
@@ -119,40 +205,50 @@ def _random_date_near_today(rng: random.Random) -> str:
     return d.strftime("%B %d, %Y")
 
 
-def _generate_agenda_items(rng: random.Random) -> list[dict]:
-    """Generate synthetic agenda items with time allocations."""
-    templates = [
-        ("Call to Order / Roll Call", "procedural", (2, 5)),
-        ("Approval of Minutes", "procedural", (2, 4)),
-        ("Public Comment", "community_engagement", (5, 20)),
-        ("Superintendent's Report", "superintendent_evaluation", (10, 25)),
-        ("Student Achievement Data Review", "student_outcomes", (10, 40)),
-        ("Policy First Reading", "policy_governance", (8, 20)),
-        ("Budget Update", "operational_minutiae", (10, 30)),
-        ("Facilities Update", "operational_minutiae", (5, 20)),
-        ("Human Resources Report", "operational_minutiae", (5, 15)),
-        ("Goals Progress Update", "student_outcomes", (10, 25)),
-        ("Consent Agenda", "procedural", (2, 5)),
-        ("Board Member Reports", "community_engagement", (5, 15)),
-        ("Executive Session", "superintendent_evaluation", (15, 45)),
-        ("Adjournment", "procedural", (1, 3)),
-    ]
-    selected = rng.sample(templates, k=rng.randint(6, 10))
-    agenda = []
-    for title, category, (min_min, max_min) in selected:
-        minutes = rng.randint(min_min, max_min)
-        agenda.append({"title": title, "category": category, "allocated_minutes": minutes})
-    return agenda
+def _generate_minute_items(rng: random.Random, quorum: int, board_size: int) -> list[dict]:
+    """Generate a synthetic set of meeting-minutes entries — narrative
+    descriptions of what the board did during each time block, each tagged
+    (internally, not shown to the practitioner) with the ground-truth
+    Activity id it should be classified as."""
+    # Always include the routine "Other" procedural items (call to order,
+    # minutes approval, public comment, consent agenda, adjournment) —
+    # every real meeting has these, and public comment belongs in Other
+    # per the corrected definition, not Community Engagement.
+    other_pool = _MINUTE_TEMPLATES["other"]
+    selected_other = rng.sample(other_pool, k=min(len(other_pool), rng.randint(4, 6)))
+
+    # Then a random selection of substantive activities.
+    substantive_ids = [k for k in _MINUTE_TEMPLATES if k != "other"]
+    chosen_ids = rng.sample(substantive_ids, k=rng.randint(5, 9))
+
+    items: list[dict] = []
+    for text_template, minutes_range in selected_other:
+        items.append(_fill_item(rng, "other", text_template, minutes_range, quorum, board_size))
+    for activity_id in chosen_ids:
+        text_template, minutes_range = rng.choice(_MINUTE_TEMPLATES[activity_id])
+        items.append(_fill_item(rng, activity_id, text_template, minutes_range, quorum, board_size))
+
+    rng.shuffle(items)
+    return items
+
+
+def _fill_item(rng: random.Random, activity_id: str, template: str, minutes_range: tuple[int, int], quorum: int, board_size: int) -> dict:
+    minutes = rng.randint(*minutes_range)
+    text = template.format(
+        quorum=quorum, board_size=board_size,
+        n_speakers=rng.randint(3, 9), school=rng.choice(_SCHOOLS),
+    )
+    return {"description": text, "activity_id": activity_id, "minutes": minutes}
 
 
 def generate_scenario(
     scenario_type: IRRScenarioType = IRRScenarioType.time_use_eval,
     seed: str | None = None,
 ) -> dict:
-    """
-    Generate synthetic scenario data.
-    Returns a dict with all data needed to present the scenario to a practitioner.
-    """
+    """Generate synthetic scenario data — a set of meeting-minutes entries
+    (not an agenda) with narrative descriptions the practitioner must
+    classify and time. Returns a dict with everything needed to present
+    the scenario."""
     if seed is None:
         seed = secrets.token_hex(8)
     rng = random.Random(_seed_from_string(seed))
@@ -169,8 +265,8 @@ def generate_scenario(
     board_size = rng.randint(5, 7)
     quorum = rng.randint(board_size - 1, board_size)
 
-    agenda_items = _generate_agenda_items(rng)
-    total_minutes = sum(a["allocated_minutes"] for a in agenda_items)
+    minute_items = _generate_minute_items(rng, quorum, board_size)
+    total_minutes = sum(m["minutes"] for m in minute_items)
 
     return {
         "district": district_name,
@@ -179,7 +275,8 @@ def generate_scenario(
         "quorum_present": quorum,
         "board_size": board_size,
         "total_minutes": total_minutes,
-        "agenda_items": agenda_items,
+        "minute_items": [{"description": m["description"]} for m in minute_items],  # activity_id withheld from practitioner
+        "_minute_items_truth": minute_items,  # includes activity_id; stripped before sending to client
         "notes": (
             f"The board convened at 6:00 PM with {quorum} of {board_size} members present. "
             f"Total meeting time: {total_minutes} minutes."
@@ -188,110 +285,90 @@ def generate_scenario(
 
 
 def system_score_scenario(scenario_data: dict) -> dict:
-    """
-    Apply the canonical scoring to a generated scenario.
-    Returns {item_id: {score, rationale, criteria_met}} for all rubric items.
-    """
-    # Compute time allocations by category
-    category_minutes: dict[str, int] = {}
-    total = scenario_data.get("total_minutes", 0) or 1  # avoid div-by-zero
-    for item in scenario_data.get("agenda_items", []):
-        cat = item["category"]
-        category_minutes[cat] = category_minutes.get(cat, 0) + item["allocated_minutes"]
+    """Apply the canonical scoring to a generated scenario: sum the
+    ground-truth minutes per Activity. Returns {item_id: {minutes, pct_of_meeting}}
+    for all Activities (0 minutes for ones that didn't occur)."""
+    truth_items = scenario_data.get("_minute_items_truth") or []
+    total = scenario_data.get("total_minutes", 0) or 1
+
+    minutes_by_activity: dict[str, int] = {i["id"]: 0 for i in TIME_USE_ITEMS}
+    for m in truth_items:
+        aid = m.get("activity_id", "other")
+        minutes_by_activity[aid] = minutes_by_activity.get(aid, 0) + m["minutes"]
 
     scores = {}
     for item in TIME_USE_ITEMS:
         iid = item["id"]
-        cat_map = {
-            "student_outcomes":         "student_outcomes",
-            "policy_governance":        "policy_governance",
-            "superintendent_evaluation": "superintendent_evaluation",
-            "community_engagement":     "community_engagement",
-            "operational_minutiae":     "operational_minutiae",
-        }
-        cat = cat_map.get(iid, "")
-        pct = (category_minutes.get(cat, 0) / total) * 100
-
-        if item.get("inverse"):
-            # operational minutiae: more = worse
-            if pct < 5:
-                score = 0
-            elif pct < 15:
-                score = 2
-            elif pct < 30:
-                score = 3
-            else:
-                score = 4
-        else:
-            if pct == 0:
-                score = 0
-            elif pct < 10:
-                score = 1
-            elif pct < 25:
-                score = 2
-            elif pct < 50:
-                score = 3
-            else:
-                score = 4
-
+        mins = minutes_by_activity.get(iid, 0)
         scores[iid] = {
-            "score": score,
-            "pct_of_meeting": round(pct, 1),
-            "minutes": category_minutes.get(cat, 0),
-            "rationale": item["rubric"][score],
-            "criteria_met": [item["rubric"][s] for s in range(score + 1)],
+            "minutes": mins,
+            "pct_of_meeting": round((mins / total) * 100, 1),
         }
+
+    student_outcomes_minutes = sum(minutes_by_activity.get(i, 0) for i in _STUDENT_OUTCOMES_IDS)
+    public_meeting_minutes = sum(
+        mins for iid, mins in minutes_by_activity.items()
+        if not _ITEMS_BY_ID.get(iid, {}).get("excluded_from_totals")
+    )
+    scores["_totals"] = {
+        "student_outcomes_minutes": student_outcomes_minutes,
+        "student_outcomes_pct": round((student_outcomes_minutes / total) * 100, 1),
+        "public_meeting_minutes": public_meeting_minutes,
+    }
     return scores
 
 
 def compute_kappa(system_scores: dict, practitioner_scores: dict) -> tuple[float, dict]:
-    """
-    Compute Cohen's kappa (linear weighted) for matched items.
-    Returns (overall_kappa, per_item_kappas).
-    """
+    """Per-item agreement (Po, no chance-correction — same simplification
+    the prior 0-4-rubric version used) comparing entered minutes, not a
+    selected band. Normalized against total meeting minutes so a miss of
+    the whole meeting length floors agreement at 0 for that item.
+
+    Only Activities that were actually "in play" — the system recorded
+    minutes for it, the practitioner did, or both — count toward the
+    average. With ~20 Activities and typically only 8-13 occurring in a
+    given scenario, averaging over all 20 (most trivially 0/0) let a
+    practitioner who entered nothing score ~0.94 by free-riding on the
+    Activities that never came up. Scoring only the ones in play measures
+    what the instrument is actually meant to measure: did the
+    practitioner correctly classify and time the things that happened.
+    An item_kappas entry is still returned for every Activity (0/0 items
+    get a full-credit 1.0, shown but excluded from the average) so the
+    UI can show per-item feedback across the whole rubric."""
+    total_minutes = system_scores.get("_totals", {}).get("public_meeting_minutes") or 1
     item_kappas = {}
+    in_play_scores = []
     for item in TIME_USE_ITEMS:
         iid = item["id"]
-        sys_score  = system_scores.get(iid, {}).get("score", 0)
-        prac_score = practitioner_scores.get(iid, {}).get("score", 0)
-        max_score  = item["max_score"]
+        sys_minutes  = system_scores.get(iid, {}).get("minutes", 0)
+        prac_minutes = practitioner_scores.get(iid, {}).get("minutes", 0)
 
-        # Weighted kappa for single item pair
-        if max_score == 0:
-            item_kappas[iid] = 1.0
-            continue
+        diff = abs(sys_minutes - prac_minutes)
+        po = 1.0 - min(diff, total_minutes) / total_minutes
+        item_kappas[iid] = po
+        if sys_minutes > 0 or prac_minutes > 0:
+            in_play_scores.append(po)
 
-        # With two raters, Po = 1 if they agree, else 1 - |diff|/max_score
-        # Simple linear weight for binary agreement on single item:
-        po = 1.0 - abs(sys_score - prac_score) / max_score
-        item_kappas[iid] = po  # single-item: kappa ≈ agreement weight
-
-    overall = sum(item_kappas.values()) / len(item_kappas) if item_kappas else 0.0
+    overall = sum(in_play_scores) / len(in_play_scores) if in_play_scores else 1.0
     return overall, item_kappas
 
 
 def generate_item_feedback(
     item_id: str,
-    system_score: int,
-    practitioner_score: int,
-    system_rationale: str,
+    system_minutes: int,
+    practitioner_minutes: int,
     item_def: dict,
 ) -> str:
     """Generate clear, specific feedback for a missed item."""
-    if system_score == practitioner_score:
+    if system_minutes == practitioner_minutes:
         return "Correct."
 
-    direction = "higher" if system_score > practitioner_score else "lower"
-    diff = abs(system_score - practitioner_score)
-    rubric_sys  = item_def["rubric"][system_score]
-    rubric_prac = item_def["rubric"].get(practitioner_score, "N/A")
-
+    diff = abs(system_minutes - practitioner_minutes)
+    direction = "more" if system_minutes > practitioner_minutes else "fewer"
     return (
-        f"The correct score is {system_score} (you scored {practitioner_score}, "
-        f"{diff} point{'s' if diff != 1 else ''} {direction}). "
-        f"Correct criteria: '{rubric_sys}'. "
-        f"You selected: '{rubric_prac}'. "
-        f"Rationale: {system_rationale}"
+        f"The correct total is {system_minutes} minute{'s' if system_minutes != 1 else ''} "
+        f"(you entered {practitioner_minutes}, {diff} {direction}). "
+        f"'{item_def.get('label', item_id)}' ({item_def.get('framework', '')}): {item_def.get('description', '')}"
     )
 
 
@@ -306,16 +383,14 @@ async def submit_attempt(
     kappa, item_kappas = compute_kappa(scenario.system_scores, attempt.practitioner_scores)
 
     item_feedback = {}
-    item_defs_by_id = {d["id"]: d for d in TIME_USE_ITEMS}
     for item_id, item_kappa in item_kappas.items():
-        item_def = item_defs_by_id.get(item_id, {})
+        item_def = _ITEMS_BY_ID.get(item_id, {})
         sys_item  = scenario.system_scores.get(item_id, {})
         prac_item = attempt.practitioner_scores.get(item_id, {})
         item_feedback[item_id] = generate_item_feedback(
             item_id=item_id,
-            system_score=sys_item.get("score", 0),
-            practitioner_score=prac_item.get("score", 0),
-            system_rationale=sys_item.get("rationale", ""),
+            system_minutes=sys_item.get("minutes", 0),
+            practitioner_minutes=prac_item.get("minutes", 0),
             item_def=item_def,
         )
 

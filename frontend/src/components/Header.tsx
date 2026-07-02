@@ -33,7 +33,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: "Find a Practitioner", href: `${ESB_SITE}/coaches/find/`, external: true },
       { label: "Become a Practitioner", href: `${ESB_SITE}/coaches/become/`, external: true },
       { label: "Become a Senior Practitioner", href: `${ESB_SITE}/coaches/senior/`, external: true },
-      { label: "IRR Simulator", href: "/portal/irr-simulator", portalOnly: true },
+      { label: "Time Use Evaluation IRR Simulator", href: "/portal/irr-simulator", portalOnly: true },
       { label: "My Clients", href: "/portal/clients", portalOnly: true },
     ],
   },
@@ -67,7 +67,7 @@ const PORTAL_NAV: NavItem[] = [
       { label: "Certified Assessment", href: "/portal/assessments/certified" },
     ],
   },
-  { label: "IRR Simulator", href: "/portal/irr-simulator" },
+  { label: "Time Use Evaluation IRR Simulator", href: "/portal/irr-simulator" },
   { label: "Time Use Evaluation", href: "/portal/time-use-eval" },
   {
     label: "My Work",

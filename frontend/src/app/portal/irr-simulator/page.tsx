@@ -1,24 +1,28 @@
 "use client";
 
 /**
- * IRR Simulator — M20
+ * Time Use Evaluation IRR Simulator — M20
+ *
+ * (Named "Time Use Evaluation IRR Simulator" specifically because a
+ * separate GOTB Index Assessment IRR Simulator is planned later.)
  *
  * Three stages:
  *   1. Landing / progress overview
- *   2. Scoring — practitioner scores each rubric item for the generated scenario
+ *   2. Classification — practitioner reads synthetic meeting MINUTES (not
+ *      an agenda — an agenda can't tell you how long anything took) and
+ *      enters total minutes per Activity, matching the real ESB Time Use
+ *      Eval form's Activity taxonomy.
  *   3. Results — kappa, per-item feedback, system vs. practitioner comparison
  */
 import { useState, useEffect } from "react";
-import { auth as apiAuth, API_BASE } from "@/lib/api";
+import { API_BASE } from "@/lib/api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type Stage = "landing" | "scoring" | "results";
 
-type AgendaItem = {
-  title: string;
-  category: string;
-  allocated_minutes: number;
+type MinuteItem = {
+  description: string;
 };
 
 type ScenarioData = {
@@ -28,7 +32,7 @@ type ScenarioData = {
   quorum_present: number;
   board_size: number;
   total_minutes: number;
-  agenda_items: AgendaItem[];
+  minute_items: MinuteItem[];
   notes: string;
 };
 
@@ -38,13 +42,17 @@ type ScenarioOut = {
   item_count: number;
 };
 
+type SystemItemScore = { minutes: number; pct_of_meeting: number };
+
 type AttemptResult = {
   attempt_id: string;
   kappa: number;
   passed: boolean;
   item_kappas: Record<string, number>;
   item_feedback: Record<string, string>;
-  system_scores: Record<string, { score: number; pct_of_meeting: number; minutes: number; rationale: string }>;
+  system_scores: Record<string, SystemItemScore> & {
+    _totals?: { student_outcomes_minutes: number; student_outcomes_pct: number; public_meeting_minutes: number };
+  };
   kappa_threshold: number;
   message: string;
 };
@@ -56,75 +64,68 @@ type Progress = {
   certified_at: string | null;
 };
 
-// ── Rubric items (mirrors backend TIME_USE_ITEMS) ─────────────────────────────
+// ── Activity taxonomy (mirrors backend TIME_USE_ITEMS — verbatim from the
+// real ESB Board Monthly Time Use Evaluation form) ────────────────────────────
 
-const RUBRIC_ITEMS = [
-  {
-    id: "student_outcomes",
-    label: "Student Outcomes Focus",
-    description: "Time spent directly on student achievement, outcome data, and goal review.",
-    max_score: 4,
-    options: [
-      { score: 0, label: "No time on student outcomes" },
-      { score: 1, label: "Minimal (<10%) — largely procedural" },
-      { score: 2, label: "Some focus (10-25%) — discussed but not deeply analyzed" },
-      { score: 3, label: "Significant (25-50%) — data reviewed and discussed" },
-      { score: 4, label: "Primary focus (>50%) — deep analysis with goal connection" },
-    ],
-  },
-  {
-    id: "policy_governance",
-    label: "Policy and Governance",
-    description: "Time spent on policy adoption, revision, or governance matters.",
-    max_score: 4,
-    options: [
-      { score: 0, label: "No policy/governance work" },
-      { score: 1, label: "Perfunctory — rubber-stamp only" },
-      { score: 2, label: "Some deliberation on policy items" },
-      { score: 3, label: "Meaningful policy work with board discussion" },
-      { score: 4, label: "Rigorous policy work with clear rationale and outcome connection" },
-    ],
-  },
-  {
-    id: "superintendent_evaluation",
-    label: "Superintendent Direction / Evaluation",
-    description: "Time spent on superintendent performance, direction-setting, or contract.",
-    max_score: 4,
-    options: [
-      { score: 0, label: "No superintendent-facing work" },
-      { score: 1, label: "Mentioned but no substantive discussion" },
-      { score: 2, label: "Some discussion; lacks criteria or clear expectations" },
-      { score: 3, label: "Substantive discussion with clear expectations" },
-      { score: 4, label: "Rigorous evaluation with data-driven criteria and documented follow-through" },
-    ],
-  },
-  {
-    id: "community_engagement",
-    label: "Community Engagement",
-    description: "Time spent on genuine community input — not just public comment periods.",
-    max_score: 4,
-    options: [
-      { score: 0, label: "No community engagement" },
-      { score: 1, label: "Perfunctory public comment only" },
-      { score: 2, label: "Some engagement; limited two-way exchange" },
-      { score: 3, label: "Meaningful input sought and acknowledged" },
-      { score: 4, label: "Structured, substantive engagement with documented impact on decisions" },
-    ],
-  },
-  {
-    id: "operational_minutiae",
-    label: "Operational Minutiae (lower is better)",
-    description: "Time spent on operational details that should be delegated to staff.",
-    max_score: 4,
-    inverse: true,
-    options: [
-      { score: 0, label: "Board appropriately delegated; no operational minutiae" },
-      { score: 1, label: "Minimal (<5%) — isolated slippage" },
-      { score: 2, label: "Moderate (5-15%) — noticeable scope creep" },
-      { score: 3, label: "Significant (15-30%) — board frequently in staff territory" },
-      { score: 4, label: "Dominant (>30%) — board acting as staff" },
-    ],
-  },
+type ActivityItem = { id: string; framework: string; label: string; description: string; excludedFromTotals?: boolean };
+
+const ACTIVITY_ITEMS: ActivityItem[] = [
+  { id: "board_self_eval", framework: "Focus Mindset", label: "Board Self Eval",
+    description: "Quarterly and/or annual Board self-evaluation using the effective school boards framework instrument." },
+  { id: "effective_time_use_eval", framework: "Focus Mindset", label: "Effective Time Use Eval",
+    description: "Meeting evaluation using this time use instrument." },
+  { id: "board_training", framework: "Focus Mindset", label: "Board Training",
+    description: "Training for the Board on the effective school boards framework and related topics." },
+  { id: "board_led_community_training", framework: "Focus Mindset", label: "Board-led Community Training",
+    description: "Board-hosted and Board Member-led or co-led training on the effective school boards framework and related topics." },
+
+  { id: "community_listening_goals", framework: "Clarify Priorities 1: Vision & Goals", label: "Community Listening",
+    description: "Two-way communication opportunity where Board Members listen for and discuss the vision/values of their students, families, staff and community members — related to the community's vision, setting Goals, and/or monitoring Goals." },
+  { id: "data_eval_goals", framework: "Clarify Priorities 1: Vision & Goals", label: "Data Eval",
+    description: "Analyzing student data that speaks to the highest need, highest leverage areas." },
+  { id: "goal_setting", framework: "Clarify Priorities 1: Vision & Goals", label: "Goal Setting",
+    description: "Learning, data gathering, reviewing, discussing, and/or selecting goals and accepting interim goals." },
+
+  { id: "community_listening_guardrails", framework: "Clarify Priorities 2: Values & Guardrails", label: "Community Listening",
+    description: "Two-way communication opportunity where Board Members listen for and discuss the vision/values of their students, families, staff and community members — related to setting and/or monitoring Guardrails." },
+  { id: "data_eval_guardrails", framework: "Clarify Priorities 2: Values & Guardrails", label: "Data Eval",
+    description: "Analyzing system data that speaks to the highest need, highest leverage areas." },
+  { id: "guardrail_setting", framework: "Clarify Priorities 2: Values & Guardrails", label: "Guardrail Setting",
+    description: "Learning, data gathering, reviewing, discussing, and/or selecting guardrails and accepting interim guardrails." },
+
+  { id: "goal_monitoring", framework: "Monitor Progress", label: "Goal Monitoring",
+    description: "Learning, data gathering, reviewing, discussing, and/or approving/not approving goal monitoring reports in accordance with the monitoring calendar." },
+  { id: "guardrail_monitoring", framework: "Monitor Progress", label: "Guardrail Monitoring",
+    description: "Learning, data gathering, reviewing, discussing, and/or approving/not approving guardrail monitoring reports in accordance with the monitoring calendar." },
+  { id: "superintendent_eval", framework: "Monitor Progress", label: "Superintendent Eval",
+    description: "Annual evaluation of Superintendent/school system performance." },
+
+  { id: "voting", framework: "Align Resources", label: "Voting",
+    description: "The Board debating and/or voting on any item. Voting on goal/guardrail adoption and/or scheduled monitoring reports & evals are counted elsewhere, not here — all other incidents of debating/voting are never a form of goals/guardrails “monitoring.”" },
+  { id: "policy_review", framework: "Align Resources", label: "Policy Review/Diet",
+    description: "The Board evaluating whether policies align with the goals, guardrails, or legal requirements." },
+  { id: "budget_review", framework: "Align Resources", label: "Budget Review",
+    description: "The Board evaluating whether the budget aligns with the goals and guardrails." },
+
+  { id: "community_engagement", framework: "Communicate Results", label: "Community Engagement",
+    description: "Two-way communication opportunity hosted by Board Members where they listen for and discuss the vision/values of their students, families, staff and community members, related to board work, but that is NOT setting or monitoring goals and guardrails. Must be genuinely two-way and board-hosted — a one-way public comment period where the board listens without dialogue does not meet this definition; that time is “Other.”" },
+  { id: "community_outreach", framework: "Communicate Results", label: "Community Outreach",
+    description: "Two-way communication opportunity where Board Members go to community-hosted meetings to listen for and discuss the vision/values of their students, families, staff and community members, related to board work, but that is NOT setting or monitoring goals or guardrails. Must be genuinely two-way — the board attending and passively observing a community event does not meet this definition." },
+
+  { id: "closed_session", framework: "Other", label: "Closed Session",
+    description: "Time spent in non-public meetings, consistent with open meetings laws. Not counted in Total Public Meeting Minutes.", excludedFromTotals: true },
+  { id: "other", framework: "Other", label: "Other",
+    description: "Any time spent on an activity that is not one of the above — including one-way public comment periods, procedural items (call to order, roll call, adjournment), and consent-agenda approval that isn't itself a Voting deliberation." },
+];
+
+const FRAMEWORK_ORDER = [
+  "Focus Mindset",
+  "Clarify Priorities 1: Vision & Goals",
+  "Clarify Priorities 2: Values & Guardrails",
+  "Monitor Progress",
+  "Align Resources",
+  "Communicate Results",
+  "Other",
 ];
 
 // ── API helpers ───────────────────────────────────────────────────────────────
@@ -156,7 +157,7 @@ async function apiRequest<T>(path: string, opts: RequestInit = {}): Promise<T> {
 export default function IRRSimulatorPage() {
   const [stage, setStage] = useState<Stage>("landing");
   const [scenario, setScenario] = useState<ScenarioOut | null>(null);
-  const [scores, setScores] = useState<Record<string, number>>({});
+  const [minutes, setMinutes] = useState<Record<string, number>>({});
   const [result, setResult] = useState<AttemptResult | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(false);
@@ -172,7 +173,7 @@ export default function IRRSimulatorPage() {
     try {
       const s = await apiRequest<ScenarioOut>("/api/irr/scenarios/generate", { method: "POST" });
       setScenario(s);
-      setScores({});
+      setMinutes({});
       setResult(null);
       setStage("scoring");
     } catch (e: unknown) {
@@ -184,16 +185,11 @@ export default function IRRSimulatorPage() {
 
   async function handleSubmit() {
     if (!scenario) return;
-    const missing = RUBRIC_ITEMS.filter((item) => scores[item.id] === undefined);
-    if (missing.length > 0) {
-      setError(`Please score all items before submitting. Missing: ${missing.map((m) => m.label).join(", ")}`);
-      return;
-    }
     setLoading(true);
     setError("");
     try {
       const practitioner_scores = Object.fromEntries(
-        Object.entries(scores).map(([id, score]) => [id, { score }])
+        ACTIVITY_ITEMS.map((item) => [item.id, { minutes: minutes[item.id] ?? 0 }])
       );
       const r = await apiRequest<AttemptResult>("/api/irr/attempts", {
         method: "POST",
@@ -220,10 +216,10 @@ export default function IRRSimulatorPage() {
       <div style={{ background: "var(--esb-section-dark)", padding: "40px 0 30px", color: "#fff" }}>
         <div className="container mx-auto px-4">
           <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "34px", fontWeight: 700, color: "#fff", margin: 0 }}>
-            IRR Simulator
+            Time Use Evaluation IRR Simulator
           </h1>
           <p style={{ color: "#aaaaaa", marginTop: "8px", marginBottom: 0 }}>
-            Practice inter-rater reliability on dynamically generated board meeting scenarios
+            Practice inter-rater reliability classifying board meeting minutes by Time Use Activity
           </p>
         </div>
       </div>
@@ -272,11 +268,14 @@ export default function IRRSimulatorPage() {
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "26px", fontWeight: 700, marginBottom: "16px" }}>
               How it works
             </h2>
-            <ol style={{ textAlign: "left", maxWidth: "500px", margin: "0 auto 32px", paddingLeft: "20px", lineHeight: "2" }}>
-              <li>A synthetic board meeting agenda is generated with realistic time allocations.</li>
-              <li>You score each rubric item as you would in a real Time Use Evaluation.</li>
-              <li>The system's own scores are revealed. Cohen's kappa is computed for each item.</li>
-              <li>You receive specific feedback on every item where you and the system disagreed.</li>
+            <ol style={{ textAlign: "left", maxWidth: "540px", margin: "0 auto 32px", paddingLeft: "20px", lineHeight: "2" }}>
+              <li>You&apos;ll read a synthetic set of board meeting <strong>minutes</strong> — narrative blocks
+                describing what the board actually did, with the time each block took.</li>
+              <li>For each time block, decide which Time Use Activity it belongs to, using the exact
+                Activity descriptions provided — some blocks are deliberately close calls that only
+                resolve correctly against the definition, not the label.</li>
+              <li>Enter the total minutes you&apos;d attribute to each Activity across the whole meeting.</li>
+              <li>The system&apos;s own minute allocations are revealed. Agreement (κ) is computed per Activity.</li>
               <li>Repeat until your rolling κ ≥ 0.70 across 5 consecutive scenarios.</li>
             </ol>
             <div
@@ -319,92 +318,63 @@ export default function IRRSimulatorPage() {
                 <Info label="Total Time" value={`${scenario.scenario_data.total_minutes} min`} />
               </div>
 
-              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "16px", fontWeight: 700, marginBottom: "12px" }}>
-                Agenda
+              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "16px", fontWeight: 700, marginBottom: "6px" }}>
+                Meeting Minutes
               </h3>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-                <thead>
-                  <tr style={{ background: "var(--esb-light-bg)" }}>
-                    <th style={{ padding: "8px 12px", textAlign: "left", fontFamily: "var(--font-heading)", fontWeight: 700, borderBottom: "2px solid var(--esb-border)" }}>Item</th>
-                    <th style={{ padding: "8px 12px", textAlign: "right", fontFamily: "var(--font-heading)", fontWeight: 700, borderBottom: "2px solid var(--esb-border)", width: "120px" }}>Minutes</th>
-                    <th style={{ padding: "8px 12px", textAlign: "right", fontFamily: "var(--font-heading)", fontWeight: 700, borderBottom: "2px solid var(--esb-border)", width: "80px" }}>%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {scenario.scenario_data.agenda_items.map((item, i) => (
-                    <tr key={i} style={{ borderBottom: "1px solid var(--esb-border)" }}>
-                      <td style={{ padding: "8px 12px", color: "var(--esb-text)" }}>{item.title}</td>
-                      <td style={{ padding: "8px 12px", textAlign: "right", color: "var(--esb-text)" }}>{item.allocated_minutes}</td>
-                      <td style={{ padding: "8px 12px", textAlign: "right", color: "var(--esb-muted)" }}>
-                        {Math.round((item.allocated_minutes / scenario.scenario_data.total_minutes) * 100)}%
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <p style={{ color: "var(--esb-muted)", fontSize: "13px", marginBottom: "12px" }}>
+                These are minutes, not an agenda — each block describes what the board actually did during
+                that time. Read carefully: the description, not the topic label, determines the correct
+                Activity classification.
+              </p>
+              <div>
+                {scenario.scenario_data.minute_items.map((item, i) => (
+                  <div key={i} style={{ display: "flex", gap: "12px", padding: "10px 0", borderBottom: i < scenario.scenario_data.minute_items.length - 1 ? "1px solid var(--esb-border)" : "none" }}>
+                    <span style={{ color: "var(--esb-text)", fontSize: "14px", lineHeight: "1.6", flex: 1 }}>{item.description}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Score each rubric item */}
-            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-              Your Scores
+            {/* Classify each block into total minutes per Activity */}
+            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "22px", fontWeight: 700, marginBottom: "8px" }}>
+              Classify by Activity
             </h2>
-            {RUBRIC_ITEMS.map((item) => (
-              <div key={item.id} className="esb-card" style={{ marginBottom: "20px" }}>
-                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "17px", fontWeight: 700, marginBottom: "4px" }}>
-                  {item.label}
-                  {item.inverse && (
-                    <span
-                      style={{
-                        marginLeft: "8px",
-                        fontSize: "11px",
-                        background: "#fff3cd",
-                        color: "#856404",
-                        padding: "2px 8px",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      Lower = Better
-                    </span>
-                  )}
+            <p style={{ color: "var(--esb-muted)", fontSize: "14px", marginBottom: "20px" }}>
+              For each Activity below, enter the total minutes from the meeting minutes above that belong
+              to it. Leave at 0 for anything that didn&apos;t occur.
+            </p>
+
+            {FRAMEWORK_ORDER.map((framework) => (
+              <div key={framework} className="esb-card" style={{ marginBottom: "20px" }}>
+                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "16px", fontWeight: 700, marginBottom: "14px", color: "var(--esb-primary)" }}>
+                  {framework}
                 </h3>
-                <p style={{ color: "var(--esb-muted)", fontSize: "14px", marginBottom: "16px" }}>
-                  {item.description}
-                </p>
-                <div className="grid grid-cols-1 gap-2">
-                  {item.options.map((opt) => (
-                    <label
-                      key={opt.score}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                        padding: "10px 14px",
-                        border: `2px solid ${scores[item.id] === opt.score ? "var(--esb-primary)" : "var(--esb-border)"}`,
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        background: scores[item.id] === opt.score ? "#f0f9ff" : "#fff",
-                        transition: "all 0.2s",
-                      }}
-                    >
+                {ACTIVITY_ITEMS.filter((a) => a.framework === framework).map((item) => (
+                  <div key={item.id} style={{ display: "flex", gap: "16px", alignItems: "flex-start", marginBottom: "14px", paddingBottom: "14px", borderBottom: "1px solid var(--esb-border)" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: "14px", marginBottom: "2px" }}>
+                        {item.label}
+                        {item.excludedFromTotals && (
+                          <span style={{ marginLeft: "8px", fontSize: "11px", background: "var(--esb-light-bg)", color: "var(--esb-muted)", padding: "2px 8px", borderRadius: "4px" }}>
+                            excluded from totals
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ color: "var(--esb-muted)", fontSize: "13px", lineHeight: "1.5" }}>{item.description}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
                       <input
-                        type="radio"
-                        name={item.id}
-                        value={opt.score}
-                        checked={scores[item.id] === opt.score}
-                        onChange={() => setScores((prev) => ({ ...prev, [item.id]: opt.score }))}
-                        style={{ accentColor: "var(--esb-primary)" }}
+                        type="number"
+                        min={0}
+                        className="esb-input"
+                        value={minutes[item.id] ?? 0}
+                        onChange={(e) => setMinutes((prev) => ({ ...prev, [item.id]: Math.max(0, parseInt(e.target.value, 10) || 0) }))}
+                        style={{ width: "70px", textAlign: "right" }}
                       />
-                      <span>
-                        <strong style={{ color: "var(--esb-primary)", fontFamily: "var(--font-heading)" }}>
-                          {opt.score}
-                        </strong>
-                        <span style={{ color: "var(--esb-text)", fontSize: "14px", marginLeft: "8px" }}>
-                          {opt.label}
-                        </span>
-                      </span>
-                    </label>
-                  ))}
-                </div>
+                      <span style={{ color: "var(--esb-muted)", fontSize: "13px" }}>min</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             ))}
 
@@ -415,7 +385,7 @@ export default function IRRSimulatorPage() {
                 className="btn-primary"
                 style={{ fontSize: "16px", padding: "12px 40px", opacity: loading ? 0.7 : 1 }}
               >
-                {loading ? "Scoring…" : "Submit Scores"}
+                {loading ? "Scoring…" : "Submit Classification"}
               </button>
               <button
                 onClick={() => setStage("landing")}
@@ -443,7 +413,7 @@ export default function IRRSimulatorPage() {
                   <div style={{ fontSize: "52px", fontWeight: 700, fontFamily: "var(--font-heading)", color: result.passed ? "#18d26e" : "var(--esb-dark)" }}>
                     {result.kappa.toFixed(3)}
                   </div>
-                  <div style={{ color: "var(--esb-muted)", fontSize: "14px" }}>Cohen's κ</div>
+                  <div style={{ color: "var(--esb-muted)", fontSize: "14px" }}>Agreement (κ)</div>
                 </div>
                 <div style={{ gridColumn: "span 2" }}>
                   <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "22px", fontWeight: 700, marginBottom: "8px" }}>
@@ -472,23 +442,27 @@ export default function IRRSimulatorPage() {
                       </span>
                     ))}
                   </div>
+                  {result.system_scores._totals && (
+                    <p style={{ color: "var(--esb-muted)", fontSize: "13px", marginTop: "12px" }}>
+                      Student-outcomes-focused minutes (Goal Setting + Goal Monitoring):{" "}
+                      <strong>{result.system_scores._totals.student_outcomes_minutes} min ({result.system_scores._totals.student_outcomes_pct}%)</strong> of{" "}
+                      {result.system_scores._totals.public_meeting_minutes} public meeting minutes.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Item-by-item breakdown */}
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-              Item Breakdown
+              Activity Breakdown
             </h2>
-            {RUBRIC_ITEMS.map((item) => {
+            {ACTIVITY_ITEMS.map((item) => {
               const sys = result.system_scores[item.id];
-              const prac = (result as unknown as Record<string, unknown>);
-              const pracScore = scenario?.scenario_data ? (Object.fromEntries(
-                RUBRIC_ITEMS.map((i) => [i.id, {}])
-              )[item.id] as Record<string, unknown>) : null;
-              const itemKappa = result.item_kappas[item.id];
+              const yourMinutes = minutes[item.id] ?? 0;
               const feedback = result.item_feedback[item.id];
               const agreed = feedback === "Correct.";
+              if ((sys?.minutes ?? 0) === 0 && yourMinutes === 0) return null; // not in play — skip from the review list
 
               return (
                 <div
@@ -500,25 +474,31 @@ export default function IRRSimulatorPage() {
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "16px", fontWeight: 700, margin: 0 }}>
-                      {item.label}
-                    </h3>
+                    <div>
+                      <div style={{ fontSize: "12px", color: "var(--esb-muted)", fontFamily: "var(--font-heading)" }}>{item.framework}</div>
+                      <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "16px", fontWeight: 700, margin: 0 }}>
+                        {item.label}
+                      </h3>
+                    </div>
                     <span style={{ color: agreed ? "#18d26e" : "#ed3c0d", fontWeight: 700, fontSize: "14px" }}>
-                      {agreed ? "Agreement ✓" : `κ = ${(itemKappa ?? 0).toFixed(2)}`}
+                      {agreed ? "Agreement ✓" : `κ = ${(result.item_kappas[item.id] ?? 0).toFixed(2)}`}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-2 gap-4 text-sm" style={{ marginBottom: "8px" }}>
                     <div>
                       <span style={{ color: "var(--esb-muted)", fontWeight: 600 }}>System: </span>
-                      <span style={{ color: "var(--esb-primary)", fontWeight: 700 }}>{sys?.score ?? "—"}</span>
-                      {sys && <span style={{ color: "var(--esb-text)", marginLeft: "6px" }}>— {sys.rationale}</span>}
-                      {sys && <div style={{ color: "var(--esb-muted)", fontSize: "12px", marginTop: "2px" }}>{sys.minutes} min ({sys.pct_of_meeting}%)</div>}
+                      <span style={{ color: "var(--esb-primary)", fontWeight: 700 }}>{sys?.minutes ?? 0} min</span>
+                      <span style={{ color: "var(--esb-muted)", fontSize: "12px", marginLeft: "6px" }}>({sys?.pct_of_meeting ?? 0}%)</span>
+                    </div>
+                    <div>
+                      <span style={{ color: "var(--esb-muted)", fontWeight: 600 }}>You: </span>
+                      <span style={{ fontWeight: 700 }}>{yourMinutes} min</span>
                     </div>
                   </div>
                   {!agreed && (
                     <div
                       style={{
-                        marginTop: "12px",
+                        marginTop: "8px",
                         background: "#fff5f5",
                         borderRadius: "4px",
                         padding: "10px 14px",

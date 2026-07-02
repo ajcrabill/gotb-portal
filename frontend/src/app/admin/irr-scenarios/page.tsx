@@ -112,7 +112,7 @@ export default function AdminIrrScenariosPage() {
         </table>
         {!loading && scenarios.length === 0 && (
           <p style={{ padding: "16px", color: "var(--esb-muted)", fontSize: "14px" }}>
-            No scenarios generated yet — practitioners generate one each time they open the IRR Simulator.
+            No scenarios generated yet — practitioners generate one each time they open the Time Use Evaluation IRR Simulator.
           </p>
         )}
       </div>
