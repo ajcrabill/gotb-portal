@@ -201,12 +201,14 @@ def summarize(session: Session, dossier: CrmDossier) -> None:
 
 def create_dossier(
     session: Session, subject: str, person: CrmPerson | None, district: CrmDistrict | None,
+    requested_by_id=None,
 ) -> CrmDossier:
     """Fast, synchronous — just the initial row so callers get a pollable id back immediately."""
     dossier = CrmDossier(
         subject_name=subject,
         person_id=person.id if person else None,
         district_id=district.id if district else None,
+        requested_by_id=requested_by_id,
         status="gathering",
     )
     session.add(dossier)

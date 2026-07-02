@@ -14,13 +14,14 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
+from sqlalchemy import select
 
 from esb.auth.rbac import AuthContext, get_auth_context
 from esb.crm import llm
 from esb.crm.dossier.pipeline import create_dossier, run_pipeline
 from esb.crm.sync_db import sync_session
 from esb.models.crm import CrmClaim, CrmDistrict, CrmDossier, CrmPerson, CrmSearch
-from esb.models.user import RoleType
+from esb.models.user import Person, RoleType
 
 log = structlog.get_logger()
 
@@ -61,13 +62,55 @@ async def status(auth: Annotated[AuthContext, Depends(get_auth_context)]) -> dic
     return {"llm_configured": llm.configured(), "model": "deepseek/deepseek-v4-flash"}
 
 
+def _list_summary_dict(session, dossier: CrmDossier) -> dict:
+    requester = session.get(Person, dossier.requested_by_id) if dossier.requested_by_id else None
+    district = session.get(CrmDistrict, dossier.district_id) if dossier.district_id else None
+    return {
+        "id": str(dossier.id), "subject": dossier.subject_name, "status": dossier.status,
+        "created_at": dossier.created_at.isoformat() if dossier.created_at else "",
+        "district": district.name if district else "",
+        "requested_by_name": requester.name if requester else "",
+        "requested_by_email": requester.email if requester else "",
+    }
+
+
+def _run_list(requested_by_id: str | None, limit: int) -> list[dict]:
+    session = sync_session()
+    try:
+        stmt = select(CrmDossier).order_by(CrmDossier.created_at.desc()).limit(limit)
+        if requested_by_id:
+            stmt = stmt.where(CrmDossier.requested_by_id == UUID(requested_by_id))
+        dossiers = session.execute(stmt).scalars().all()
+        return [_list_summary_dict(session, d) for d in dossiers]
+    finally:
+        session.close()
+
+
+@router.get("/list/mine")
+async def list_my_dossiers(
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+    limit: int = 100,
+) -> list[dict]:
+    _require_crm_access(auth)
+    return await asyncio.to_thread(_run_list, str(auth.person_id), limit)
+
+
+@router.get("/list/all")
+async def list_all_dossiers(
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+    limit: int = 200,
+) -> list[dict]:
+    _require_crm_access(auth)
+    return await asyncio.to_thread(_run_list, None, limit)
+
+
 class BuildRequest(BaseModel):
     person_id: str | None = None
     district_id: str | None = None
     subject_name: str | None = None
 
 
-def _create(person_id: str | None, district_id: str | None, subject_name: str | None) -> dict:
+def _create(person_id: str | None, district_id: str | None, subject_name: str | None, requested_by_id: str) -> dict:
     """Fast, synchronous — resolves the target and inserts the initial
     "gathering" row so the caller gets a pollable id back immediately."""
     session = sync_session()
@@ -86,7 +129,7 @@ def _create(person_id: str | None, district_id: str | None, subject_name: str | 
         if not subject:
             return {"error": "provide person_id, district_id, or subject_name"}
 
-        dossier = create_dossier(session, subject, person, district)
+        dossier = create_dossier(session, subject, person, district, requested_by_id=UUID(requested_by_id))
         return {"id": str(dossier.id), "status": dossier.status}
     finally:
         session.close()
@@ -135,7 +178,7 @@ async def build(
     if not (body.person_id or body.district_id or body.subject_name):
         raise HTTPException(status_code=400, detail="Provide person_id, district_id, or subject_name.")
 
-    created = await asyncio.to_thread(_create, body.person_id, body.district_id, body.subject_name)
+    created = await asyncio.to_thread(_create, body.person_id, body.district_id, body.subject_name, str(auth.person_id))
     if "error" in created:
         if "not found" in created["error"]:
             raise HTTPException(status_code=404, detail=created["error"])

@@ -559,7 +559,93 @@ type Dossier = {
   claims: Claim[]; searches: SearchRow[]; voice_flags?: VoiceFlag[];
 };
 
+type DossierListItem = {
+  id: string; subject: string; status: string; created_at: string;
+  district: string; requested_by_name: string; requested_by_email: string;
+};
+
+function DossierListTab({ scope }: { scope: "mine" | "all" }) {
+  const [items, setItems] = useState<DossierListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  async function load() {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_BASE}/api/crm/dossier/list/${scope}`, { headers: authHeaders() });
+      if (!res.ok) throw new Error((await res.json()).detail ?? "Failed to load dossiers.");
+      setItems(await res.json());
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load dossiers.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, [scope]);
+
+  async function downloadOne(id: string, subject: string) {
+    const res = await fetch(`${API_BASE}/api/crm/dossier/${id}/download`, { headers: authHeaders() });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${subject.replace(/[^a-z0-9 _-]/gi, "")}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  }
+
+  if (loading) return <p style={{ color: "var(--esb-muted)" }}>Loading…</p>;
+  if (error) return errBox(error);
+
+  return (
+    <div className="esb-card" style={{ padding: 0, overflow: "hidden" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr style={{ background: "var(--esb-light-bg)", borderBottom: "2px solid var(--esb-border)" }}>
+            {["Created", "Subject", "District", "Status", scope === "all" ? "Requested By" : "", ""].filter(Boolean).map((h) => (
+              <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontFamily: "var(--font-heading)", fontSize: "13px", fontWeight: 700 }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((d) => (
+            <tr key={d.id} style={{ borderTop: "1px solid var(--esb-border)" }}>
+              <td style={{ padding: "10px 14px", fontSize: "13px", fontWeight: 600, whiteSpace: "nowrap" }}>
+                {d.created_at ? new Date(d.created_at).toLocaleString() : "—"}
+              </td>
+              <td style={{ padding: "10px 14px", fontSize: "13px" }}>{d.subject}</td>
+              <td style={{ padding: "10px 14px", fontSize: "13px", color: "var(--esb-muted)" }}>{d.district || "—"}</td>
+              <td style={{ padding: "10px 14px", fontSize: "13px" }}>{d.status}</td>
+              {scope === "all" && (
+                <td style={{ padding: "10px 14px", fontSize: "13px", color: "var(--esb-muted)" }}>{d.requested_by_name || d.requested_by_email || "—"}</td>
+              )}
+              <td style={{ padding: "10px 14px" }}>
+                {d.status === "complete" ? (
+                  <button className="btn-outline" onClick={() => downloadOne(d.id, d.subject)} style={{ fontSize: "12px", padding: "4px 12px" }}>
+                    Download .md
+                  </button>
+                ) : (
+                  <span style={{ fontSize: "12px", color: "var(--esb-muted)" }}>—</span>
+                )}
+              </td>
+            </tr>
+          ))}
+          {items.length === 0 && (
+            <tr><td colSpan={6} style={{ padding: "24px 16px", textAlign: "center", color: "var(--esb-muted)" }}>No dossiers yet.</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function DossierTab() {
+  const [subTab, setSubTab] = useState<"build" | "mine" | "all">("build");
   const [status, setStatus] = useState<{ llm_configured: boolean; model: string } | null>(null);
   const [district, setDistrict] = useState<DistrictDetail | null>(null);
   const [districtLite, setDistrictLite] = useState<DistrictLite | null>(null);
@@ -632,6 +718,23 @@ function DossierTab() {
 
   return (
     <div>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        {(["build", "mine", "all"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setSubTab(t)}
+            className={subTab === t ? "btn-primary" : "btn-outline"}
+            style={{ fontSize: "13px", padding: "6px 16px" }}
+          >
+            {t === "build" ? "Build" : t === "mine" ? "My Dossiers" : "All Dossiers"}
+          </button>
+        ))}
+      </div>
+
+      {subTab === "mine" && <DossierListTab scope="mine" />}
+      {subTab === "all" && <DossierListTab scope="all" />}
+
+      {subTab === "build" && <>
       {status && (
         <p style={{ fontSize: "12px", color: "var(--esb-muted)", marginBottom: "16px" }}>
           LLM: {status.llm_configured ? `configured (${status.model})` : "not configured"}
@@ -639,7 +742,13 @@ function DossierTab() {
       )}
 
       <div className="esb-card" style={{ marginBottom: "20px" }}>
-        <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "16px", fontWeight: 700, marginBottom: "10px" }}>Build a Dossier</h3>
+        <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "16px", fontWeight: 700, marginBottom: "6px" }}>Build a Dossier</h3>
+        <div style={{ background: "#fff8e1", border: "1px solid #ffc107", borderRadius: "4px", padding: "10px 14px", marginBottom: "16px", fontSize: "13px", color: "#5d4037" }}>
+          This runs an exhaustive research pass — 5 search engines up to 10 pages deep, Wayback Machine,
+          news archives, and more. <strong>Expect it to take 30+ minutes.</strong> You don&apos;t need to
+          wait here — check the <strong>My Dossiers</strong> tab later and download the .md once it says
+          &quot;complete&quot;.
+        </div>
         <DistrictSearchBox onPick={pickDistrict} />
 
         {district && (
@@ -724,6 +833,7 @@ function DossierTab() {
           ) : null}
         </div>
       )}
+      </>}
     </div>
   );
 }

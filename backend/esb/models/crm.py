@@ -100,6 +100,10 @@ class CrmDossier(TimestampMixin, UUIDMixin, Base):
 
     person_id: Mapped[UUID | None] = mapped_column(ForeignKey("crm_people.id", ondelete="SET NULL"), index=True)
     district_id: Mapped[UUID | None] = mapped_column(ForeignKey("crm_districts.id", ondelete="SET NULL"), index=True)
+    # The practitioner who requested this build — NOT the same as person_id,
+    # which is the CRM subject the dossier is ABOUT. References the portal's
+    # own people table (practitioner accounts), not crm_people.
+    requested_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("people.id", ondelete="SET NULL"), index=True)
     subject_name: Mapped[str] = mapped_column(String(200), nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="gathering")  # gathering|needs_llm|complete|failed
     summary: Mapped[str] = mapped_column(String(4000), default="")
