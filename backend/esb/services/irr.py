@@ -10,6 +10,17 @@ minutes they'd attribute to each Activity. The system already knows the
 agreement is computed between the practitioner's minute entries and the
 system's.
 
+Classification is based ENTIRELY on what the board actually did with the
+time — the description — never on the agenda item's title. An item
+titled "Goal #1 Monitoring Session" whose description says the board
+spent the time debating pizza vs. hamburgers for a staff lunch still
+codes as "Other." _MINUTE_TEMPLATES intentionally includes several
+title/description mismatches in both directions (a substantive-sounding
+title over trivial content, and a bland title like "Old Business" over
+real monitoring-calendar work) so the exercise actually tests reading
+the description, not pattern-matching the label — see the "other" and
+"guardrail_monitoring" template lists below for examples.
+
 The Activity taxonomy below is transcribed verbatim (Framework, Activity,
 Description) from the real ESB Board Monthly Time Use Evaluation form:
 https://docs.google.com/spreadsheets/d/1dpA-RaO_3NyP_5VCcWFeWgphgot3mJjgpfh3PX9o1tY
@@ -123,6 +134,13 @@ _MINUTE_TEMPLATES: dict[str, list[tuple[str, str, tuple[int, int]]]] = {
         ("Public Comment", "The board took public comment on the district's dress code policy. Twelve parents signed up; the board chair reminded the room that per policy the board does not respond during public comment, and none did. Comments were read into the record by the clerk.", (10, 18)),
         ("Consent Agenda", "The board approved the consent agenda in a single motion, covering routine items including field trip approvals, facility use requests, and personnel notifications, with no discussion.", (2, 5)),
         ("Adjournment", "The meeting was adjourned at the board president's motion, seconded and approved unanimously.", (1, 2)),
+        # Deliberately misleading titles — the item name suggests a
+        # substantive Activity, but what the board actually did during
+        # that time doesn't meet the Activity's definition. Coding is
+        # always based on the description, never the title.
+        ("Goal #1 Monitoring Session", "The board discussed whether to have pizza or hamburgers at next month's staff appreciation lunch before moving on to the next item.", (3, 8)),
+        ("Superintendent Evaluation", "The item was listed on the agenda, but the board ran out of time and voted to postpone the discussion to next month without any substantive conversation.", (1, 3)),
+        ("Student Achievement Update", "The board received a one-page handout summarizing recent test scores. No board member asked a question or commented, and the board moved immediately to the next item.", (2, 5)),
     ],
     "board_self_eval": [
         ("Board Self-Evaluation", "The board conducted its quarterly self-evaluation using the Effective School Boards framework instrument, with each member independently scoring the board's performance on Focus Mindset and Clarify Priorities before discussing results as a group.", (15, 30)),
@@ -165,6 +183,9 @@ _MINUTE_TEMPLATES: dict[str, list[tuple[str, str, tuple[int, int]]]] = {
     "guardrail_monitoring": [
         ("Guardrail Monitoring Report: Student Discipline", "The board reviewed the scheduled guardrail-monitoring report on student discipline practices, comparing suspension rates by subgroup against the guardrail's non-negotiable language, and voted to accept the report.", (10, 20)),
         ("Guardrail Monitoring Report: Community Engagement Compliance", "As scheduled on the monitoring calendar, the superintendent presented evidence of compliance with the community-engagement guardrail, and the board discussed whether the evidence provided was sufficient before voting to accept it.", (10, 18)),
+        # Reverse mismatch: a bland, unrevealing title hiding real
+        # monitoring-calendar work — the description is still what codes it.
+        ("Old Business", "Under old business, the superintendent presented the scheduled evidence report on the community-engagement guardrail per the monitoring calendar, and the board voted to accept it.", (10, 18)),
     ],
     "superintendent_eval": [
         ("Superintendent Annual Performance Evaluation", "The board conducted the superintendent's annual performance evaluation in open session, with each board member sharing scored feedback against the adopted evaluation rubric before reaching consensus on an overall rating.", (25, 50)),
@@ -172,6 +193,9 @@ _MINUTE_TEMPLATES: dict[str, list[tuple[str, str, tuple[int, int]]]] = {
     "voting": [
         ("Attendance Boundary Change", "The board debated and voted on a proposed change to the district's attendance boundary lines, with several members raising concerns about impact on specific neighborhoods before the motion passed 4-3.", (10, 25)),
         ("Transportation Services Contract", "The board voted to approve a new vendor contract for transportation services after brief discussion of the bid comparison.", (5, 12)),
+        # Mismatch: sounds like Budget Review, but there's no evaluation of
+        # whether the budget aligns with goals/guardrails — just a vote.
+        ("Budget Discussion", "Without discussion of whether the numbers aligned with any adopted goal or guardrail, the board voted 5-0 to approve the annual budget as presented.", (3, 8)),
     ],
     "policy_review": [
         ("Policy 123 - First Read", "The board conducted a first reading of a revised student code of conduct policy, discussing whether the proposed language aligned with the district's adopted guardrails on discipline.", (10, 20)),
