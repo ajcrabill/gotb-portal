@@ -553,7 +553,11 @@ function VerifierTab() {
 
 type Claim = { field: string; value: string; confidence: number | string; source_url: string; source_tier: string; verdict: string };
 type SearchRow = { method: string; source: string; query: string; url: string; found: boolean };
-type Dossier = { id: string; subject: string; status: string; summary: string; claims: Claim[]; searches: SearchRow[]; voice_flags?: VoiceFlag[] };
+type Dossier = {
+  id: string; subject: string; status: string; summary: string; markdown?: string;
+  claims_count?: number; confirmed_count?: number; searches_count?: number;
+  claims: Claim[]; searches: SearchRow[]; voice_flags?: VoiceFlag[];
+};
 
 function DossierTab() {
   const [status, setStatus] = useState<{ llm_configured: boolean; model: string } | null>(null);
@@ -582,8 +586,11 @@ function DossierTab() {
   }
 
   async function pollDossier(id: string) {
-    for (let i = 0; i < 60; i++) {
-      await new Promise((r) => setTimeout(r, 3000));
+    // Exhaustive builds (5 search engines, 10 pages deep, Wayback, NCES) can
+    // realistically take 10-30+ minutes — poll every 10s for up to ~50 minutes
+    // rather than the ~3 min window a lighter build would need.
+    for (let i = 0; i < 300; i++) {
+      await new Promise((r) => setTimeout(r, 10000));
       const res = await fetch(`${API_BASE}/api/crm/dossier/${id}`, { headers: authHeaders() });
       if (!res.ok) throw new Error((await res.json()).detail ?? "Failed to check dossier status.");
       const data = await res.json();
@@ -664,54 +671,57 @@ function DossierTab() {
 
       {dossier && (
         <div className="esb-card">
-          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}>{dossier.subject}</h3>
-          <p style={{ fontSize: "12px", color: "var(--esb-muted)", marginBottom: "16px" }}>Status: {dossier.status}</p>
-          {dossier.summary && (
-            <>
-              {voiceFlagsBox(dossier.voice_flags ?? [])}
-              <p style={{ fontSize: "14px", lineHeight: "1.6", marginBottom: "20px", whiteSpace: "pre-wrap" }}>{dossier.summary}</p>
-            </>
-          )}
-
-          <h4 style={{ fontFamily: "var(--font-heading)", fontSize: "15px", fontWeight: 700, marginBottom: "10px" }}>Claims ({dossier.claims.length})</h4>
-          <div style={{ overflowX: "auto", marginBottom: "20px" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-              <thead>
-                <tr style={{ background: "var(--esb-light-bg)", borderBottom: "2px solid var(--esb-border)" }}>
-                  {["Field", "Value", "Confidence", "Source", "Tier", "Verdict"].map((h) => (
-                    <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontFamily: "var(--font-heading)", fontWeight: 700 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {dossier.claims.map((c, i) => (
-                  <tr key={i} style={{ borderBottom: "1px solid var(--esb-border)" }}>
-                    <td style={{ padding: "8px 10px", fontWeight: 600 }}>{c.field}</td>
-                    <td style={{ padding: "8px 10px" }}>{c.value}</td>
-                    <td style={{ padding: "8px 10px" }}>{c.confidence}</td>
-                    <td style={{ padding: "8px 10px" }}>
-                      {c.source_url ? <a href={c.source_url} target="_blank" rel="noopener noreferrer">link</a> : "—"}
-                    </td>
-                    <td style={{ padding: "8px 10px" }}>{c.source_tier}</td>
-                    <td style={{ padding: "8px 10px" }}>{c.verdict}</td>
-                  </tr>
-                ))}
-                {dossier.claims.length === 0 && (
-                  <tr><td colSpan={6} style={{ padding: "16px", textAlign: "center", color: "var(--esb-muted)" }}>No claims.</td></tr>
-                )}
-              </tbody>
-            </table>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", fontWeight: 700, margin: 0 }}>{dossier.subject}</h3>
+            {dossier.status === "complete" && dossier.markdown && (
+              <a
+                className="btn-primary"
+                href={`${API_BASE}/api/crm/dossier/${dossier.id}/download`}
+                style={{ fontSize: "13px", padding: "6px 16px", textDecoration: "none" }}
+                onClick={(e) => {
+                  // Auth header can't ride a plain <a> download — fetch with auth, then trigger the save.
+                  e.preventDefault();
+                  fetch(`${API_BASE}/api/crm/dossier/${dossier.id}/download`, { headers: authHeaders() })
+                    .then((r) => r.blob())
+                    .then((blob) => {
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `${dossier.subject.replace(/[^a-z0-9 _-]/gi, "")}.md`;
+                      document.body.appendChild(a);
+                      a.click();
+                      a.remove();
+                      window.URL.revokeObjectURL(url);
+                    });
+                }}
+              >
+                Download .md
+              </a>
+            )}
           </div>
+          <p style={{ fontSize: "12px", color: "var(--esb-muted)", marginBottom: "16px" }}>
+            Status: {dossier.status}
+            {dossier.status !== "complete" && dossier.status !== "failed" && dossier.status !== "needs_llm" && " — this can take 10-30+ minutes for an exhaustive build; feel free to check back on this tab later."}
+            {dossier.searches_count != null && ` · ${dossier.searches_count} sources checked · ${dossier.confirmed_count ?? 0} confirmed findings`}
+          </p>
 
-          <h4 style={{ fontFamily: "var(--font-heading)", fontSize: "15px", fontWeight: 700, marginBottom: "10px" }}>Searches ({dossier.searches.length})</h4>
-          <ul style={{ fontSize: "13px", paddingLeft: "18px" }}>
-            {dossier.searches.map((s, i) => (
-              <li key={i} style={{ marginBottom: "4px" }}>
-                [{s.method}/{s.source}] {s.query} — {s.found ? "found" : "not found"} {s.url && <a href={s.url} target="_blank" rel="noopener noreferrer">(link)</a>}
-              </li>
-            ))}
-            {dossier.searches.length === 0 && <li style={{ color: "var(--esb-muted)" }}>No searches recorded.</li>}
-          </ul>
+          {voiceFlagsBox(dossier.voice_flags ?? [])}
+
+          {dossier.markdown ? (
+            <pre style={{
+              background: "var(--esb-light-bg)", padding: "16px", borderRadius: "4px",
+              fontSize: "13px", lineHeight: "1.6", whiteSpace: "pre-wrap", overflowX: "auto",
+              maxHeight: "600px", overflowY: "auto",
+            }}>
+              {dossier.markdown}
+            </pre>
+          ) : dossier.status === "needs_llm" ? (
+            <p style={{ color: "var(--esb-muted)", fontSize: "13px" }}>
+              LLM not configured — sources were gathered but no claims could be extracted or rendered.
+            </p>
+          ) : dossier.status === "failed" ? (
+            <p style={{ color: "#c62828", fontSize: "13px" }}>Build failed — check server logs, or try again.</p>
+          ) : null}
         </div>
       )}
     </div>

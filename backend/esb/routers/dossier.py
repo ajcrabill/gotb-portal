@@ -12,6 +12,7 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from esb.auth.rbac import AuthContext, get_auth_context
@@ -39,6 +40,9 @@ def _dossier_dict(session, dossier: CrmDossier) -> dict:
     return {
         "id": str(dossier.id), "subject": dossier.subject_name, "status": dossier.status,
         "summary": dossier.summary, "voice_flags": dossier.voice_flags or [],
+        "markdown": dossier.markdown or "",
+        "claims_count": len(claims), "confirmed_count": sum(1 for c in claims if c.confidence >= 0.9),
+        "searches_count": len(searches),
         "claims": [
             {"field": c.field, "value": c.value, "confidence": c.confidence,
              "source_url": c.source_url, "source_tier": c.source_tier, "verdict": c.verdict}
@@ -164,3 +168,32 @@ async def get_dossier(
     if result is None:
         raise HTTPException(status_code=404, detail="Not found.")
     return result
+
+
+def _run_get_markdown(dossier_id: str) -> tuple[str, str] | None:
+    session = sync_session()
+    try:
+        dossier = session.get(CrmDossier, UUID(dossier_id))
+        if not dossier or not dossier.markdown:
+            return None
+        return dossier.markdown, dossier.subject_name
+    finally:
+        session.close()
+
+
+@router.get("/{dossier_id}/download")
+async def download_dossier(
+    dossier_id: UUID,
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+) -> Response:
+    _require_crm_access(auth)
+    result = await asyncio.to_thread(_run_get_markdown, str(dossier_id))
+    if result is None:
+        raise HTTPException(status_code=404, detail="No markdown available for this dossier yet.")
+    markdown, subject_name = result
+    safe_name = "".join(c if c.isalnum() or c in " -_" else "" for c in subject_name).strip().replace(" ", "_") or "dossier"
+    return Response(
+        content=markdown,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'attachment; filename="{safe_name}.md"'},
+    )

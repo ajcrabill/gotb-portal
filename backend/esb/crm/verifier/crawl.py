@@ -1,9 +1,11 @@
 """Polite crawler that finds a district's board/leadership pages and harvests
 official-domain emails. Respects robots.txt and rate-limits per host.
 
-Ported from coach-devon's verifier/crawl.py. The optional headless-render
-fallback gracefully no-ops (Playwright not installed in this container —
-same degrade-gracefully behavior the source has when Playwright is absent).
+Ported from coach-devon's verifier/crawl.py. Headless Chromium (Playwright)
+renders JS-built pages that a plain HTTP fetch would return as an empty
+shell — this degrades gracefully to a no-op if Playwright/Chromium isn't
+available in the runtime, same behavior the source has when Playwright
+is absent.
 """
 from __future__ import annotations
 
@@ -14,31 +16,10 @@ import urllib.robotparser
 import httpx
 
 from esb.core.config import settings
+from esb.crm.headless import render_html as _render_html
 from esb.crm.verifier.extract import emails_from_html
 
 UA = "ESBPortalBot/0.1 (+ESB school-board outreach; contact aj@effectiveschoolboards.com)"
-BROWSER_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-              "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-
-
-def _render_html(url: str) -> str | None:
-    """Render a JS-built page with headless Chromium (Playwright). Returns the
-    post-JS HTML, or None if Playwright is unavailable or the page fails."""
-    try:
-        from playwright.sync_api import sync_playwright
-    except Exception:
-        return None
-    try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(args=["--no-sandbox", "--disable-dev-shm-usage"])
-            page = browser.new_page(user_agent=BROWSER_UA)
-            page.goto(url, timeout=20000, wait_until="domcontentloaded")
-            page.wait_for_timeout(1800)
-            html = page.content()
-            browser.close()
-            return html
-    except Exception:
-        return None
 
 
 BOARD_HINTS = ("board", "leadership", "administration", "superintendent",

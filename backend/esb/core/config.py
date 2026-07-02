@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     # CRM — Email Verifier
     respect_robots: bool = False
 
+    # CRM — Dossier Builder search engines
+    brave_search_api_key: str = ""
+
     # CRM — Lead Generator (CAN-SPAM)
     esb_postal_address: str = ""
     send_from_name: str = "AJ Crabill"

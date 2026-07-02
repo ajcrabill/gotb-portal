@@ -104,6 +104,7 @@ class CrmDossier(TimestampMixin, UUIDMixin, Base):
     status: Mapped[str] = mapped_column(String(20), default="gathering")  # gathering|needs_llm|complete|failed
     summary: Mapped[str] = mapped_column(String(4000), default="")
     voice_flags: Mapped[list] = mapped_column(JSON, default=list)
+    markdown: Mapped[str] = mapped_column(Text, default="")
 
     claims: Mapped[list["CrmClaim"]] = relationship(back_populates="dossier", cascade="all, delete-orphan")
     searches: Mapped[list["CrmSearch"]] = relationship(back_populates="dossier", cascade="all, delete-orphan")

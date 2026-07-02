@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/.playwright-browsers
+RUN python -m playwright install --with-deps chromium
+
 COPY . .
 
 RUN mkdir -p /app/data/eval-docs /app/data/eval-tmp /app/data/plan \

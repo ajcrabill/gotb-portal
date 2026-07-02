@@ -52,6 +52,7 @@ dnspython==2.7.0
 beautifulsoup4==4.12.3
 python-pptx==1.0.2
 itsdangerous==2.2.0
+playwright==1.49.1
 
 # Testing
 pytest==8.3.4
