@@ -19,6 +19,7 @@ from sqlalchemy import select
 from esb.auth.rbac import AuthContext, get_auth_context
 from esb.crm import llm
 from esb.crm.dossier.pipeline import create_dossier, run_pipeline
+from esb.crm.dossier.stats import technique_effectiveness
 from esb.crm.sync_db import sync_session
 from esb.models.crm import CrmClaim, CrmDistrict, CrmDossier, CrmPerson, CrmSearch
 from esb.models.user import Person, RoleType
@@ -102,6 +103,25 @@ async def list_all_dossiers(
 ) -> list[dict]:
     _require_crm_access(auth)
     return await asyncio.to_thread(_run_list, None, limit)
+
+
+def _run_technique_stats() -> list[dict]:
+    session = sync_session()
+    try:
+        return technique_effectiveness(session)
+    finally:
+        session.close()
+
+
+@router.get("/technique-stats")
+async def get_technique_stats(
+    auth: Annotated[AuthContext, Depends(get_auth_context)],
+) -> list[dict]:
+    """Per-technique effectiveness across every dossier ever built — the
+    learning-loop data for deciding which search techniques (including
+    each individual matrix pivot) are worth keeping."""
+    _require_crm_access(auth)
+    return await asyncio.to_thread(_run_technique_stats)
 
 
 class BuildRequest(BaseModel):

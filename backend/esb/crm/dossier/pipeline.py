@@ -1,17 +1,21 @@
 """The dossier pipeline: deterministic orchestration with three LLM seams.
 
 Ported from coach-devon's dossier/pipeline.py, then substantially expanded
-per AJ's 2026-07-01 request for an exhaustive, markdown-deliverable
-research tool. Stages: PLAN -> GATHER -> EXTRACT* -> VERIFY* -> SCORE ->
-SUMMARIZE* -> RENDER -> PERSIST (* = skipped if no LLM key, leaving a
-valid gather-only dossier with a full search log and zero fabricated
-claims). Uses sync SQLAlchemy (see esb/crm/sync_db.py) — same reasoning
-as the verifier port.
+per AJ's 2026-07-01/07-02 requests: an exhaustive, markdown-deliverable
+research tool with an adaptive matrix-search loop and per-technique
+effectiveness tracking (dossier/stats.py). Stages: PLAN -> GATHER ->
+EXTRACT* -> VERIFY* -> PIVOT (matrix search on discovered characteristics,
+repeat) -> SCORE -> SUMMARIZE* -> RENDER -> PERSIST (* = skipped if no LLM
+key, leaving a valid gather-only dossier with a full search log and zero
+fabricated claims). Uses sync SQLAlchemy (see esb/crm/sync_db.py) — same
+reasoning as the verifier port.
 
 See RESEARCH_PLAN.md for the source strategy and confidence rubric this
 implements.
 """
 from __future__ import annotations
+
+import urllib.parse
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -31,10 +35,12 @@ EXTRACT_SYS = (
     "\"value\":\"...\",\"source_url\":\"<MUST equal the provided url>\","
     "\"stated_confidence\":0-1}]}. Use a short snake_case field name that "
     "reflects the CATEGORY of fact (e.g. title, career_prior_role, "
-    "education_degree, lawsuit, board_vote, campaign_donor, enrollment, "
-    "budget, test_score) so it can be filed under the right dossier section. "
-    "Only facts present in the text. Never infer or guess. If none, return "
-    "{\"claims\":[]}."
+    "career_employer, education_degree, education_institution, lawsuit, "
+    "board_vote, campaign_donor, affiliation, enrollment, budget, "
+    "test_score) so it can be filed under the right dossier section and, "
+    "for career/education/affiliation facts, used as a pivot for further "
+    "search. Only facts present in the text. Never infer or guess. If none, "
+    "return {\"claims\":[]}."
 )
 VERIFY_SYS = (
     "You are an adversarial fact-checker. Given a claim and the source text it "
@@ -47,6 +53,16 @@ SUMMARIZE_SYS = (
     "about to meet this person or district for the first time, using only "
     "the supplied confirmed facts. Return JSON: {\"summary\":\"...\"}."
 )
+
+# Matrix-search pivot config. Field-name substrings worth spinning into a
+# "<subject>" "<discovered characteristic>" follow-up query — e.g. a
+# confirmed education_institution of "Ohio State" becomes its own deep
+# search. Each hint is tracked as its own technique label
+# (matrix:education, matrix:career, ...) so effectiveness can be measured
+# and weak ones dropped from this list later — see dossier/stats.py.
+_PIVOT_HINTS = ["education", "career", "employer", "prior_role", "former", "affiliation", "board_member_of", "network"]
+_MAX_PIVOTS_PER_ROUND = 6
+_MAX_PIVOT_ROUNDS = 2
 
 
 def _subscriber_fact(session: Session, dossier: CrmDossier, person: CrmPerson | None) -> None:
@@ -62,44 +78,81 @@ def _subscriber_fact(session: Session, dossier: CrmDossier, person: CrmPerson | 
             dossier_id=dossier.id, field="newsletter_subscriber",
             value=f"Already subscribes to The Effective School Board Member ({sub.tier} tier, {sub.status})",
             confidence=1.0, source_url="beehiiv:subscription",
-            source_tier="primary", verdict="confirmed"))
+            source_tier="primary", verdict="confirmed", technique="first_hand"))
 
 
-def plan(subject: str, district: CrmDistrict | None, role: str, is_org: bool) -> list[tuple[str, str, bool]]:
-    """Returns (kind, query, deep) tuples. deep=True queries go through the
-    5-engine/10-page-deep search; deep=False are single-shot (wikipedia/news
-    RSS, which aren't paginated the same way)."""
+def static_plan(subject: str, district: CrmDistrict | None, role: str, is_org: bool) -> list[tuple[str, str, bool, str]]:
+    """The initial, fixed query batch. Returns (kind, query, deep, technique)
+    tuples. deep=True queries go through the 5-engine/10-page-deep search;
+    deep=False are single-shot (wikipedia/news RSS, which aren't paginated
+    the same way)."""
     dn = district.name if district else ""
     st = district.state if district else ""
-    queries: list[tuple[str, str, bool]] = []
+    queries: list[tuple[str, str, bool, str]] = []
 
     if is_org:
         queries += [
-            ("web", f"{dn} {st} school district superintendent board", True),
-            ("news", f'"{dn}" school board', False),
-            ("news", f'"{dn}" {st} superintendent', False),
+            ("web", f"{dn} {st} school district superintendent board", True, "static_broad"),
+            ("news", f'"{dn}" school board', False, "news_district_board"),
+            ("news", f'"{dn}" {st} superintendent', False, "news_district_supt"),
         ]
         for term in SCRUTINY_TERMS[:6]:
-            queries.append(("web", f'"{dn}" {st} {term}', True))
+            queries.append(("web", f'"{dn}" {st} {term}', True, f"scrutiny:{term.replace(' ', '_')}"))
     else:
         queries += [
-            ("wikipedia", subject, False),
-            ("web", f"{subject} {dn} {st} {role}".strip(), True),
-            ("news", f'"{subject}" {dn}'.strip(), False),
+            ("wikipedia", subject, False, "wikipedia"),
+            ("web", f"{subject} {dn} {st} {role}".strip(), True, "static_broad"),
+            ("news", f'"{subject}" {dn}'.strip(), False, "news_subject_district"),
         ]
         if dn:
-            queries.append(("news", f"{dn} school board", False))
+            queries.append(("news", f"{dn} school board", False, "news_district_board"))
         for term in SCRUTINY_TERMS[:6]:
-            queries.append(("web", f'"{subject}" {term}', True))
+            queries.append(("web", f'"{subject}" {term}', True, f"scrutiny:{term.replace(' ', '_')}"))
 
     return queries
 
 
-def gather(
-    session: Session, dossier: CrmDossier, subject: str, district: CrmDistrict | None, role: str, is_org: bool,
-) -> tuple[list[C.Doc], str]:
-    docs: list[C.Doc] = []
-    for kind, query, deep in plan(subject, district, role, is_org):
+def pivot_plan(subject: str, claims: list[CrmClaim], already_queried: set[str], max_pivots: int) -> list[tuple[str, str, bool, str]]:
+    """Matrix search: for each confirmed/partial claim whose field matches a
+    pivot-worthy category (education, career, affiliation, etc.), spin up a
+    "<subject>" "<characteristic>" deep search. This is the literal
+    <name> + <discovered characteristic> combination AJ asked for. Every
+    pivot is tagged with its own technique label (matrix:<hint>) so
+    effectiveness is trackable per-characteristic-type, not just "matrix"
+    as one bucket."""
+    items: list[tuple[str, str, bool, str]] = []
+    seen_values: set[str] = set()
+    for c in claims:
+        if c.verdict not in ("confirmed", "partial"):
+            continue
+        field_l = c.field.lower()
+        hint = next((h for h in _PIVOT_HINTS if h in field_l), None)
+        if not hint:
+            continue
+        value = c.value.strip()
+        if not value:
+            continue
+        value_key = value.lower()
+        if value_key in seen_values:
+            continue
+        query = f'"{subject}" "{value}"'
+        if query.lower() in already_queried:
+            continue
+        seen_values.add(value_key)
+        items.append(("web", query, True, f"matrix:{hint}"))
+        if len(items) >= max_pivots:
+            break
+    return items
+
+
+def gather_batch(
+    session: Session, dossier: CrmDossier, plan_items: list[tuple[str, str, bool, str]],
+) -> list[tuple[C.Doc, str]]:
+    """Run one batch of (kind, query, deep, technique) items. Logs a
+    CrmSearch row per result, tagged with its technique. Returns
+    (doc, technique) pairs for docs worth extracting from (found + text)."""
+    pairs: list[tuple[C.Doc, str]] = []
+    for kind, query, deep, technique in plan_items:
         if kind == "wikipedia":
             results = C.wikipedia(query)
         elif kind == "web":
@@ -108,27 +161,37 @@ def gather(
             results = C.news(query)
         for d in results:
             session.add(CrmSearch(dossier_id=dossier.id, method=d.method, source=d.source,
-                                   query=query, url=d.url, found=d.found, notes=d.title[:200]))
+                                   query=query, url=d.url, found=d.found, notes=d.title[:200],
+                                   technique=technique))
             if d.found and d.url:
-                docs.append(d)
+                pairs.append((d, technique))
     session.commit()
 
-    for d in docs:
+    for d, _t in pairs:
         if not d.text and d.source in ("web", "news"):
             d.text = C.fetch_text(d.url)
 
-    # NCES CCD — direct lookup by LEA ID, org dossiers only (no search needed).
+    return [(d, t) for d, t in pairs if d.text]
+
+
+def gather(
+    session: Session, dossier: CrmDossier, subject: str, district: CrmDistrict | None, role: str, is_org: bool,
+) -> tuple[list[tuple[C.Doc, str]], str]:
+    """The static (round 0) gather, plus the one-off NCES/Wayback lookups
+    that aren't part of the query-matrix concept."""
+    pairs = gather_batch(session, dossier, static_plan(subject, district, role, is_org))
+
     if is_org and district and district.nces_lea_id:
         nces_text = nces.fetch_district_detail_text(district.nces_lea_id)
         if nces_text:
             url = f"https://nces.ed.gov/ccd/districtsearch/district_detail.asp?ID2={district.nces_lea_id}"
             session.add(CrmSearch(dossier_id=dossier.id, method="nces_ccd", source="web",
-                                   query="nces_lookup", url=url, found=True, notes="NCES CCD district detail"))
-            docs.append(C.Doc(source="web", method="nces_ccd", query="nces_lookup", url=url,
-                               title="NCES CCD District Detail", text=nces_text, found=True))
+                                   query="nces_lookup", url=url, found=True, notes="NCES CCD district detail",
+                                   technique="nces_ccd"))
+            pairs.append((C.Doc(source="web", method="nces_ccd", query="nces_lookup", url=url,
+                                 title="NCES CCD District Detail", text=nces_text, found=True), "nces_ccd"))
     session.commit()
 
-    # Wayback — check the district's own website for historically removed/edited content.
     wayback_note = ""
     if district and district.website:
         diff = wayback.earliest_and_latest_snapshot_text(district.website)
@@ -141,12 +204,12 @@ def gather(
                 f"if historical context matters here."
             )
 
-    return [d for d in docs if d.text], wayback_note
+    return pairs, wayback_note
 
 
-def extract_claims(session: Session, dossier: CrmDossier, docs: list[C.Doc], official_domain: str) -> int:
+def extract_claims(session: Session, dossier: CrmDossier, doc_pairs: list[tuple[C.Doc, str]], official_domain: str) -> int:
     n = 0
-    for d in docs:
+    for d, technique in doc_pairs:
         try:
             out = llm.complete_json_sync(EXTRACT_SYS, f"url: {d.url}\nsource: {d.source}\ntext:\n{d.text[:6000]}")
         except Exception:
@@ -159,6 +222,7 @@ def extract_claims(session: Session, dossier: CrmDossier, docs: list[C.Doc], off
                 value=str(c.get("value", ""))[:2000], source_url=d.url,
                 source_tier=classify_source_tier(d.url, official_domain),
                 confidence=float(c.get("stated_confidence", 0.0) or 0.0),
+                technique=technique,
             ))
             n += 1
     session.commit()
@@ -166,7 +230,12 @@ def extract_claims(session: Session, dossier: CrmDossier, docs: list[C.Doc], off
 
 
 def verify_claims(session: Session, dossier: CrmDossier, docs_by_url: dict[str, str]) -> None:
-    claims = session.execute(select(CrmClaim).where(CrmClaim.dossier_id == dossier.id)).scalars().all()
+    """Only verifies claims with no verdict yet — safe to call once per
+    round without re-spending LLM calls on already-verified claims from
+    earlier rounds."""
+    claims = session.execute(
+        select(CrmClaim).where(CrmClaim.dossier_id == dossier.id, CrmClaim.verdict == "")
+    ).scalars().all()
     for claim in claims:
         text = docs_by_url.get(claim.source_url, "")
         if not text:
@@ -179,7 +248,8 @@ def verify_claims(session: Session, dossier: CrmDossier, docs_by_url: dict[str, 
             claim.verdict = "insufficient"
     session.commit()
 
-    score_claims(claims)
+    all_claims = session.execute(select(CrmClaim).where(CrmClaim.dossier_id == dossier.id)).scalars().all()
+    score_claims(all_claims)
     session.commit()
 
 
@@ -221,11 +291,11 @@ def run_pipeline(
     district: CrmDistrict | None, role: str = "",
 ) -> CrmDossier:
     """The actual research pass — an exhaustive build (5 engines, 10 pages
-    deep, Wayback, NCES) can take well over ten minutes. Call this from a
-    background task against an already-created dossier row (see
+    deep, Wayback, NCES, plus up to 2 rounds of matrix-search pivots on
+    discovered characteristics) can take well over ten minutes. Call this
+    from a background task against an already-created dossier row (see
     create_dossier)."""
     is_org = person is None
-    import urllib.parse
     official_domain = ""
     if district and district.website:
         try:
@@ -233,18 +303,35 @@ def run_pipeline(
         except Exception:
             pass
 
-    docs, wayback_note = gather(session, dossier, subject, district, role, is_org)
+    doc_pairs, wayback_note = gather(session, dossier, subject, district, role, is_org)
 
     if not llm.configured():
         dossier.status = "needs_llm"
         session.commit()
         return dossier
 
-    extract_claims(session, dossier, docs, official_domain)
-    verify_claims(session, dossier, {d.url: d.text for d in docs})
+    queried = {q.lower() for _k, q, _d, _t in static_plan(subject, district, role, is_org)}
+
+    extract_claims(session, dossier, doc_pairs, official_domain)
+    verify_claims(session, dossier, {d.url: d.text for d, _t in doc_pairs})
+
+    for _round in range(_MAX_PIVOT_ROUNDS):
+        confirmed_so_far = session.execute(
+            select(CrmClaim).where(CrmClaim.dossier_id == dossier.id)
+        ).scalars().all()
+        pivots = pivot_plan(subject, confirmed_so_far, queried, _MAX_PIVOTS_PER_ROUND)
+        if not pivots:
+            break
+        queried.update(q.lower() for _k, q, _d, _t in pivots)
+
+        pivot_docs = gather_batch(session, dossier, pivots)
+        if not pivot_docs:
+            continue
+        extract_claims(session, dossier, pivot_docs, official_domain)
+        verify_claims(session, dossier, {d.url: d.text for d, _t in pivot_docs})
+
     _subscriber_fact(session, dossier, person)
     session.commit()
-    # _subscriber_fact's claim was added after verify_claims' scoring pass — score it too.
     score_claims(session.execute(select(CrmClaim).where(CrmClaim.dossier_id == dossier.id)).scalars().all())
     session.commit()
     summarize(session, dossier)

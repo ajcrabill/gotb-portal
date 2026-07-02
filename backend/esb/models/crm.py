@@ -124,6 +124,11 @@ class CrmClaim(UUIDMixin, Base):
     source_url: Mapped[str] = mapped_column(String(800), nullable=False)
     source_tier: Mapped[str] = mapped_column(String(20), default="")
     verdict: Mapped[str] = mapped_column(String(20), default="")
+    # Which search technique's result this claim was extracted from — e.g.
+    # "static_broad", "scrutiny:lawsuit", "matrix:education_degree". Denormalized
+    # from the originating CrmSearch row so technique-effectiveness stats are a
+    # simple GROUP BY, not a fragile URL-join. See dossier/stats.py.
+    technique: Mapped[str] = mapped_column(String(60), default="", index=True)
 
     dossier: Mapped["CrmDossier"] = relationship(back_populates="claims")
 
@@ -132,12 +137,18 @@ class CrmSearch(UUIDMixin, Base):
     __tablename__ = "crm_searches"
 
     dossier_id: Mapped[UUID] = mapped_column(ForeignKey("crm_dossiers.id", ondelete="CASCADE"), index=True)
-    method: Mapped[str] = mapped_column(String(40))
-    source: Mapped[str] = mapped_column(String(60))
+    method: Mapped[str] = mapped_column(String(40))     # the ENGINE: mojeek/bing/ddg_lite/brave/news/standard_source
+    source: Mapped[str] = mapped_column(String(60))      # wikipedia/web/news
     query: Mapped[str] = mapped_column(String(500), default="")
     url: Mapped[str] = mapped_column(String(800), default="")
     found: Mapped[bool] = mapped_column(Boolean, default=False)
     notes: Mapped[str] = mapped_column(String(500), default="")
+    # The STRATEGY that generated this query — distinct from `method` (the
+    # engine). e.g. "static_broad", "scrutiny:lawsuit", "matrix:career_employer".
+    # This is the learning-loop dimension: track every individual technique
+    # (including each specific matrix pivot) so effectiveness can be measured
+    # and unproductive ones phased out over time.
+    technique: Mapped[str] = mapped_column(String(60), default="", index=True)
 
     dossier: Mapped["CrmDossier"] = relationship(back_populates="searches")
 

@@ -644,8 +644,76 @@ function DossierListTab({ scope }: { scope: "mine" | "all" }) {
   );
 }
 
+type TechniqueStat = {
+  technique: string; searches_run: number; results_found: number;
+  claims_extracted: number; claims_confirmed: number; confirmation_rate: number;
+};
+
+function TechniqueStatsTab() {
+  const [rows, setRows] = useState<TechniqueStat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  async function load() {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_BASE}/api/crm/dossier/technique-stats`, { headers: authHeaders() });
+      if (!res.ok) throw new Error((await res.json()).detail ?? "Failed to load technique stats.");
+      setRows(await res.json());
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load technique stats.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  if (loading) return <p style={{ color: "var(--esb-muted)" }}>Loading…</p>;
+  if (error) return errBox(error);
+
+  return (
+    <div>
+      <p style={{ fontSize: "13px", color: "var(--esb-muted)", marginBottom: "16px" }}>
+        Effectiveness of every individual search technique — including each specific matrix pivot
+        (e.g. <code>matrix:education</code> vs <code>matrix:career</code>) — across every dossier ever built.
+        Confirmation rate is the share of that technique&apos;s searches that produced at least one claim
+        reaching the 90% confidence threshold. Techniques that stay near zero after enough runs are
+        candidates to drop from the search plan.
+      </p>
+      <div className="esb-card" style={{ padding: 0, overflow: "hidden" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "var(--esb-light-bg)", borderBottom: "2px solid var(--esb-border)" }}>
+              {["Technique", "Searches Run", "Results Found", "Claims Extracted", "Claims Confirmed", "Confirmation Rate"].map((h) => (
+                <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontFamily: "var(--font-heading)", fontSize: "13px", fontWeight: 700 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.technique} style={{ borderTop: "1px solid var(--esb-border)" }}>
+                <td style={{ padding: "10px 14px", fontSize: "13px", fontFamily: "monospace" }}>{r.technique}</td>
+                <td style={{ padding: "10px 14px", fontSize: "13px" }}>{r.searches_run}</td>
+                <td style={{ padding: "10px 14px", fontSize: "13px" }}>{r.results_found}</td>
+                <td style={{ padding: "10px 14px", fontSize: "13px" }}>{r.claims_extracted}</td>
+                <td style={{ padding: "10px 14px", fontSize: "13px" }}>{r.claims_confirmed}</td>
+                <td style={{ padding: "10px 14px", fontSize: "13px", fontWeight: 700 }}>{(r.confirmation_rate * 100).toFixed(1)}%</td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr><td colSpan={6} style={{ padding: "24px 16px", textAlign: "center", color: "var(--esb-muted)" }}>No data yet — build a dossier first.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function DossierTab() {
-  const [subTab, setSubTab] = useState<"build" | "mine" | "all">("build");
+  const [subTab, setSubTab] = useState<"build" | "mine" | "all" | "stats">("build");
   const [status, setStatus] = useState<{ llm_configured: boolean; model: string } | null>(null);
   const [district, setDistrict] = useState<DistrictDetail | null>(null);
   const [districtLite, setDistrictLite] = useState<DistrictLite | null>(null);
@@ -719,20 +787,21 @@ function DossierTab() {
   return (
     <div>
       <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-        {(["build", "mine", "all"] as const).map((t) => (
+        {(["build", "mine", "all", "stats"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setSubTab(t)}
             className={subTab === t ? "btn-primary" : "btn-outline"}
             style={{ fontSize: "13px", padding: "6px 16px" }}
           >
-            {t === "build" ? "Build" : t === "mine" ? "My Dossiers" : "All Dossiers"}
+            {t === "build" ? "Build" : t === "mine" ? "My Dossiers" : t === "all" ? "All Dossiers" : "Technique Stats"}
           </button>
         ))}
       </div>
 
       {subTab === "mine" && <DossierListTab scope="mine" />}
       {subTab === "all" && <DossierListTab scope="all" />}
+      {subTab === "stats" && <TechniqueStatsTab />}
 
       {subTab === "build" && <>
       {status && (
