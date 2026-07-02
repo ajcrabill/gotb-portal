@@ -105,90 +105,93 @@ _STUDENT_OUTCOMES_IDS = {"goal_setting", "goal_monitoring"}  # per the source fo
 
 
 # ── Narrative minute-block templates ─────────────────────────────────────────
-# Each entry is a list of (text_template, minutes_range) pairs for one
-# activity id. Templates describe WHAT THE BOARD DID, in the style of real
-# meeting minutes — not an agenda item title. Several are written to be
-# genuinely close calls that only resolve correctly against the Activity
-# descriptions above (that's deliberate: reading the description is
-# supposed to matter, not just pattern-matching a label).
+# Each entry is a list of (agenda_item_title, text_template, minutes_range)
+# tuples for one activity id. Real minutes are organized under short
+# agenda-item headers (the title), with the narrative of what actually
+# happened recorded underneath — so each block shows both. The title alone
+# is often ambiguous (e.g. "Public Comment" could sound like Community
+# Engagement) — several descriptions are written to be genuinely close
+# calls that only resolve correctly against the Activity descriptions
+# above (that's deliberate: reading the description is supposed to
+# matter, not just pattern-matching the item title).
 
-_MINUTE_TEMPLATES: dict[str, list[tuple[str, tuple[int, int]]]] = {
+_MINUTE_TEMPLATES: dict[str, list[tuple[str, str, tuple[int, int]]]] = {
     "other": [
-        ("The board president called the meeting to order at 6:00 PM and the secretary called roll; {quorum} of {board_size} members were present.", (2, 4)),
-        ("The board reviewed and approved the minutes from the previous regular meeting without discussion.", (1, 3)),
-        ("During the public comment period, {n_speakers} community members addressed the board on topics including a proposed bus route change and a maintenance complaint at {school}. Each speaker had three minutes at the podium; board members thanked speakers for their comments but did not respond to or discuss any of the concerns raised, and no board member engaged in dialogue with a speaker.", (8, 22)),
-        ("The board took public comment on the district's dress code policy. Twelve parents signed up; the board chair reminded the room that per policy the board does not respond during public comment, and none did. Comments were read into the record by the clerk.", (10, 18)),
-        ("The board approved the consent agenda in a single motion, covering routine items including field trip approvals, facility use requests, and personnel notifications, with no discussion.", (2, 5)),
-        ("The meeting was adjourned at the board president's motion, seconded and approved unanimously.", (1, 2)),
+        ("Call to Order / Roll Call", "The board president called the meeting to order at 6:00 PM and the secretary called roll; {quorum} of {board_size} members were present.", (2, 4)),
+        ("Approval of Minutes", "The board reviewed and approved the minutes from the previous regular meeting without discussion.", (1, 3)),
+        ("Public Comment", "During the public comment period, {n_speakers} community members addressed the board on topics including a proposed bus route change and a maintenance complaint at {school}. Each speaker had three minutes at the podium; board members thanked speakers for their comments but did not respond to or discuss any of the concerns raised, and no board member engaged in dialogue with a speaker.", (8, 22)),
+        ("Public Comment", "The board took public comment on the district's dress code policy. Twelve parents signed up; the board chair reminded the room that per policy the board does not respond during public comment, and none did. Comments were read into the record by the clerk.", (10, 18)),
+        ("Consent Agenda", "The board approved the consent agenda in a single motion, covering routine items including field trip approvals, facility use requests, and personnel notifications, with no discussion.", (2, 5)),
+        ("Adjournment", "The meeting was adjourned at the board president's motion, seconded and approved unanimously.", (1, 2)),
     ],
     "board_self_eval": [
-        ("The board conducted its quarterly self-evaluation using the Effective School Boards framework instrument, with each member independently scoring the board's performance on Focus Mindset and Clarify Priorities before discussing results as a group.", (15, 30)),
+        ("Board Self-Evaluation", "The board conducted its quarterly self-evaluation using the Effective School Boards framework instrument, with each member independently scoring the board's performance on Focus Mindset and Clarify Priorities before discussing results as a group.", (15, 30)),
     ],
     "effective_time_use_eval": [
-        ("The board reviewed last month's time-use evaluation results, comparing the percentage of the prior meeting spent on student-outcomes-focused work against the board's own target.", (5, 12)),
+        ("Time Use Evaluation Review", "The board reviewed last month's time-use evaluation results, comparing the percentage of the prior meeting spent on student-outcomes-focused work against the board's own target.", (5, 12)),
     ],
     "board_training": [
-        ("A board development consultant led a training session for board members on distinguishing governance from management, using recent board decisions as case studies.", (20, 45)),
-        ("The board spent time reviewing the Effective School Boards framework's guardrail-monitoring calendar and discussing how upcoming reports would be structured.", (10, 20)),
+        ("Board Development: Governance vs. Management", "A board development consultant led a training session for board members on distinguishing governance from management, using recent board decisions as case studies.", (20, 45)),
+        ("Guardrail Monitoring Calendar Review", "The board spent time reviewing the Effective School Boards framework's guardrail-monitoring calendar and discussing how upcoming reports would be structured.", (10, 20)),
     ],
     "board_led_community_training": [
-        ("Two board members co-led a community workshop, held immediately before the regular meeting, walking attendees through the district's SMART goal framework and how the community can track progress.", (20, 40)),
+        ("Community Workshop: SMART Goals", "Two board members co-led a community workshop, held immediately before the regular meeting, walking attendees through the district's SMART goal framework and how the community can track progress.", (20, 40)),
     ],
     "community_listening_goals": [
-        ("Board members broke into small groups with attendees to gather input on what families believe the district's top student-outcome priority should be for next year, with each group reporting themes back to the full board.", (15, 30)),
-        ("The board held a structured listening session, asking attendees direct questions about their vision for the district and taking notes on responses that will inform the upcoming goal-setting cycle; several board members asked follow-up questions of specific speakers.", (15, 25)),
+        ("Community Listening: Student Outcome Priorities", "Board members broke into small groups with attendees to gather input on what families believe the district's top student-outcome priority should be for next year, with each group reporting themes back to the full board.", (15, 30)),
+        ("Structured Listening Session: District Vision", "The board held a structured listening session, asking attendees direct questions about their vision for the district and taking notes on responses that will inform the upcoming goal-setting cycle; several board members asked follow-up questions of specific speakers.", (15, 25)),
     ],
     "data_eval_goals": [
-        ("The board reviewed disaggregated third-grade reading assessment data by subgroup, discussing which student populations showed the largest gaps against the district's literacy goal.", (10, 25)),
-        ("The academic officer presented graduation-rate trend data over the last five years, and board members asked clarifying questions about which cohorts were most at risk of not graduating on time.", (12, 20)),
+        ("Student Data Review: Reading Assessment", "The board reviewed disaggregated third-grade reading assessment data by subgroup, discussing which student populations showed the largest gaps against the district's literacy goal.", (10, 25)),
+        ("Graduation Rate Data Presentation", "The academic officer presented graduation-rate trend data over the last five years, and board members asked clarifying questions about which cohorts were most at risk of not graduating on time.", (12, 20)),
     ],
     "goal_setting": [
-        ("The board discussed and voted to accept an interim goal for third-grade reading proficiency, setting a target of increasing the percentage of students reading on grade level from 45% to 55% by the end of the school year.", (10, 25)),
-        ("Following a first read at the prior meeting, the board formally adopted its five-year student-outcomes goal on graduation rate, setting a target increase from 78% to 90% by 2030.", (8, 18)),
+        ("Interim Goal: Third-Grade Reading Proficiency", "The board discussed and voted to accept an interim goal for third-grade reading proficiency, setting a target of increasing the percentage of students reading on grade level from 45% to 55% by the end of the school year.", (10, 25)),
+        ("Goal Adoption: Graduation Rate", "Following a first read at the prior meeting, the board formally adopted its five-year student-outcomes goal on graduation rate, setting a target increase from 78% to 90% by 2030.", (8, 18)),
     ],
     "community_listening_guardrails": [
-        ("The board asked attendees at a town hall what non-negotiable community values the board should protect when it comes to how the superintendent operates, and discussed the themes that emerged with the room.", (15, 25)),
+        ("Town Hall: Community Values", "The board asked attendees at a town hall what non-negotiable community values the board should protect when it comes to how the superintendent operates, and discussed the themes that emerged with the room.", (15, 25)),
     ],
     "data_eval_guardrails": [
-        ("The board reviewed discipline-incident data broken out by school and by student subgroup, looking for patterns that might indicate a guardrail violation around equitable discipline practices.", (10, 20)),
+        ("Discipline Data Review", "The board reviewed discipline-incident data broken out by school and by student subgroup, looking for patterns that might indicate a guardrail violation around equitable discipline practices.", (10, 20)),
     ],
     "guardrail_setting": [
-        ("The board discussed and adopted a new guardrail prohibiting the superintendent from approving any curriculum change without first engaging classroom teachers, following board discussion of a proposed contract that had already drawn teacher objections.", (10, 20)),
+        ("Guardrail Adoption: Curriculum Change Process", "The board discussed and adopted a new guardrail prohibiting the superintendent from approving any curriculum change without first engaging classroom teachers, following board discussion of a proposed contract that had already drawn teacher objections.", (10, 20)),
     ],
     "goal_monitoring": [
-        ("The superintendent presented the scheduled quarterly goal-monitoring report on the district's math proficiency goal, showing current performance against the interim target; the board discussed the data and voted to accept the report as presented.", (15, 30)),
-        ("Per the monitoring calendar, the board reviewed the semi-annual graduation-rate goal report, asked the superintendent several questions about the plan to close the gap with the target, and voted not to accept the report pending additional data.", (15, 25)),
+        ("Quarterly Goal Monitoring Report: Math Proficiency", "The superintendent presented the scheduled quarterly goal-monitoring report on the district's math proficiency goal, showing current performance against the interim target; the board discussed the data and voted to accept the report as presented.", (15, 30)),
+        ("Semi-Annual Goal Monitoring Report: Graduation Rate", "Per the monitoring calendar, the board reviewed the semi-annual graduation-rate goal report, asked the superintendent several questions about the plan to close the gap with the target, and voted not to accept the report pending additional data.", (15, 25)),
     ],
     "guardrail_monitoring": [
-        ("The board reviewed the scheduled guardrail-monitoring report on student discipline practices, comparing suspension rates by subgroup against the guardrail's non-negotiable language, and voted to accept the report.", (10, 20)),
-        ("As scheduled on the monitoring calendar, the superintendent presented evidence of compliance with the community-engagement guardrail, and the board discussed whether the evidence provided was sufficient before voting to accept it.", (10, 18)),
+        ("Guardrail Monitoring Report: Student Discipline", "The board reviewed the scheduled guardrail-monitoring report on student discipline practices, comparing suspension rates by subgroup against the guardrail's non-negotiable language, and voted to accept the report.", (10, 20)),
+        ("Guardrail Monitoring Report: Community Engagement Compliance", "As scheduled on the monitoring calendar, the superintendent presented evidence of compliance with the community-engagement guardrail, and the board discussed whether the evidence provided was sufficient before voting to accept it.", (10, 18)),
     ],
     "superintendent_eval": [
-        ("The board conducted the superintendent's annual performance evaluation in open session, with each board member sharing scored feedback against the adopted evaluation rubric before reaching consensus on an overall rating.", (25, 50)),
+        ("Superintendent Annual Performance Evaluation", "The board conducted the superintendent's annual performance evaluation in open session, with each board member sharing scored feedback against the adopted evaluation rubric before reaching consensus on an overall rating.", (25, 50)),
     ],
     "voting": [
-        ("The board debated and voted on a proposed change to the district's attendance boundary lines, with several members raising concerns about impact on specific neighborhoods before the motion passed 4-3.", (10, 25)),
-        ("The board voted to approve a new vendor contract for transportation services after brief discussion of the bid comparison.", (5, 12)),
+        ("Attendance Boundary Change", "The board debated and voted on a proposed change to the district's attendance boundary lines, with several members raising concerns about impact on specific neighborhoods before the motion passed 4-3.", (10, 25)),
+        ("Transportation Services Contract", "The board voted to approve a new vendor contract for transportation services after brief discussion of the bid comparison.", (5, 12)),
     ],
     "policy_review": [
-        ("The board conducted a first reading of a revised student code of conduct policy, discussing whether the proposed language aligned with the district's adopted guardrails on discipline.", (10, 20)),
-        ("Legal counsel walked the board through required updates to the district's open-records policy to remain compliant with a recent state law change, and the board discussed whether the update conflicted with any existing guardrail.", (8, 15)),
+        ("Policy 123 - First Read", "The board conducted a first reading of a revised student code of conduct policy, discussing whether the proposed language aligned with the district's adopted guardrails on discipline.", (10, 20)),
+        ("Open-Records Policy Update", "Legal counsel walked the board through required updates to the district's open-records policy to remain compliant with a recent state law change, and the board discussed whether the update conflicted with any existing guardrail.", (8, 15)),
     ],
     "budget_review": [
-        ("The chief financial officer presented the mid-year budget forecast, and the board discussed whether proposed reallocations toward literacy intervention staffing aligned with the district's adopted goals.", (12, 25)),
-        ("The board reviewed the proposed capital budget for facility repairs, discussing whether the prioritized projects reflected the guardrails around equitable facility conditions across schools.", (15, 25)),
+        ("Mid-Year Budget Forecast", "The chief financial officer presented the mid-year budget forecast, and the board discussed whether proposed reallocations toward literacy intervention staffing aligned with the district's adopted goals.", (12, 25)),
+        ("Budget Proposal", "The board reviewed the proposed capital budget for facility repairs, discussing whether the prioritized projects reflected the guardrails around equitable facility conditions across schools.", (15, 25)),
     ],
     "community_engagement": [
-        ("The board hosted a structured community forum on the district's proposed rezoning plan, with board members taking questions directly from attendees and engaging in back-and-forth discussion about specific concerns raised, including several instances of a board member following up on a speaker's point.", (20, 40)),
-        ("Board members hosted a “Coffee with the Board” session before the meeting, fielding questions from roughly twenty attendees about the district's strategic priorities and responding directly to each question asked.", (15, 30)),
+        ("Community Engagement Session", "The board hosted a structured community forum on the district's proposed rezoning plan, with board members taking questions directly from attendees and engaging in back-and-forth discussion about specific concerns raised, including several instances of a board member following up on a speaker's point.", (20, 40)),
+        ("Coffee with the Board", "Board members hosted a “Coffee with the Board” session before the meeting, fielding questions from roughly twenty attendees about the district's strategic priorities and responding directly to each question asked.", (15, 30)),
     ],
     "community_outreach": [
-        ("Two board members attended a PTA-hosted meeting at {school}, where they took questions from parents about the district's academic goals and engaged in discussion about specific concerns raised regarding the new reading curriculum.", (15, 30)),
-        ("A board member attended a neighborhood association meeting, invited by the association, and spent the session in dialogue with residents about how the district's guardrails address safety concerns raised at a prior meeting.", (10, 20)),
+        ("PTA Meeting Outreach", "Two board members attended a PTA-hosted meeting at {school}, where they took questions from parents about the district's academic goals and engaged in discussion about specific concerns raised regarding the new reading curriculum.", (15, 30)),
+        ("Neighborhood Association Meeting", "A board member attended a neighborhood association meeting, invited by the association, and spent the session in dialogue with residents about how the district's guardrails address safety concerns raised at a prior meeting.", (10, 20)),
     ],
     "closed_session": [
-        ("The board entered closed session, consistent with open meetings law, to discuss active litigation; the meeting resumed in open session with no action taken.", (15, 40)),
-        ("The board convened in executive session to discuss the superintendent's contract renewal terms before returning to open session to vote.", (20, 45)),
+        ("Executive Session: Litigation", "The board entered closed session, consistent with open meetings law, to discuss active litigation; the meeting resumed in open session with no action taken.", (15, 40)),
+        ("Executive Session: Superintendent Contract", "The board convened in executive session to discuss the superintendent's contract renewal terms before returning to open session to vote.", (20, 45)),
     ],
 }
 
@@ -222,23 +225,23 @@ def _generate_minute_items(rng: random.Random, quorum: int, board_size: int) -> 
     chosen_ids = rng.sample(substantive_ids, k=rng.randint(5, 9))
 
     items: list[dict] = []
-    for text_template, minutes_range in selected_other:
-        items.append(_fill_item(rng, "other", text_template, minutes_range, quorum, board_size))
+    for title, text_template, minutes_range in selected_other:
+        items.append(_fill_item(rng, "other", title, text_template, minutes_range, quorum, board_size))
     for activity_id in chosen_ids:
-        text_template, minutes_range = rng.choice(_MINUTE_TEMPLATES[activity_id])
-        items.append(_fill_item(rng, activity_id, text_template, minutes_range, quorum, board_size))
+        title, text_template, minutes_range = rng.choice(_MINUTE_TEMPLATES[activity_id])
+        items.append(_fill_item(rng, activity_id, title, text_template, minutes_range, quorum, board_size))
 
     rng.shuffle(items)
     return items
 
 
-def _fill_item(rng: random.Random, activity_id: str, template: str, minutes_range: tuple[int, int], quorum: int, board_size: int) -> dict:
+def _fill_item(rng: random.Random, activity_id: str, title: str, template: str, minutes_range: tuple[int, int], quorum: int, board_size: int) -> dict:
     minutes = rng.randint(*minutes_range)
     text = template.format(
         quorum=quorum, board_size=board_size,
         n_speakers=rng.randint(3, 9), school=rng.choice(_SCHOOLS),
     )
-    return {"description": text, "activity_id": activity_id, "minutes": minutes}
+    return {"title": title, "description": text, "activity_id": activity_id, "minutes": minutes}
 
 
 def generate_scenario(
@@ -279,7 +282,7 @@ def generate_scenario(
         # practitioner — that's the thing being tested. Duration is not a
         # secret: real meeting minutes always show how long each item took,
         # and without it there's no way to total minutes per Activity at all.
-        "minute_items": [{"description": m["description"], "minutes": m["minutes"]} for m in minute_items],
+        "minute_items": [{"title": m["title"], "description": m["description"], "minutes": m["minutes"]} for m in minute_items],
         "_minute_items_truth": minute_items,  # includes activity_id; stripped before sending to client
         "notes": (
             f"The board convened at 6:00 PM with {quorum} of {board_size} members present. "

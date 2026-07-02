@@ -22,6 +22,7 @@ import { API_BASE } from "@/lib/api";
 type Stage = "landing" | "scoring" | "results";
 
 type MinuteItem = {
+  title: string;
   description: string;
   minutes: number;
 };
@@ -329,18 +330,31 @@ export default function IRRSimulatorPage() {
                 Meeting Minutes
               </h3>
               <p style={{ color: "var(--esb-muted)", fontSize: "13px", marginBottom: "12px" }}>
-                These are minutes, not an agenda — each block describes what the board actually did and how
-                long it took. Read carefully: the description, not the topic label, determines the correct
-                Activity classification. Add up the minutes for every block you assign to an Activity below.
+                These are minutes, organized by agenda item — not an agenda itself, since an agenda can&apos;t
+                tell you how long anything took. Read the description under each item carefully: it, not the
+                item title, determines the correct Activity classification.
               </p>
-              <div>
-                {scenario.scenario_data.minute_items.map((item, i) => (
-                  <div key={i} style={{ display: "flex", gap: "16px", padding: "10px 0", borderBottom: i < scenario.scenario_data.minute_items.length - 1 ? "1px solid var(--esb-border)" : "none" }}>
-                    <span style={{ color: "var(--esb-text)", fontSize: "14px", lineHeight: "1.6", flex: 1 }}>{item.description}</span>
-                    <span style={{ color: "var(--esb-primary)", fontWeight: 700, fontSize: "14px", flexShrink: 0, whiteSpace: "nowrap" }}>{item.minutes} min</span>
-                  </div>
-                ))}
-              </div>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+                <thead>
+                  <tr style={{ background: "var(--esb-light-bg)" }}>
+                    <th style={{ padding: "8px 12px", textAlign: "left", fontFamily: "var(--font-heading)", fontWeight: 700, borderBottom: "2px solid var(--esb-border)" }}>Agenda Item</th>
+                    <th style={{ padding: "8px 12px", textAlign: "right", fontFamily: "var(--font-heading)", fontWeight: 700, borderBottom: "2px solid var(--esb-border)", width: "100px" }}>Time Used</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scenario.scenario_data.minute_items.map((item, i) => (
+                    <tr key={i} style={{ borderBottom: "1px solid var(--esb-border)" }}>
+                      <td style={{ padding: "10px 12px" }}>
+                        <div style={{ fontWeight: 700, color: "var(--esb-dark)", marginBottom: "4px" }}>{item.title}</div>
+                        <div style={{ color: "var(--esb-text)", lineHeight: "1.6" }}>{item.description}</div>
+                      </td>
+                      <td style={{ padding: "10px 12px", textAlign: "right", verticalAlign: "top", color: "var(--esb-primary)", fontWeight: 700, whiteSpace: "nowrap" }}>
+                        {item.minutes} min
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             {/* Classify each block into total minutes per Activity */}
