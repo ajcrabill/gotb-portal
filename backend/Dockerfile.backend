@@ -10,8 +10,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Chromium's runtime deps, named explicitly — `playwright install --with-deps`
+# maps to package names for Playwright's officially-supported Debian/Ubuntu
+# releases, which doesn't include this image's base (Debian trixie); several
+# of those names (ttf-ubuntu-font-family, ttf-unifont) don't exist there and
+# the auto-install fails outright. fonts-liberation/fonts-unifont are trixie's
+# actual replacements for the fonts Chromium needs to render pages correctly.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
+    libgbm1 libasound2 libpango-1.0-0 libcairo2 libatspi2.0-0 \
+    fonts-liberation fonts-unifont \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV PLAYWRIGHT_BROWSERS_PATH=/app/.playwright-browsers
-RUN python -m playwright install --with-deps chromium
+RUN python -m playwright install chromium
 
 COPY . .
 
