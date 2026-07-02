@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from esb.auth.rbac import AuthContext, get_auth_context
 from esb.core.database import get_db
 from esb.eval.classification_guide import render_with_rules
+from esb.models.crm import CrmDistrict
 from esb.models.irr import IRRAttempt, IRRAttemptStatus, IRRProgress, IRRScenario, IRRScenarioType, TimeUseLearningRule
 from esb.models.user import RoleType
 from esb.services.irr import (
@@ -68,7 +69,10 @@ async def generate(
     require_practitioner(auth)
 
     seed = secrets.token_hex(8)
-    scenario_data = generate_scenario(seed=seed)
+    district_rows = (await db.execute(
+        select(CrmDistrict.name).order_by(func.random()).limit(25)
+    )).scalars().all()
+    scenario_data = generate_scenario(seed=seed, district_pool=list(district_rows) or None)
     system_scores = system_score_scenario(scenario_data)
     # The ground-truth activity_id per minute-block is the answer key —
     # never persist or return it alongside the practitioner-facing data.
