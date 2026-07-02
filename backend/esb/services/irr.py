@@ -153,7 +153,7 @@ _MINUTE_TEMPLATES: dict[str, list[tuple[str, str, tuple[int, int]]]] = {
         ("Guardrail Monitoring Calendar Review", "The board spent time reviewing the Effective School Boards framework's guardrail-monitoring calendar and discussing how upcoming reports would be structured.", (10, 20)),
     ],
     "board_led_community_training": [
-        ("Community Workshop: SMART Goals", "Two board members co-led a community workshop, held immediately before the regular meeting, walking attendees through the district's SMART goal framework and how the community can track progress.", (20, 40)),
+        ("Community Workshop: SMART Goals", "As a scheduled agenda item, two board members co-led a community workshop segment of the meeting, walking attendees through the district's SMART goal framework and how the community can track progress.", (20, 40)),
     ],
     "community_listening_goals": [
         ("Community Listening: Student Outcome Priorities", "Board members broke into small groups with attendees to gather input on what families believe the district's top student-outcome priority should be for next year, with each group reporting themes back to the full board.", (15, 30)),
@@ -168,7 +168,7 @@ _MINUTE_TEMPLATES: dict[str, list[tuple[str, str, tuple[int, int]]]] = {
         ("Goal Adoption: Graduation Rate", "Following a first read at the prior meeting, the board formally adopted its five-year student-outcomes goal on graduation rate, setting a target increase from 78% to 90% by 2030.", (8, 18)),
     ],
     "community_listening_guardrails": [
-        ("Town Hall: Community Values", "The board asked attendees at a town hall what non-negotiable community values the board should protect when it comes to how the superintendent operates, and discussed the themes that emerged with the room.", (15, 25)),
+        ("Community Values Discussion", "During the public meeting, the board asked attendees in the room what non-negotiable community values the board should protect when it comes to how the superintendent operates, and discussed the themes that emerged.", (15, 25)),
     ],
     "data_eval_guardrails": [
         ("Discipline Data Review", "The board reviewed discipline-incident data broken out by school and by student subgroup, looking for patterns that might indicate a guardrail violation around equitable discipline practices.", (10, 20)),
@@ -207,12 +207,19 @@ _MINUTE_TEMPLATES: dict[str, list[tuple[str, str, tuple[int, int]]]] = {
     ],
     "community_engagement": [
         ("Community Engagement Session", "The board hosted a structured community forum on the district's proposed rezoning plan, with board members taking questions directly from attendees and engaging in back-and-forth discussion about specific concerns raised, including several instances of a board member following up on a speaker's point.", (20, 40)),
-        ("Coffee with the Board", "Board members hosted a “Coffee with the Board” session before the meeting, fielding questions from roughly twenty attendees about the district's strategic priorities and responding directly to each question asked.", (15, 30)),
+        ("Coffee with the Board", "As a scheduled segment of tonight's meeting, board members held a \"Coffee with the Board\" question period, fielding questions from roughly twenty attendees in the room about the district's strategic priorities and responding directly to each question asked.", (15, 30)),
     ],
-    "community_outreach": [
-        ("PTA Meeting Outreach", "Two board members attended a PTA-hosted meeting at {school}, where they took questions from parents about the district's academic goals and engaged in discussion about specific concerns raised regarding the new reading curriculum.", (15, 30)),
-        ("Neighborhood Association Meeting", "A board member attended a neighborhood association meeting, invited by the association, and spent the session in dialogue with residents about how the district's guardrails address safety concerns raised at a prior meeting.", (10, 20)),
-    ],
+    # NOTE: "community_outreach" is intentionally NOT in this dict.
+    # Community Outreach is, by the Activity's own definition, board
+    # members attending a COMMUNITY-hosted meeting somewhere else — it
+    # cannot happen "during" a single board meeting's own minutes. A
+    # board member reporting during this meeting on an outreach event
+    # they previously attended is a report-back (that reporting time
+    # would code elsewhere, e.g. Other), not the outreach itself. The
+    # Activity stays in the scored rubric (TIME_USE_ITEMS /
+    # ACTIVITY_ITEMS) so practitioners see it and correctly enter 0 for
+    # any single-meeting scenario — it's just never fabricated as a
+    # same-meeting minute-block. See AJ's correction, 2026-07-02.
     "closed_session": [
         ("Executive Session: Litigation", "The board entered closed session, consistent with open meetings law, to discuss active litigation; the meeting resumed in open session with no action taken.", (15, 40)),
         ("Executive Session: Superintendent Contract", "The board convened in executive session to discuss the superintendent's contract renewal terms before returning to open session to vote.", (20, 45)),
