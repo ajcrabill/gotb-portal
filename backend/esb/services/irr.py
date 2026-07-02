@@ -315,15 +315,17 @@ def _generate_minute_items(rng: random.Random, quorum: int, board_size: int) -> 
         title, text_template, minutes_range = rng.choice(_MINUTE_TEMPLATES[activity_id])
         items.append(_fill_item(rng, activity_id, title, text_template, minutes_range, quorum, board_size))
 
-    # Shuffle the body of the meeting, but a Call to Order always opens a
-    # meeting and an Adjournment always closes one — pin those in place if
-    # a scenario happens to have drawn them rather than letting the
-    # shuffle scatter them into the middle.
+    # Shuffle the body of the meeting, but pin the items whose position in
+    # a real meeting is fixed rather than letting the shuffle scatter them:
+    # Call to Order always opens; Approval of Agenda comes right after it
+    # (or first, if there's no Call to Order); Adjournment always closes.
     call_to_order = [i for i in items if i["title"] == "Call to Order / Roll Call"]
+    approval_of_agenda = [i for i in items if i["title"] == "Approval of Agenda"]
     adjournment = [i for i in items if i["title"] == "Adjournment"]
-    middle = [i for i in items if i["title"] not in ("Call to Order / Roll Call", "Adjournment")]
+    pinned_titles = ("Call to Order / Roll Call", "Approval of Agenda", "Adjournment")
+    middle = [i for i in items if i["title"] not in pinned_titles]
     rng.shuffle(middle)
-    return call_to_order + middle + adjournment
+    return call_to_order + approval_of_agenda + middle + adjournment
 
 
 def _fill_item(rng: random.Random, activity_id: str, title: str, template: str, minutes_range: tuple[int, int], quorum: int, board_size: int) -> dict:
