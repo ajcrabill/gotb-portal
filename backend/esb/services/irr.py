@@ -281,6 +281,15 @@ _MINUTE_TEMPLATES: dict[str, list[tuple[str, str, tuple[int, int]]]] = {
 
 _SCHOOLS = ["Jefferson Elementary", "Lincoln Middle School", "Roosevelt High School", "Washington Elementary", "Kennedy Middle School"]
 
+# Reused when a drawn Goal Monitoring item is downgraded to a mismatch —
+# see _generate_minute_items. Both templates carry a title that reads
+# like a goal-monitoring report, but their description makes clear the
+# board's actual time was spent on something else, so they code as Other.
+_GOAL_MONITORING_MISMATCHES = [
+    t for t in _MINUTE_TEMPLATES["other"]
+    if t[0] in ("Goal #1 Monitoring Session", "Goal Progress Report")
+]
+
 
 def _seed_from_string(s: str) -> int:
     return int(hashlib.md5(s.encode()).hexdigest(), 16) % (2**31)
@@ -312,6 +321,20 @@ def _generate_minute_items(rng: random.Random, quorum: int, board_size: int) -> 
     for title, text_template, minutes_range in selected_other:
         items.append(_fill_item(rng, "other", title, text_template, minutes_range, quorum, board_size))
     for activity_id in chosen_ids:
+        if activity_id == "goal_monitoring":
+            # Goal Monitoring is drawn far more than other activities merit
+            # in real practice — 50% of the time, drop it from the scenario
+            # entirely even though it was selected for inclusion.
+            if rng.random() < 0.5:
+                continue
+            # Of what remains, 20% of the time the item reads like a
+            # monitoring report on the agenda, but the minutes show the
+            # board didn't actually do goal-monitoring work — reuse the
+            # dedicated mismatch templates already written for this.
+            if rng.random() < 0.2:
+                title, text_template, minutes_range = rng.choice(_GOAL_MONITORING_MISMATCHES)
+                items.append(_fill_item(rng, "other", title, text_template, minutes_range, quorum, board_size))
+                continue
         title, text_template, minutes_range = rng.choice(_MINUTE_TEMPLATES[activity_id])
         items.append(_fill_item(rng, activity_id, title, text_template, minutes_range, quorum, board_size))
 
