@@ -328,36 +328,54 @@ def _fill_item(rng: random.Random, activity_id: str, title: str, template: str, 
     return {"title": title, "description": text, "activity_id": activity_id, "minutes": minutes}
 
 
-_FALLBACK_DISTRICTS = [
+_DISTRICTS = [
     "Riverside Unified School District",
     "Northlake Community School District",
     "Elmwood Independent School District",
     "Clearwater Public Schools",
     "Hillcrest School District",
     "Mapleton Unified School District",
+    "Cedar Falls Public Schools",
+    "Brookhaven Independent School District",
+    "Sunridge Unified School District",
+    "Pinecrest Community School District",
+    "Fairview Public Schools",
+    "Silver Creek Unified School District",
+    "Oakmont Independent School District",
+    "Meadowbrook School District",
+    "Harborview Public Schools",
+    "Stonebridge Unified School District",
+    "Willow Grove Community School District",
+    "Ridgeline Independent School District",
+    "Copper Valley School District",
+    "Bayside Unified School District",
+    "Prairie View Public Schools",
+    "Ashford Independent School District",
+    "Crestwood Community School District",
+    "Lakeshore Unified School District",
+    "Timberline Public Schools",
+    "Foxborough Independent School District",
+    "Granite Hills School District",
+    "Magnolia Unified School District",
+    "Sagebrush Community School District",
+    "Whitmore Independent School District",
 ]
 
 
 def generate_scenario(
     scenario_type: IRRScenarioType = IRRScenarioType.time_use_eval,
     seed: str | None = None,
-    district_pool: list[str] | None = None,
 ) -> dict:
     """Generate synthetic scenario data — a set of meeting-minutes entries
     (not an agenda) with narrative descriptions the practitioner must
     classify and time. Returns a dict with everything needed to present
-    the scenario.
-
-    `district_pool` lets the caller supply real district names (e.g. a
-    random sample from the CRM) so scenarios aren't always drawn from the
-    same handful of made-up names. Falls back to that handful if the
-    caller has none available (empty CRM, DB error, etc.)."""
+    the scenario."""
     if seed is None:
         seed = secrets.token_hex(8)
     rng = random.Random(_seed_from_string(seed))
 
     meeting_date = _random_date_near_today(rng)
-    district_name = rng.choice(district_pool or _FALLBACK_DISTRICTS)
+    district_name = rng.choice(_DISTRICTS)
     board_size = rng.randint(5, 7)
     quorum = rng.randint(board_size - 1, board_size)
 
