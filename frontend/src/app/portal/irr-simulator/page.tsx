@@ -23,6 +23,7 @@ type Stage = "landing" | "scoring" | "results";
 
 type MinuteItem = {
   description: string;
+  minutes: number;
 };
 
 type ScenarioData = {
@@ -322,14 +323,15 @@ export default function IRRSimulatorPage() {
                 Meeting Minutes
               </h3>
               <p style={{ color: "var(--esb-muted)", fontSize: "13px", marginBottom: "12px" }}>
-                These are minutes, not an agenda — each block describes what the board actually did during
-                that time. Read carefully: the description, not the topic label, determines the correct
-                Activity classification.
+                These are minutes, not an agenda — each block describes what the board actually did and how
+                long it took. Read carefully: the description, not the topic label, determines the correct
+                Activity classification. Add up the minutes for every block you assign to an Activity below.
               </p>
               <div>
                 {scenario.scenario_data.minute_items.map((item, i) => (
-                  <div key={i} style={{ display: "flex", gap: "12px", padding: "10px 0", borderBottom: i < scenario.scenario_data.minute_items.length - 1 ? "1px solid var(--esb-border)" : "none" }}>
+                  <div key={i} style={{ display: "flex", gap: "16px", padding: "10px 0", borderBottom: i < scenario.scenario_data.minute_items.length - 1 ? "1px solid var(--esb-border)" : "none" }}>
                     <span style={{ color: "var(--esb-text)", fontSize: "14px", lineHeight: "1.6", flex: 1 }}>{item.description}</span>
+                    <span style={{ color: "var(--esb-primary)", fontWeight: 700, fontSize: "14px", flexShrink: 0, whiteSpace: "nowrap" }}>{item.minutes} min</span>
                   </div>
                 ))}
               </div>

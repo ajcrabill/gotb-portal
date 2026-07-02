@@ -275,7 +275,11 @@ def generate_scenario(
         "quorum_present": quorum,
         "board_size": board_size,
         "total_minutes": total_minutes,
-        "minute_items": [{"description": m["description"]} for m in minute_items],  # activity_id withheld from practitioner
+        # activity_id (the ground-truth classification) is withheld from the
+        # practitioner — that's the thing being tested. Duration is not a
+        # secret: real meeting minutes always show how long each item took,
+        # and without it there's no way to total minutes per Activity at all.
+        "minute_items": [{"description": m["description"], "minutes": m["minutes"]} for m in minute_items],
         "_minute_items_truth": minute_items,  # includes activity_id; stripped before sending to client
         "notes": (
             f"The board convened at 6:00 PM with {quorum} of {board_size} members present. "
