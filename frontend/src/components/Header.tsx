@@ -138,12 +138,9 @@ export default function Header() {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
-        <a
-          href={isPortal ? "/portal/dashboard" : ESB_SITE}
-          style={{ fontFamily: "var(--font-logo)", fontSize: "22px", fontWeight: 600, color: "#111111", textDecoration: "none" }}
-        >
-          Effective{" "}
-          <span style={{ color: "var(--esb-primary)" }}>School Boards</span>
+        <a href={isPortal ? "/portal/dashboard" : ESB_SITE} style={{ display: "flex", alignItems: "center" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/img/esb-logo.png" alt="Effective School Boards" style={{ height: "36px", width: "auto" }} />
         </a>
 
         {/* Desktop nav */}

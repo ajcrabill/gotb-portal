@@ -15,17 +15,18 @@ export default function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Brand */}
             <div>
-              <h3
+              <div
                 style={{
-                  fontFamily: "var(--font-logo)",
-                  fontSize: "22px",
-                  fontWeight: 600,
+                  display: "inline-block",
+                  background: "#fff",
+                  borderRadius: "6px",
+                  padding: "8px 12px",
                   marginBottom: "16px",
                 }}
               >
-                Effective{" "}
-                <span style={{ color: "var(--esb-primary)" }}>School Boards</span>
-              </h3>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/img/esb-logo.png" alt="Effective School Boards" style={{ height: "28px", width: "auto", display: "block" }} />
+              </div>
               <p style={{ color: "#aaaaaa", fontSize: "14px", lineHeight: "1.7" }}>
                 Supporting school boards in becoming Great on Their Behalf — focused
                 on student outcomes and effective governance.
